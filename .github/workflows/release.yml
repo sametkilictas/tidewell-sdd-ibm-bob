@@ -1,0 +1,31 @@
+# Publishes a GitHub release when a version tag (v1.0.0, v1.1.0, …) is pushed: the notes come from
+# .github/releases/<tag>.md, and the presentation PDF and the explainer video are attached.
+# Governance-protected (CODEOWNERS: .github/).
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create the release with its downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          notes=".github/releases/$TAG.md"
+          if [ ! -f "$notes" ]; then echo "::error::Write the release notes in $notes first."; exit 1; fi
+          if gh release view "$TAG" >/dev/null 2>&1; then echo "Release $TAG already exists."; exit 0; fi
+          gh release create "$TAG" \
+            --title "$TAG — Bob builds. People approve. Checks verify." \
+            --notes-file "$notes" \
+            --verify-tag \
+            site/src/deck/tidewell-sdd-ibm-bob-deck.pdf \
+            site/src/media/tidewell-sdd-explainer-720p.mp4
