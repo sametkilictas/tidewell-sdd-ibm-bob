@@ -1,11 +1,18 @@
-# Publishes a GitHub release when a version tag (v1.0.0, v1.1.0, …) is pushed: the notes come from
-# .github/releases/<tag>.md, and the presentation PDF and the explainer video are attached.
+# Publishes a GitHub release for a version (v1.0.0, v1.1.0, …): push the tag, or run this workflow from the
+# Actions tab with the version (it then tags the commit it runs on). The notes come from
+# .github/releases/<tag>.md; the presentation PDF and the explainer video are attached.
 # Governance-protected (CODEOWNERS: .github/).
 name: release
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Version to release (tags the selected branch's head if the tag does not exist yet)
+        required: true
+        default: v1.0.0
 
 permissions:
   contents: write
@@ -18,7 +25,7 @@ jobs:
       - name: Create the release with its downloads
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           notes=".github/releases/$TAG.md"
           if [ ! -f "$notes" ]; then echo "::error::Write the release notes in $notes first."; exit 1; fi
@@ -26,6 +33,6 @@ jobs:
           gh release create "$TAG" \
             --title "$TAG — Bob builds. People approve. Checks verify." \
             --notes-file "$notes" \
-            --verify-tag \
+            --target "$GITHUB_SHA" \
             site/src/deck/tidewell-sdd-ibm-bob-deck.pdf \
             site/src/media/tidewell-sdd-explainer-720p.mp4
