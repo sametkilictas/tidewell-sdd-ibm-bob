@@ -1,0 +1,112 @@
+# Runs IBM Bob headless (Bob Shell 2.x `bob run --mode <slug>`) in one SDD mode, with the default branch's Bob configuration
+# and guards, a cost cap and no MCP servers. Used by bob-review.yml and bob-commands.yml.
+# Governance-protected (CODEOWNERS: sdd-approvers).
+name: Run IBM Bob (SDD)
+description: Install Bob Shell and run one bounded task in a named SDD mode, with trusted .bob config and hooks.
+
+inputs:
+  api-key:
+    description: Bob API key (repository secret BOB_API_KEY), exposed to Bob Shell as BOB_API_KEY, which bob run requires.
+    required: true
+  mode:
+    description: Bob mode slug, e.g. sdd-pr-reviewer (read-only) or spec-builder.
+    required: true
+  prompt-file:
+    description: File holding the prompt (built by sdd/scripts/github/bob-ci.mjs prompt).
+    required: true
+  output-file:
+    description: Where Bob's JSON result is written.
+    default: bob-output.json
+  working-directory:
+    description: The pull request checkout Bob works in.
+    default: .
+  trusted-path:
+    description: Checkout of the default branch (relative to the workspace) whose .bob/, sdd/scripts/, sdd/governance/ and sdd/workflows/ Bob must use.
+    default: trusted
+  trusted-config:
+    description: >-
+      restore = put the trusted versions in place for this run (read-only reviews; nothing is committed);
+      require-same = refuse to run if the pull request changes them (runs that commit).
+    default: restore
+  max-cost:
+    description: Spend cap in Bobcoins for this run.
+    default: '3'
+  max-turns:
+    description: Cap on agentic turns.
+    default: '60'
+  disable-subagents:
+    description: Disable subagent spawning (keeps runs predictable and cheap).
+    default: 'true'
+  install-url:
+    description: Optional pinned Bob Shell package URL for npm install (repository variable BOB_SHELL_INSTALL_URL). Empty = IBM's installer.
+    default: ''
+
+outputs:
+  exit-code:
+    description: Exit code of bob run.
+    value: ${{ steps.run.outputs.exit_code }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install Bob Shell
+      shell: bash
+      env:
+        INSTALL_URL: ${{ inputs.install-url }}
+      run: |
+        if ! command -v bob >/dev/null 2>&1; then
+          if [ -n "$INSTALL_URL" ]; then npm install --global "$INSTALL_URL"
+          else curl -fsSL https://bob.ibm.com/download/bobshell.sh | bash -s -- --pm npm; fi
+        fi
+        bob --version
+
+    - name: Use the default branch's Bob configuration and guards
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        TRUSTED: ${{ github.workspace }}/${{ inputs.trusted-path }}
+        POLICY: ${{ inputs.trusted-config }}
+      run: |
+        paths=(.bob sdd/scripts sdd/governance sdd/workflows)
+        if [ "$POLICY" = "require-same" ]; then
+          for p in "${paths[@]}"; do
+            if ! diff -r -q "$TRUSTED/$p" "$p" >/dev/null 2>&1; then
+              echo "::error::This pull request changes $p (Bob's own configuration or the SDD guards). Bob does not work on it until an SDD approver has reviewed that change and it is merged separately."
+              exit 1
+            fi
+          done
+        else
+          for p in "${paths[@]}"; do rm -rf "$p"; cp -R "$TRUSTED/$p" "$p"; done
+        fi
+        git config core.hooksPath sdd/scripts/hooks
+
+    - name: Run Bob
+      id: run
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        BOB_API_KEY: ${{ inputs.api-key }}
+        MODE: ${{ inputs.mode }}
+        PROMPT_FILE: ${{ inputs.prompt-file }}
+        OUT: ${{ inputs.output-file }}
+        MAX_COST: ${{ inputs.max-cost }}
+        MAX_TURNS: ${{ inputs.max-turns }}
+        NO_SUBAGENTS: ${{ inputs.disable-subagents }}
+      run: |
+        flags=(--mode "$MODE" --accept-license --trust --format json --max-cost "$MAX_COST" --max-turns "$MAX_TURNS" --disable-mcp)
+        if [ "$NO_SUBAGENTS" = "true" ]; then flags+=(--disable-subagents); fi
+        set +e
+        bob run "${flags[@]}" "$(cat "$PROMPT_FILE")" > "$OUT" 2> "$RUNNER_TEMP/bob-stderr.log"
+        code=$?
+        set -e
+        echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+        tail -n 40 "$RUNNER_TEMP/bob-stderr.log" || true
+        if [ "$code" -ne 0 ]; then echo "::warning::bob run exited with $code (cost or turn cap reached, or an error); its partial answer is used."; fi
+
+    - name: Put back the pull request's own versions
+      if: always() && inputs.trusted-config == 'restore'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        git checkout HEAD -- .bob sdd/scripts sdd/governance sdd/workflows
+        git clean -q -fd -- .bob sdd/scripts sdd/governance sdd/workflows

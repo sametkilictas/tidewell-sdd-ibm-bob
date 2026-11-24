@@ -1,0 +1,64 @@
+# The SDD gate in Azure DevOps Pipelines (Azure Repos, GitHub Enterprise or any git server).
+# Copy to the repository root. Only when sdd/governance/checks.json says "scanner": "sonarqube": variable group
+# "sdd-secrets" holds SONAR_TOKEN (secret) and SONAR_HOST_URL. The built-in scanner (default) needs none.
+# Make it a required check: Repos → Branches → main → Branch policies → Build validation → this pipeline.
+# Approvals live on the environments: Pipelines → Environments → production → Approvals and checks →
+# add the business owner group and the AppSec group (policy.json: a tier 1 release needs both).
+
+trigger: { branches: { include: [main] } }
+pr: { branches: { include: [main] } }
+pool: { vmImage: ubuntu-latest }
+variables:
+  - group: sdd-secrets
+  - name: SDD_DEFAULT_BRANCH
+    value: main
+
+stages:
+  - stage: gate
+    displayName: SDD gate
+    jobs:
+      - job: sdd
+        steps:
+          - checkout: self
+            fetchDepth: 0                       # the gate judges every commit since main
+          - task: NodeTool@0
+            inputs: { versionSpec: '22.x' }
+          - script: git fetch --no-tags origin "+refs/heads/main:refs/remotes/origin/main"
+            displayName: Fetch main
+          - script: node sdd/scripts/ci.mjs pr --require-scan --junit $(Common.TestResultsDirectory)/sdd-gate.xml --summary $(Build.ArtifactStagingDirectory)/sdd-gate.md
+            displayName: Policy, specs, commits, sign-offs, secrets, tests, security scan
+            env: { SONAR_TOKEN: $(SONAR_TOKEN), SONAR_HOST_URL: $(SONAR_HOST_URL) }
+          - task: PublishTestResults@2
+            condition: always()
+            inputs: { testResultsFormat: JUnit, testResultsFiles: '$(Common.TestResultsDirectory)/sdd-gate.xml', testRunTitle: SDD gate }
+
+  - stage: test
+    displayName: Deploy to test (automatic)
+    dependsOn: gate
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: deploy_test
+        environment: test                       # no approvals: the gate is the control
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - script: node sdd/scripts/scan.mjs --gate-only --branch main --revision $(Build.SourceVersion)
+                  env: { SONAR_TOKEN: $(SONAR_TOKEN), SONAR_HOST_URL: $(SONAR_HOST_URL) }
+                - script: echo "deploy to test here (your deployment step)"
+
+  - stage: production
+    displayName: Release to production (people decide)
+    dependsOn: test
+    jobs:
+      - deployment: deploy_production
+        environment: production                 # approvals configured on the environment (see top of file)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  fetchDepth: 0
+                - script: node sdd/scripts/ci.mjs release --env production
+                - script: echo "deploy to production here (your deployment step)"

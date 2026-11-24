@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: How this repository works (spec-driven development with IBM Bob)
+    url: https://github.com/YOUR-ORG/YOUR-REPO/blob/main/sdd/README.md
+    about: The workflow, who signs what, and the slash commands for Bob and for pull requests.

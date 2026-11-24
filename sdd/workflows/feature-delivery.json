@@ -1,0 +1,104 @@
+{
+  "schema": "sdd-workflow/1",
+  "id": "feature-delivery",
+  "title": "Deliver one feature",
+  "summary": "Takes one feature from its written spec to a signed, scanned, verified and security-reviewed build.",
+  "target": "feature",
+  "targetPattern": "^F\\d{2}$",
+  "start": { "bob": "/sdd-workflow F##", "github": "/sdd status F## (comment on the phase pull request)" },
+  "steps": [
+    {
+      "id": "clarify",
+      "kind": "ai",
+      "title": "Clarify the spec",
+      "mode": "spec-architect",
+      "command": "/sdd-clarify",
+      "optional": true,
+      "responsible": "business-analyst",
+      "does": "Bob looks for gaps and asks up to eight questions; the analyst answers; answers are recorded in spec.md.",
+      "writes": ["sdd/specs/features/F##-*/spec.md"]
+    },
+    {
+      "id": "plan",
+      "kind": "ai",
+      "title": "Plan the build",
+      "mode": "spec-architect",
+      "command": "/sdd-plan",
+      "responsible": "architect",
+      "does": "Bob drafts plan.md against the constitution checklist; contract, ADR and design changes are allowed while the plan is unapproved.",
+      "writes": ["sdd/specs/features/F##-*/plan.md", "sdd/contracts/", "sdd/adr/", "sdd/design/"]
+    },
+    {
+      "id": "approve-plan",
+      "kind": "human-gate",
+      "title": "Owner signs the plan",
+      "decision": "plan",
+      "approver": "business-owner",
+      "reviewers": ["architect", "business-analyst"],
+      "github": "/approve-plan F##",
+      "terminal": "node sdd/scripts/approve.mjs plan F##",
+      "does": "The signature is bound to the hashes of plan.md and spec.md: the spec is locked from here on, and any change goes through the change-request workflow."
+    },
+    {
+      "id": "tasks",
+      "kind": "ai",
+      "title": "Split into tasks",
+      "mode": "spec-architect",
+      "command": "/sdd-tasks",
+      "responsible": "architect",
+      "does": "Bob breaks the signed plan into small test-first tasks, each tagged with the requirements it serves.",
+      "writes": ["sdd/specs/features/F##-*/tasks.md"]
+    },
+    {
+      "id": "implement",
+      "kind": "ai",
+      "title": "Build, test first",
+      "mode": "spec-builder",
+      "command": "/sdd-implement",
+      "responsible": "developer",
+      "subagents": "Independent task groups may run as parallel subagents; each commit still names its task and requirement IDs.",
+      "github": "/bob fix [what to change]",
+      "does": "One commit per task: failing tagged test, code, tests green, tick the task. On GitHub, a developer can ask Bob to address review findings on the pull request."
+    },
+    {
+      "id": "scan",
+      "kind": "deterministic",
+      "title": "Security scan",
+      "mode": "check-runner",
+      "command": "/sdd-scan",
+      "run": "node sdd/scripts/scan.mjs F##",
+      "responsible": "developer",
+      "accountable": "appsec",
+      "onFail": "implement",
+      "does": "The security checks in sdd/governance/checks.json (or SonarQube, if it is the scanner) give the verdict; it is bound to a fingerprint of the code it saw. Any later code change makes it stale."
+    },
+    {
+      "id": "verify",
+      "kind": "ai",
+      "title": "Prove every example",
+      "mode": "spec-verifier",
+      "command": "/sdd-verify",
+      "responsible": "developer",
+      "accountable": "business-analyst",
+      "onFail": "implement",
+      "does": "Every acceptance criterion gets a tagged test; the verification report and traceability matrix are written."
+    },
+    {
+      "id": "secure",
+      "kind": "ai",
+      "title": "Security review",
+      "mode": "security-reviewer",
+      "command": "/sdd-secure",
+      "responsible": "developer",
+      "onFail": "implement",
+      "does": "An ASVS L2 review of what tools cannot see: authorization, business logic and the domain invariants, secrets, audit."
+    }
+  ],
+  "github": {
+    "branch": "phase/<n>-<slug>",
+    "pullRequest": "One draft pull request per phase into main. Plans and the phase are signed by comments on it.",
+    "checks": ["sdd-policy", "signoffs", "sonarqube"],
+    "advisory": ["bob-review"]
+  },
+  "then": "phase-gate"
+}

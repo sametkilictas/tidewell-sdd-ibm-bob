@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use or adapt this kit, please credit it like this."
+title: "Tidewell SDD kit: spec-driven delivery with IBM Bob"
+type: software
+authors:
+  - alias: sametkilictas
+version: 1.0.0
+date-released: 2026-11-24
+url: "https://sametkilictas.github.io/tidewell-sdd-ibm-bob/"
+repository-code: "https://github.com/sametkilictas/tidewell-sdd-ibm-bob"
+license: Apache-2.0
+keywords:
+  - spec-driven development
+  - IBM Bob
+  - AI-assisted software delivery
+  - DevSecOps
+  - shift-left security

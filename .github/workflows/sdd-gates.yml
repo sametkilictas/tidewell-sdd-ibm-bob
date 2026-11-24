@@ -1,0 +1,135 @@
+# SDD backstop: re-checks commits against the SDD policy (G1–G9), so nothing done outside Bob (manual
+# edits, other tools, `git commit --no-verify`) can skip the cycle, and re-runs the security scan (the scanner set in
+# sdd/governance/checks.json: the built-in checks and your organisation's own tools, or SonarQube) so security problems block
+# the merge before anything reaches testing.
+#   push to any branch ...... policy for every commit not yet on main + a security scan of the branch: you hear
+#                             about a problem on push, before anyone opens a pull request
+#   pull request into main .. policy for every commit in the PR + a security scan of the PR (required checks)
+#   push to main ............ policy for the commits that push added. Normally they arrived through a
+#                             checked PR; a direct push that breaks the rules turns main red, and
+#                             promote-to-test (which scans main itself) refuses to deploy it.
+#   workflow_dispatch ....... the same checks on a branch head; sdd-signoff.yml and bob-commands.yml start it after
+#                             they push (pushes made with GITHUB_TOKEN do not trigger workflows by themselves).
+# Jobs (required checks on main, see sdd/governance/github/ruleset-main.json):
+#   sdd-policy  spec pack structure, traceability, commit policy G1–G9, and the workflow status in the job summary
+#   signoffs    every sign-off added in the range is checked against the GitHub comment that gave it
+#   sonarqube   the external security gate
+# Governance-protected: changes need CODEOWNERS review (see .github/CODEOWNERS).
+# Branch protection on main: require the checks "sdd-policy", "signoffs" AND "sonarqube"; allow merge
+# commits or rebase merges but not squash merges, so the one-commit-per-task history (and its requirement
+# tags) reaches main unchanged.
+name: sdd-gates
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: sdd-gates-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sdd-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Automation dial and locked human gates (sdd/governance/policy.json)
+        run: node sdd/scripts/policy.mjs check
+      - name: Spec pack structure and traceability
+        run: node sdd/scripts/validate-specs.mjs --trace
+      - name: Work out which commits to check
+        id: range
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: echo "base=$(node sdd/scripts/git-check.mjs --print-base --before "$BEFORE")" >> "$GITHUB_OUTPUT"
+      - name: SDD commit policy (G1–G10, secrets included) for every new commit
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: node sdd/scripts/git-check.mjs --ci --base auto --before "$BEFORE"
+      - name: Where each feature is in the SDD workflow (job summary)
+        if: always()
+        run: node sdd/scripts/workflow.mjs status --format markdown >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Phase gate needs P1 coverage when a phase approval is added
+        env:
+          BASE: ${{ steps.range.outputs.base }}
+        run: |
+          if [ -n "$BASE" ] && git diff --name-only "$BASE"...HEAD | grep -q '^sdd/state/approvals.json$'; then
+            node sdd/scripts/validate-specs.mjs --trace --strict=P1 || echo "::warning::Uncovered P1 requirements — check the phase scope before merging this approval."
+          fi
+
+  signoffs:
+    # A developer can edit sdd/state/approvals.json by hand; nobody can write a GitHub comment as the business owner.
+    # Each sign-off added or changed in the range must match its comment: same person, same command, still allowed
+    # by sdd/governance/approvers.json as it stands on the base branch (sdd/scripts/github/verify-signoffs.mjs).
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check every new sign-off against GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE: ${{ github.event.before }}
+        run: node sdd/scripts/github/verify-signoffs.mjs --base auto --before "$BEFORE"
+
+  sonarqube:
+    # Security gate (Article XI, NFR-SEC-042..046). Same script as /sdd-scan, so local and CI verdicts come from one
+    # implementation. The job keeps its name (a required check); the scanner is set in sdd/governance/checks.json.
+    # With "sonarqube": secrets SONAR_TOKEN (analysis token) and SONAR_HOST_URL. With "builtin": none needed.
+    # Pull requests get a PR analysis, other branches a branch analysis (SonarQube Developer Edition or
+    # above). main is scanned by promote-to-test, which also confirms the gate for that exact commit.
+    if: github.event_name == 'pull_request' || github.ref_name != 'main'
+    runs-on: ubuntu-latest
+    env:
+      OSV_SCANNER_VERSION: v2.4.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # SonarQube needs history for blame and new-code detection
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # @sonar/scan 5 needs Node >= 22.12
+      - name: Install workspace and produce coverage (once the workspace exists)
+        if: hashFiles('pnpm-lock.yaml') != ''
+        continue-on-error: true # failing tests are reported by ci.yml; coverage still feeds the gate
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm test
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Install OSV-Scanner (SCA fallback; skipped by scan.mjs when SCA_PROVIDER=sonar)
+        run: |
+          go install github.com/google/osv-scanner/v2/cmd/osv-scanner@${OSV_SCANNER_VERSION}
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Security checks before testing (built-in checks and your organisation's tools, or SonarQube + dependency CVEs)
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: node sdd/scripts/scan.mjs --ci
+      - name: Keep the scan evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-scan
+          path: .scannerwork/sdd/
+          if-no-files-found: ignore

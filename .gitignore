@@ -1,0 +1,32 @@
+# dependencies & builds
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+*.tsbuildinfo
+# env & secrets
+.env
+.env.*
+!.env.example
+# SonarQube scanner work dir (scan evidence lives in sdd/reports/scan/)
+.scannerwork/
+# test artefacts
+playwright-report/
+test-results/
+e2e/.auth/
+# OS / editor
+.DS_Store
+.idea/
+*.log
+# SDD local state (approvals.json IS committed)
+sdd/state/active-step.json
+sdd/state/history.jsonl
+# GitHub Actions scratch space for Bob runs (diffs, prompts)
+.sdd-ci/
+# Python caches (sdd/tests/github-e2e)
+__pycache__/
+
+# website build output
+_site/
+.scannerwork/

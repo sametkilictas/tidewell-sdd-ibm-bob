@@ -1,0 +1,45 @@
+# The SDD gate in GitLab CI. Copy to the repository root as .gitlab-ci.yml.
+# CI/CD variables, only when sdd/governance/checks.json says "scanner": "sonarqube": SONAR_TOKEN (masked, protected) and
+# SONAR_HOST_URL. With the built-in scanner (default) no variables are needed.
+# Make it required: Settings → Merge requests → "Pipelines must succeed".
+# Production approvals: Settings → CI/CD → Protected environments → production → required approvals from the
+# business owner and AppSec groups (policy.json: a tier 1 release needs both).
+
+stages: [gate, deploy-test, deploy-production]
+default:
+  image: node:22
+variables:
+  GIT_DEPTH: "0"                    # the gate judges every commit since the target branch
+  SDD_DEFAULT_BRANCH: main
+
+sdd-gate:
+  stage: gate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - git fetch --no-tags origin "+refs/heads/$CI_DEFAULT_BRANCH:refs/remotes/origin/$CI_DEFAULT_BRANCH"
+    - node sdd/scripts/ci.mjs pr --require-scan --junit sdd-gate.xml --summary sdd-gate.md
+  artifacts:
+    when: always
+    paths: [sdd-gate.md]
+    reports: { junit: sdd-gate.xml }
+
+deploy-test:
+  stage: deploy-test
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  environment: { name: test }
+  script:
+    - node sdd/scripts/scan.mjs --gate-only --branch main --revision "$CI_COMMIT_SHA"
+    - echo "deploy to test here (your deployment step)"
+
+deploy-production:
+  stage: deploy-production
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual                  # a person starts it; the protected environment asks for the approvals
+  environment: { name: production }
+  script:
+    - node sdd/scripts/ci.mjs release --env production
+    - echo "deploy to production here (your deployment step)"

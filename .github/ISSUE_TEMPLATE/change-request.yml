@@ -1,0 +1,47 @@
+name: Change request
+description: Change something already approved (a rule, a limit, a screen, a requirement). Starts the change-request workflow.
+title: "CR: <short title>"
+labels: ["sdd/change-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Approved specs are locked. To change one, describe the change here. The business analyst turns it into a
+        change-request file with Bob (`/sdd-change-request <slug>` — Bob can attach this issue in its Review view),
+        the business owner decides it on the pull request (`/approve-cr CR-### option A` or `/reject-cr CR-### <reason>`),
+        and the architect applies it (`/sdd-apply-cr CR-###`). See `sdd/workflows/change-request.json`.
+  - type: input
+    id: affects
+    attributes:
+      label: What does it affect?
+      description: Feature IDs, requirement IDs or documents, e.g. "F04, XFER-021, sdd/contracts/openapi.yaml".
+      placeholder: F04, XFER-021
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What should change, and why?
+      description: The business reason in plain words. Quote the requirement as it is today if you can.
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options you see
+      description: Two or three ways to do it, with what each costs or risks. "Leave it as is" is a valid option.
+      placeholder: |
+        A — …
+        B — …
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: How soon?
+      options: ["This phase (blocks current work)", "Next phase", "Later"]
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Test output, a screenshot, a customer complaint, a regulation — whatever shows the need.

@@ -1,0 +1,4502 @@
+# GENERATED-STYLE CONTRACT — edit deliberately (Spec Architect mode only), then run `pnpm contracts:lint && pnpm contracts:gen`.
+# Every operation lists the requirement IDs it satisfies in x-requirements (traceability).
+openapi: 3.1.0
+info:
+  title: Tidewell Online Banking API (prototype)
+  version: 1.0.0
+  description: 'Contract-first API for the Tidewell Bank online banking prototype. Authoritative for request/response shapes (Constitution Art. II). Conventions: sdd/specs/04-api-guidelines.md.
+    Error catalog: sdd/contracts/error-codes.md. FICTIONAL BANK — DEMO ONLY.'
+  license: {name: Proprietary — prototype}
+servers:
+- {url: 'http://localhost:4000/api/v1', description: Local API}
+- {url: /api/v1, description: Same-origin via Vite proxy}
+security:
+- {sessionCookie: []}
+tags:
+- {name: accounts}
+- {name: auth}
+- {name: beneficiaries}
+- {name: bills}
+- {name: cards}
+- {name: dashboard}
+- {name: dev}
+- {name: documents}
+- {name: fx}
+- {name: limits}
+- {name: messaging}
+- {name: notifications}
+- {name: ops}
+- {name: privacy}
+- {name: profile}
+- {name: reference}
+- {name: security}
+- {name: system}
+- {name: transfers}
+paths:
+  /health/live:
+    get:
+      operationId: getHealthLive
+      tags: [system]
+      summary: Liveness probe
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HealthStatus'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [FND-007, NFR-REL-006]
+  /health/ready:
+    get:
+      operationId: getHealthReady
+      tags: [system]
+      summary: Readiness probe (DB, migrations, job runner)
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HealthStatus'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [FND-007, NFR-REL-006]
+  /version:
+    get:
+      operationId: getVersion
+      tags: [system]
+      summary: Build and runtime info
+      security: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Version'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [FND-007]
+  /dev/outbox:
+    get:
+      operationId: listDevOutbox
+      tags: [dev]
+      summary: List simulated SMS/email messages (demo only)
+      security: []
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: &id001 {type: string, maxLength: 512}
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: &id002 {type: integer, minimum: 1, maximum: 100, default: 25}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/DevOutboxItem'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [FND-015, AUTH-050]
+      x-demo-only: true
+  /dev/jobs/run:
+    post:
+      operationId: runDevJob
+      tags: [dev]
+      summary: Run a background job immediately (demo only)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DevJobRun'}
+      responses:
+        '202': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [FND-015, FND-017]
+      x-demo-only: true
+  /dev/faults:
+    put:
+      operationId: setDevFaults
+      tags: [dev]
+      summary: Toggle simulated dependency outages (demo only)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DevFaults'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DevFaults'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [FND-015, NFR-REL-005]
+      x-demo-only: true
+  /dev/clock:
+    put:
+      operationId: setDevClock
+      tags: [dev]
+      summary: Move the server clock forward (demo only)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DevClock'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DevClock'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [FND-015, XFER-023]
+      x-demo-only: true
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Sign in with username and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LoginRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '423': {$ref: '#/components/responses/Locked'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-001, AUTH-002, NFR-SEC-003]
+      x-audit: LOGIN
+      x-rate-limit: auth
+  /auth/mfa/verify:
+    post:
+      operationId: verifyMfa
+      tags: [auth]
+      summary: Verify second factor and create session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MfaVerifyRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Session'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-003, AUTH-004, AUTH-005, AUTH-006, AUTH-030]
+      x-audit: LOGIN_MFA
+      x-rate-limit: auth
+  /auth/mfa/resend:
+    post:
+      operationId: resendMfa
+      tags: [auth]
+      summary: Resend SMS code for a challenge
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ChallengeRef'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Challenge'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-003]
+      x-rate-limit: auth
+  /auth/session:
+    get:
+      operationId: getAuthSession
+      tags: [auth]
+      summary: Current session, CSRF token and expiry times
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Session'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-030, FND-014]
+  /auth/session/refresh:
+    post:
+      operationId: refreshSession
+      tags: [auth]
+      summary: Extend idle timeout after genuine user activity
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Session'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-031]
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Sign out (invalidates session)
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '204': {description: Success}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-033, NFR-SEC-004]
+      x-audit: LOGOUT
+  /auth/enrolment/start:
+    post:
+      operationId: startEnrolment
+      tags: [auth]
+      summary: Verify customer number + DOB and send OTP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EnrolmentStartRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Challenge'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-010]
+      x-audit: ENROLMENT_STARTED
+      x-rate-limit: auth
+  /auth/enrolment/verify:
+    post:
+      operationId: verifyEnrolment
+      tags: [auth]
+      summary: Verify enrolment OTP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/StepUpVerifyRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/EnrolmentToken'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-010]
+      x-rate-limit: auth
+  /auth/enrolment/complete:
+    post:
+      operationId: completeEnrolment
+      tags: [auth]
+      summary: Create username and password; signs in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EnrolmentCompleteRequest'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Session'}
+          headers:
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-011, NFR-SEC-002]
+      x-audit: ENROLMENT_COMPLETED
+      x-rate-limit: auth
+  /auth/password-reset:
+    post:
+      operationId: requestPasswordReset
+      tags: [auth]
+      summary: Request a password reset link (always 202)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PasswordResetRequest'}
+      responses:
+        '202': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-020]
+      x-audit: PASSWORD_RESET_REQUESTED
+      x-rate-limit: auth
+  /auth/password-reset/verify:
+    post:
+      operationId: verifyPasswordReset
+      tags: [auth]
+      summary: Validate reset token and send SMS OTP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PasswordResetVerifyRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Challenge'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-021]
+      x-rate-limit: auth
+  /auth/password-reset/complete:
+    post:
+      operationId: completePasswordReset
+      tags: [auth]
+      summary: Set new password; revokes sessions and devices
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PasswordResetCompleteRequest'}
+      responses:
+        '204': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-021, NFR-SEC-002]
+      x-audit: PASSWORD_RESET_COMPLETED
+      x-rate-limit: auth
+  /auth/step-up:
+    post:
+      operationId: startStepUp
+      tags: [auth]
+      summary: Start a step-up challenge for a sensitive action
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/StepUpStartRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Challenge'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-040]
+      x-audit: STEP_UP_REQUESTED
+      x-rate-limit: otp
+  /auth/step-up/verify:
+    post:
+      operationId: verifyStepUp
+      tags: [auth]
+      summary: Verify step-up code and obtain a single-use token
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/StepUpVerifyRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/StepUpToken'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [AUTH-040, AUTH-041]
+      x-audit: STEP_UP_VERIFIED
+      x-rate-limit: otp
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Dashboard read model (sections fail independently)
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DashboardSummary'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [DASH-001, DASH-002, DASH-003, DASH-005, DASH-006, DASH-009, DASH-010, NFR-PRIV-001]
+  /insights/spending:
+    get:
+      operationId: getSpendingInsights
+      tags: [dashboard]
+      summary: Spending by category for a month vs previous
+      parameters:
+      - name: month
+        in: query
+        required: false
+        schema: {type: string, pattern: '^[0-9]{4}-[0-9]{2}$'}
+        description: Defaults to current month
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SpendingInsights'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [DASH-008]
+  /search:
+    get:
+      operationId: search
+      tags: [dashboard]
+      summary: Global search across accounts, payees, transactions and pages
+      parameters:
+      - name: q
+        in: query
+        required: true
+        schema: {type: string, minLength: 2, maxLength: 100}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SearchResults'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [DASH-013]
+  /accounts:
+    get:
+      operationId: listAccounts
+      tags: [accounts]
+      summary: List the customer's accounts
+      parameters:
+      - name: includeClosed
+        in: query
+        required: false
+        schema: {type: boolean, default: false}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Account'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [ACCT-001]
+  /accounts/{accountId}:
+    get:
+      operationId: getAccount
+      tags: [accounts]
+      summary: Account detail with identifiers and product panel
+      parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Account'}
+          headers:
+            ETag:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [ACCT-002, ACCT-003, ACCT-005, NFR-SEC-010]
+    patch:
+      operationId: updateAccount
+      tags: [accounts]
+      summary: Update nickname
+      parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AccountUpdate'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Account'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [ACCT-004, NFR-SEC-012]
+      x-audit: ACCOUNT_NICKNAME_CHANGED
+  /accounts/{accountId}/transactions:
+    get:
+      operationId: listTransactions
+      tags: [accounts]
+      summary: Transaction history with filters (pending first)
+      parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      - name: from
+        in: query
+        required: false
+        schema: &id003 {$ref: '#/components/schemas/BusinessDate'}
+        description: Inclusive business date
+      - name: to
+        in: query
+        required: false
+        schema: &id004 {$ref: '#/components/schemas/BusinessDate'}
+        description: Inclusive business date
+      - name: q
+        in: query
+        required: false
+        schema: &id005 {type: string, minLength: 2, maxLength: 100}
+      - name: direction
+        in: query
+        required: false
+        schema: &id006 {type: string, enum: [DEBIT, CREDIT]}
+      - name: minAmount
+        in: query
+        required: false
+        schema: {type: string, pattern: '^[0-9]+(\.[0-9]{1,3})?$'}
+      - name: maxAmount
+        in: query
+        required: false
+        schema: {type: string, pattern: '^[0-9]+(\.[0-9]{1,3})?$'}
+      - name: category
+        in: query
+        required: false
+        schema: &id007
+          type: array
+          items: {$ref: '#/components/schemas/Category'}
+        style: form
+        explode: true
+      - name: status
+        in: query
+        required: false
+        schema: {type: string, enum: [PENDING, POSTED]}
+      - name: cardId
+        in: query
+        required: false
+        schema: {$ref: '#/components/schemas/Id'}
+      - name: sort
+        in: query
+        required: false
+        schema: {type: string, enum: [-bookedAt, bookedAt, -amount, amount], default: -bookedAt}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Transaction'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [ACCT-010, ACCT-011, ACCT-014, NFR-PERF-002]
+  /accounts/{accountId}/transactions/{transactionId}:
+    get:
+      operationId: getTransaction
+      tags: [accounts]
+      summary: Transaction detail
+      parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - name: transactionId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Transaction'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [ACCT-012]
+    patch:
+      operationId: updateTransaction
+      tags: [accounts]
+      summary: Change category
+      parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - name: transactionId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TransactionUpdate'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Transaction'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [ACCT-013]
+      x-audit: TRANSACTION_CATEGORY_CHANGED
+  /accounts/{accountId}/transaction-export:
+    get:
+      operationId: exportTransactions
+      tags: [accounts]
+      summary: Export filtered transactions as CSV or PDF
+      parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - name: format
+        in: query
+        required: true
+        schema: {type: string, enum: [csv, pdf]}
+      - name: from
+        in: query
+        required: false
+        schema: *id003
+        description: Inclusive business date
+      - name: to
+        in: query
+        required: false
+        schema: *id004
+        description: Inclusive business date
+      - name: q
+        in: query
+        required: false
+        schema: *id005
+      - name: direction
+        in: query
+        required: false
+        schema: *id006
+      - name: category
+        in: query
+        required: false
+        schema: *id007
+        style: form
+        explode: true
+      responses:
+        '200':
+          description: Success
+          content:
+            text/csv:
+              schema: {type: string}
+            application/pdf:
+              schema: {type: string, format: binary}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [ACCT-015]
+      x-audit: TRANSACTIONS_EXPORTED
+      x-rate-limit: export
+  /beneficiaries:
+    get:
+      operationId: listBeneficiaries
+      tags: [beneficiaries]
+      summary: List saved beneficiaries
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema: *id005
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Beneficiary'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-010]
+    post:
+      operationId: createBeneficiary
+      tags: [beneficiaries]
+      summary: Add a beneficiary (step-up, cooling-off starts)
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BeneficiaryCreate'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Beneficiary'}
+          headers:
+            Idempotent-Replayed:
+              schema: {type: boolean}
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-011, XFER-012, XFER-013, XFER-015, XFER-017, AUTH-040]
+      x-step-up: BENEFICIARY_CREATE
+      x-idempotent: required
+      x-audit: BENEFICIARY_CREATED
+  /beneficiaries/{beneficiaryId}:
+    get:
+      operationId: getBeneficiary
+      tags: [beneficiaries]
+      summary: Beneficiary detail
+      parameters:
+      - name: beneficiaryId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Beneficiary'}
+          headers:
+            ETag:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-010]
+    patch:
+      operationId: updateBeneficiary
+      tags: [beneficiaries]
+      summary: Update nickname / favourite
+      parameters:
+      - name: beneficiaryId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BeneficiaryUpdate'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Beneficiary'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-016]
+      x-audit: BENEFICIARY_UPDATED
+    delete:
+      operationId: deleteBeneficiary
+      tags: [beneficiaries]
+      summary: Delete beneficiary and cancel its scheduled/standing orders
+      parameters:
+      - name: beneficiaryId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '204': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-016]
+      x-audit: BENEFICIARY_DELETED
+  /name-checks:
+    post:
+      operationId: checkBeneficiaryName
+      tags: [beneficiaries]
+      summary: Confirmation of payee (simulated)
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/NameCheckRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NameCheckResult'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-014]
+      x-audit: NAME_CHECK_PERFORMED
+  /fx/quotes:
+    post:
+      operationId: createFxQuote
+      tags: [fx]
+      summary: Lock an FX rate for 30 seconds
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/FxQuoteRequest'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FxQuote'}
+          headers:
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [XFER-002]
+      x-audit: FX_QUOTE_CREATED
+  /transfer-quotes:
+    post:
+      operationId: quoteTransfer
+      tags: [transfers]
+      summary: Validate and price a transfer (fees, FX, dates, limits, step-up need)
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TransferInstruction'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransferQuote'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [XFER-020, XFER-021, XFER-022, XFER-025, XFER-032]
+  /transfers:
+    post:
+      operationId: createTransfer
+      tags: [transfers]
+      summary: Create a transfer, scheduled transfer or standing order
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TransferInstruction'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Transfer'}
+          headers:
+            Idempotent-Replayed:
+              schema: {type: boolean}
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [XFER-001, XFER-002, XFER-003, XFER-023, XFER-024, XFER-026, XFER-032, NFR-REL-003, NFR-SEC-050]
+      x-step-up: TRANSFER_CREATE (conditional — see quote.stepUpRequired / BR rules)
+      x-idempotent: required
+      x-audit: TRANSFER_CREATED
+    get:
+      operationId: listTransfers
+      tags: [transfers]
+      summary: Transfer history
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      - name: status
+        in: query
+        required: false
+        schema: &id008
+          type: array
+          items: {$ref: '#/components/schemas/PaymentStatus'}
+        style: form
+        explode: true
+      - name: kind
+        in: query
+        required: false
+        schema:
+          type: array
+          items: {$ref: '#/components/schemas/TransferKind'}
+        style: form
+        explode: true
+      - name: from
+        in: query
+        required: false
+        schema: *id003
+        description: Inclusive business date
+      - name: to
+        in: query
+        required: false
+        schema: *id004
+        description: Inclusive business date
+      - name: beneficiaryId
+        in: query
+        required: false
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Transfer'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-029]
+  /transfers/{transferId}:
+    get:
+      operationId: getTransfer
+      tags: [transfers]
+      summary: Transfer detail with timeline
+      parameters:
+      - name: transferId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Transfer'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-028, XFER-029]
+  /transfers/{transferId}/cancel:
+    post:
+      operationId: cancelTransfer
+      tags: [transfers]
+      summary: Cancel a scheduled transfer
+      parameters:
+      - name: transferId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Transfer'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-030]
+      x-audit: TRANSFER_CANCELLED
+  /transfers/{transferId}/receipt:
+    get:
+      operationId: getTransferReceipt
+      tags: [transfers]
+      summary: Receipt PDF
+      parameters:
+      - name: transferId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - name: language
+        in: query
+        required: false
+        schema: {$ref: '#/components/schemas/Locale'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/pdf:
+              schema: {type: string, format: binary}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-027]
+  /standing-orders:
+    get:
+      operationId: listStandingOrders
+      tags: [transfers]
+      summary: Standing orders
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/StandingOrder'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-024, XFER-029]
+  /standing-orders/{standingOrderId}:
+    delete:
+      operationId: cancelStandingOrder
+      tags: [transfers]
+      summary: Cancel a standing order
+      parameters:
+      - name: standingOrderId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '204': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-030]
+      x-audit: STANDING_ORDER_CANCELLED
+  /limits:
+    get:
+      operationId: getLimits
+      tags: [limits]
+      summary: Transfer limits and today's usage
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Limits'}
+          headers:
+            ETag:
+              schema: {type: string}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-035]
+    patch:
+      operationId: updateLimits
+      tags: [limits]
+      summary: Change customer-chosen daily limit (raising needs step-up)
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LimitsUpdate'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Limits'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-035]
+      x-step-up: LIMITS_INCREASE (conditional — see quote.stepUpRequired / BR rules)
+      x-audit: LIMITS_CHANGED
+  /reference/purpose-codes:
+    get:
+      operationId: listPurposeCodes
+      tags: [reference]
+      summary: Purpose codes for international payments
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/PurposeCodeItem'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-032]
+  /reference/banks:
+    get:
+      operationId: lookupBank
+      tags: [reference]
+      summary: Look up a bank by BIC or IBAN
+      parameters:
+      - name: bic
+        in: query
+        required: false
+        schema: {type: string, pattern: '^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$'}
+      - name: iban
+        in: query
+        required: false
+        schema: {type: string, maxLength: 42}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Bank'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-012, XFER-013]
+  /reference/currencies:
+    get:
+      operationId: listCurrencies
+      tags: [reference]
+      summary: Supported currencies and exponents
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/CurrencyInfo'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-002, FND-009]
+  /reference/business-calendar:
+    get:
+      operationId: getBusinessCalendar
+      tags: [reference]
+      summary: Weekend, holidays and cut-offs
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BusinessCalendar'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [XFER-022, FND-011]
+  /billers:
+    get:
+      operationId: listBillers
+      tags: [bills]
+      summary: Biller catalogue
+      parameters:
+      - name: category
+        in: query
+        required: false
+        schema: {type: string, enum: [ELECTRICITY_WATER, TELECOM, INTERNET, EDUCATION, GOVERNMENT]}
+      - name: q
+        in: query
+        required: false
+        schema: *id005
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Biller'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [BILL-001]
+  /billers/{billerId}:
+    get:
+      operationId: getBiller
+      tags: [bills]
+      summary: Biller detail
+      parameters:
+      - name: billerId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Biller'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [BILL-001]
+  /saved-billers:
+    get:
+      operationId: listSavedBillers
+      tags: [bills]
+      summary: Saved billers with last inquiry
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/SavedBiller'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [BILL-002, BILL-003]
+    post:
+      operationId: createSavedBiller
+      tags: [bills]
+      summary: Save a biller reference
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SavedBillerCreate'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SavedBiller'}
+          headers:
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [BILL-002]
+      x-audit: BILLER_SAVED
+  /saved-billers/{savedBillerId}:
+    delete:
+      operationId: deleteSavedBiller
+      tags: [bills]
+      summary: Remove a saved biller (cancels schedules)
+      parameters:
+      - name: savedBillerId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '204': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [BILL-009]
+      x-audit: BILLER_REMOVED
+  /saved-billers/{savedBillerId}/inquiry:
+    post:
+      operationId: inquireSavedBiller
+      tags: [bills]
+      summary: Fetch amount due
+      parameters:
+      - name: savedBillerId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BillInquiry'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [BILL-003, BILL-008]
+  /bill-payments:
+    post:
+      operationId: createBillPayment
+      tags: [bills]
+      summary: Pay, schedule or set up auto-pay
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BillPaymentCreate'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BillPayment'}
+          headers:
+            Idempotent-Replayed:
+              schema: {type: boolean}
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [BILL-004, BILL-005, BILL-006, BILL-008]
+      x-idempotent: required
+      x-audit: BILL_PAYMENT_CREATED
+    get:
+      operationId: listBillPayments
+      tags: [bills]
+      summary: Bill payment history
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      - name: billerId
+        in: query
+        required: false
+        schema: {$ref: '#/components/schemas/Id'}
+      - name: from
+        in: query
+        required: false
+        schema: *id003
+        description: Inclusive business date
+      - name: to
+        in: query
+        required: false
+        schema: *id004
+        description: Inclusive business date
+      - name: status
+        in: query
+        required: false
+        schema: *id008
+        style: form
+        explode: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/BillPayment'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [BILL-007]
+  /bill-payments/{billPaymentId}:
+    get:
+      operationId: getBillPayment
+      tags: [bills]
+      summary: Bill payment detail
+      parameters:
+      - name: billPaymentId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BillPayment'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [BILL-007]
+  /cards:
+    get:
+      operationId: listCards
+      tags: [cards]
+      summary: List cards
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Card'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [CARD-001]
+  /cards/{cardId}:
+    get:
+      operationId: getCard
+      tags: [cards]
+      summary: Card detail
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Card'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [CARD-001, CARD-008]
+  /cards/{cardId}/freeze:
+    post:
+      operationId: freezeCard
+      tags: [cards]
+      summary: Freeze card
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Card'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [CARD-002]
+      x-audit: CARD_FROZEN
+  /cards/{cardId}/unfreeze:
+    post:
+      operationId: unfreezeCard
+      tags: [cards]
+      summary: Unfreeze card
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Card'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [CARD-002]
+      x-audit: CARD_UNFROZEN
+  /cards/{cardId}/controls:
+    patch:
+      operationId: updateCardControls
+      tags: [cards]
+      summary: Change card controls
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CardControls'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Card'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [CARD-003]
+      x-audit: CARD_CONTROLS_CHANGED
+  /cards/{cardId}/limits:
+    put:
+      operationId: updateCardLimits
+      tags: [cards]
+      summary: Change card spending limits
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CardLimits'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Card'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+        '503': {$ref: '#/components/responses/ServiceUnavailable'}
+      x-requirements: [CARD-004]
+      x-audit: CARD_CONTROLS_CHANGED
+  /cards/{cardId}/reveal:
+    post:
+      operationId: revealCard
+      tags: [cards]
+      summary: Reveal PAN/expiry/CVC for 30 s
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CardReveal'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [CARD-005, NFR-SEC-030]
+      x-step-up: CARD_REVEAL
+      x-audit: CARD_DETAILS_REVEALED
+      x-rate-limit: reveal
+  /cards/{cardId}/report:
+    post:
+      operationId: reportCard
+      tags: [cards]
+      summary: Report lost/stolen/damaged and optionally replace
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CardReportRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CardReportResult'}
+          headers:
+            Idempotent-Replayed:
+              schema: {type: boolean}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [CARD-006]
+      x-step-up: CARD_REPORT (conditional — see quote.stepUpRequired / BR rules)
+      x-idempotent: required
+      x-audit: CARD_REPORTED
+  /cards/{cardId}/activate:
+    post:
+      operationId: activateCard
+      tags: [cards]
+      summary: Activate a new card
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CardActivateRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Card'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [CARD-007]
+      x-audit: CARD_ACTIVATED
+  /statements:
+    get:
+      operationId: listStatements
+      tags: [documents]
+      summary: Monthly statements for an account
+      parameters:
+      - name: accountId
+        in: query
+        required: false
+        schema: &id009 {$ref: '#/components/schemas/Id'}
+      - name: year
+        in: query
+        required: false
+        schema: {type: integer, minimum: 2000, maximum: 2100}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Statement'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [STMT-001]
+  /statements/{statementId}/pdf:
+    get:
+      operationId: downloadStatement
+      tags: [documents]
+      summary: Download statement PDF
+      parameters:
+      - name: statementId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/pdf:
+              schema: {type: string, format: binary}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [STMT-002, STMT-007]
+      x-audit: STATEMENT_DOWNLOADED
+  /statements/custom:
+    post:
+      operationId: createCustomStatement
+      tags: [documents]
+      summary: Generate a custom-period statement
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CustomStatementRequest'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/pdf:
+              schema: {type: string, format: binary}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [STMT-004]
+      x-audit: DOCUMENT_GENERATED
+      x-rate-limit: export
+  /letters/balance-certificate:
+    post:
+      operationId: createBalanceCertificate
+      tags: [documents]
+      summary: Generate a balance certificate
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LetterRequest'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Document'}
+          headers:
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [STMT-005]
+      x-audit: DOCUMENT_GENERATED
+  /letters/account-details:
+    post:
+      operationId: createAccountDetailsLetter
+      tags: [documents]
+      summary: Generate an account details letter
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LetterRequest'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Document'}
+          headers:
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [STMT-006]
+      x-audit: DOCUMENT_GENERATED
+  /documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: Documents centre
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      - name: type
+        in: query
+        required: false
+        schema: {type: string, enum: [STATEMENT, CUSTOM_STATEMENT, BALANCE_CERTIFICATE, ACCOUNT_DETAILS_LETTER, RECEIPT, DATA_EXPORT]}
+      - name: accountId
+        in: query
+        required: false
+        schema: *id009
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Document'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [STMT-007]
+  /documents/{documentId}:
+    get:
+      operationId: downloadDocument
+      tags: [documents]
+      summary: Download a generated document
+      parameters:
+      - name: documentId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/pdf:
+              schema: {type: string, format: binary}
+            application/zip:
+              schema: {type: string, format: binary}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [STMT-007, PROF-050]
+      x-audit: DOCUMENT_GENERATED
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: Notifications
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      - name: unreadOnly
+        in: query
+        required: false
+        schema: {type: boolean, default: false}
+      - name: type
+        in: query
+        required: false
+        schema: {type: string, enum: [SECURITY, PAYMENT, ACCOUNT, CARD, DOCUMENT, MESSAGE]}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Notification'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [NOTF-001]
+  /notifications/{notificationId}/read:
+    post:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark one as read
+      parameters:
+      - name: notificationId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '204': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [NOTF-002]
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all as read
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '204': {description: Success}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [NOTF-002]
+  /notifications/stream:
+    get:
+      operationId: streamNotifications
+      tags: [notifications]
+      summary: Server-Sent Events stream (SPEC-04 §10)
+      responses:
+        '200':
+          description: Success
+          content:
+            text/event-stream:
+              schema: {type: string, description: 'Events: notification.created, payment.status_changed, session.expiring, balance.changed'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [NOTF-003, DASH-011, XFER-028]
+  /alert-rules:
+    get:
+      operationId: getAlertRules
+      tags: [notifications]
+      summary: Alert preferences
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AlertRules'}
+          headers:
+            ETag:
+              schema: {type: string}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [NOTF-004]
+    put:
+      operationId: updateAlertRules
+      tags: [notifications]
+      summary: Replace alert preferences
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AlertRules'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AlertRules'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [NOTF-004, NOTF-005]
+      x-audit: ALERT_RULES_CHANGED
+  /me:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Profile, preferences, MFA status, consents
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Profile'}
+          headers:
+            ETag:
+              schema: {type: string}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-001, PROF-010]
+  /me/preferences:
+    patch:
+      operationId: updatePreferences
+      tags: [profile]
+      summary: Update preferences
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/IfMatch'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PreferencesUpdate'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Preferences'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '428': {$ref: '#/components/responses/PreconditionRequired'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-010, DASH-004, NFR-I18N-004]
+      x-audit: PREFERENCES_CHANGED
+  /me/contact-change:
+    post:
+      operationId: startContactChange
+      tags: [profile]
+      summary: Start email/mobile change; sends code to the new contact
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ContactChangeStart'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Challenge'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-002, PROF-003]
+      x-step-up: CONTACT_CHANGE
+  /me/contact-change/verify:
+    post:
+      operationId: verifyContactChange
+      tags: [profile]
+      summary: Verify code and apply change
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ContactChangeVerify'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Profile'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-002, PROF-003, NOTF-007]
+      x-audit: CONTACT_CHANGED
+  /me/password:
+    post:
+      operationId: changePassword
+      tags: [security]
+      summary: Change password
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PasswordChange'}
+      responses:
+        '204': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-020, NFR-SEC-002]
+      x-step-up: PASSWORD_CHANGE
+      x-audit: PASSWORD_CHANGED
+  /me/mfa/totp:
+    post:
+      operationId: startTotpSetup
+      tags: [security]
+      summary: Begin authenticator setup
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TotpSetup'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-021, AUTH-012]
+      x-step-up: MFA_CHANGE
+    delete:
+      operationId: removeTotp
+      tags: [security]
+      summary: Remove authenticator
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      responses:
+        '204': {description: Success}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-021]
+      x-step-up: MFA_CHANGE
+      x-audit: MFA_TOTP_REMOVED
+  /me/mfa/totp/confirm:
+    post:
+      operationId: confirmTotpSetup
+      tags: [security]
+      summary: Confirm authenticator with first code
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TotpConfirm'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RecoveryCodes'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-021, AUTH-012]
+      x-audit: MFA_TOTP_ENROLLED
+  /me/mfa/recovery-codes:
+    post:
+      operationId: regenerateRecoveryCodes
+      tags: [security]
+      summary: Regenerate recovery codes
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RecoveryCodes'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-022]
+      x-step-up: MFA_CHANGE
+      x-audit: RECOVERY_CODES_REGENERATED
+  /me/devices:
+    get:
+      operationId: listTrustedDevices
+      tags: [security]
+      summary: Trusted devices
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/TrustedDevice'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-023]
+  /me/devices/{deviceId}:
+    delete:
+      operationId: revokeTrustedDevice
+      tags: [security]
+      summary: Revoke a trusted device
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '204': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-023]
+      x-audit: DEVICE_REVOKED
+  /me/sessions:
+    get:
+      operationId: listSessions
+      tags: [security]
+      summary: Active sessions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/SessionInfo'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-024]
+  /me/sessions/revoke:
+    post:
+      operationId: revokeSessions
+      tags: [security]
+      summary: Sign out other sessions or everywhere
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RevokeSessionsRequest'}
+      responses:
+        '204': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-024]
+      x-audit: SESSIONS_REVOKED_ALL
+  /me/security-activity:
+    get:
+      operationId: listSecurityActivity
+      tags: [security]
+      summary: Security activity (90 days)
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/SecurityActivityItem'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-030, NFR-OBS-012]
+  /me/consents:
+    put:
+      operationId: updateConsents
+      tags: [privacy]
+      summary: Update marketing consents
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Consents'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Consents'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-040, NFR-PRIV-005]
+      x-audit: CONSENT_CHANGED
+  /me/data-export:
+    post:
+      operationId: requestDataExport
+      tags: [privacy]
+      summary: Request personal data export
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      - {$ref: '#/components/parameters/StepUpToken'}
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DataExport'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [PROF-050, NFR-PRIV-003]
+      x-step-up: DATA_EXPORT
+      x-audit: DATA_EXPORT_REQUESTED
+  /message-threads:
+    get:
+      operationId: listThreads
+      tags: [messaging]
+      summary: Inbox
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      - name: status
+        in: query
+        required: false
+        schema: &id010 {$ref: '#/components/schemas/ThreadStatus'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/ThreadSummary'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [MSG-001]
+    post:
+      operationId: createThread
+      tags: [messaging]
+      summary: Start a conversation (incl. disputes)
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ThreadCreate'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Thread'}
+          headers:
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [MSG-002, MSG-005, ACCT-016]
+      x-audit: MESSAGE_SENT
+  /message-threads/{threadId}:
+    get:
+      operationId: getThread
+      tags: [messaging]
+      summary: Conversation
+      parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Thread'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [MSG-003]
+  /message-threads/{threadId}/messages:
+    post:
+      operationId: postMessage
+      tags: [messaging]
+      summary: Reply (reopens within 14 days)
+      parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MessageCreate'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Message'}
+          headers:
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [MSG-003, MSG-004]
+      x-audit: MESSAGE_SENT
+  /message-threads/{threadId}/close:
+    post:
+      operationId: closeThread
+      tags: [messaging]
+      summary: Mark resolved
+      parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Thread'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [MSG-004]
+  /attachments:
+    post:
+      operationId: uploadAttachment
+      tags: [messaging]
+      summary: Upload attachment (scanned)
+      parameters:
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Attachment'}
+          headers:
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '413': {$ref: '#/components/responses/PayloadTooLarge'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [MSG-002, NFR-SEC-024]
+      x-audit: ATTACHMENT_UPLOADED
+  /attachments/{attachmentId}:
+    get:
+      operationId: downloadAttachment
+      tags: [messaging]
+      summary: Download attachment
+      parameters:
+      - name: attachmentId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [MSG-003]
+  /ops/customers:
+    get:
+      operationId: opsSearchCustomers
+      tags: [ops]
+      summary: Search customers (masked)
+      parameters:
+      - name: q
+        in: query
+        required: true
+        schema: {type: string, minLength: 3, maxLength: 60}
+        description: Customer number (exact), name prefix (≥3 chars) or last 4 digits of mobile
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/OpsCustomerSummary'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-002]
+      x-roles: [OPS_AGENT, OPS_SUPERVISOR]
+  /ops/customers/{customerId}:
+    get:
+      operationId: opsGetCustomer
+      tags: [ops]
+      summary: Customer 360 (requires access reason)
+      parameters:
+      - name: customerId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/AccessReason'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/OpsCustomer360'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-003]
+      x-audit: OPS_CUSTOMER_VIEWED
+      x-roles: [OPS_AGENT, OPS_SUPERVISOR]
+  /ops/customers/{customerId}/unlock:
+    post:
+      operationId: opsUnlockUser
+      tags: [ops]
+      summary: Unlock customer sign-in
+      parameters:
+      - name: customerId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/OpsNote'}
+      responses:
+        '204': {description: Success}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-004]
+      x-audit: OPS_USER_UNLOCKED
+      x-roles: [OPS_AGENT, OPS_SUPERVISOR]
+  /ops/held-payments:
+    get:
+      operationId: opsListHeldPayments
+      tags: [ops]
+      summary: Held payments queue
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/HeldPayment'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-005]
+      x-roles: [OPS_AGENT, OPS_SUPERVISOR]
+  /ops/held-payments/{transferId}/recommendation:
+    post:
+      operationId: opsRecommendHeldPayment
+      tags: [ops]
+      summary: Maker recommendation
+      parameters:
+      - name: transferId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/OpsRecommendation'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HeldPayment'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-005]
+      x-audit: OPS_PAYMENT_RECOMMENDED
+      x-roles: [OPS_AGENT, OPS_SUPERVISOR]
+  /ops/held-payments/{transferId}/decision:
+    post:
+      operationId: opsDecideHeldPayment
+      tags: [ops]
+      summary: Checker approve/reject (four-eyes)
+      parameters:
+      - name: transferId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/OpsDecision'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HeldPayment'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-006]
+      x-audit: OPS_PAYMENT_APPROVED
+      x-roles: [OPS_SUPERVISOR]
+  /ops/message-threads:
+    get:
+      operationId: opsListThreads
+      tags: [ops]
+      summary: Messaging queue
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      - name: status
+        in: query
+        required: false
+        schema: *id010
+      - name: category
+        in: query
+        required: false
+        schema: {$ref: '#/components/schemas/MessageCategory'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/ThreadSummary'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-007]
+      x-roles: [OPS_AGENT, OPS_SUPERVISOR]
+  /ops/message-threads/{threadId}/messages:
+    post:
+      operationId: opsPostMessage
+      tags: [ops]
+      summary: Reply as bank
+      parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MessageCreate'}
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Message'}
+          headers:
+            Location:
+              schema: {type: string}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-007]
+      x-audit: OPS_MESSAGE_SENT
+      x-roles: [OPS_AGENT, OPS_SUPERVISOR]
+  /ops/message-threads/{threadId}/close:
+    post:
+      operationId: opsCloseThread
+      tags: [ops]
+      summary: Close thread
+      parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/Id'}
+      - {$ref: '#/components/parameters/CsrfToken'}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Thread'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-007]
+      x-roles: [OPS_AGENT, OPS_SUPERVISOR]
+  /ops/audit-events:
+    get:
+      operationId: opsSearchAudit
+      tags: [ops]
+      summary: Search audit log (≤31 days)
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema: *id001
+        description: Opaque cursor from page.nextCursor
+      - name: limit
+        in: query
+        required: false
+        schema: *id002
+      - name: from
+        in: query
+        required: true
+        schema: {$ref: '#/components/schemas/Timestamp'}
+      - name: to
+        in: query
+        required: true
+        schema: {$ref: '#/components/schemas/Timestamp'}
+      - name: actorId
+        in: query
+        required: false
+        schema: {$ref: '#/components/schemas/Id'}
+      - name: customerId
+        in: query
+        required: false
+        schema: {$ref: '#/components/schemas/Id'}
+      - name: action
+        in: query
+        required: false
+        schema: {type: string, maxLength: 60}
+      - name: outcome
+        in: query
+        required: false
+        schema: {type: string, enum: [SUCCESS, FAILURE]}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/AuditEvent'}
+                  page: {$ref: '#/components/schemas/PageInfo'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/Unprocessable'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/InternalError'}
+      x-requirements: [OPS-008, NFR-OBS-011]
+      x-audit: OPS_AUDIT_SEARCHED
+      x-roles: [OPS_SUPERVISOR]
+components:
+  securitySchemes:
+    sessionCookie: {type: apiKey, in: cookie, name: __Host-hb_sid, description: Server-side session (ADR-0004). Dev over HTTP uses hb_sid.}
+  parameters:
+    CsrfToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      schema: {type: string, minLength: 32, maxLength: 128}
+      description: Synchronizer token from session (ADR-0004)
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: {type: string, format: uuid}
+      description: ADR-0005
+    StepUpToken:
+      name: X-Step-Up-Token
+      in: header
+      required: false
+      schema: {type: string, maxLength: 256}
+      description: Single-use token from verifyStepUp (SPEC-04 §4)
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema: {type: string}
+      description: ETag from the last read (SPEC-04 §9)
+    AccessReason:
+      name: X-Access-Reason
+      in: header
+      required: true
+      schema: {type: string, pattern: '^(CUSTOMER_CALL|SECURE_MESSAGE|HELD_PAYMENT_REVIEW|FRAUD_INVESTIGATION|OTHER)(:.{10,200})?$'}
+      description: Reason code, optionally ":free text" (required ≥10 chars for OTHER) — BR-OPS-02
+  responses:
+    BadRequest:
+      description: BadRequest
+      content: &id011
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    Unauthorized:
+      description: UNAUTHENTICATED, SESSION_EXPIRED, INVALID_CREDENTIALS or MFA_* codes
+      content: *id011
+    Forbidden:
+      description: FORBIDDEN, CSRF_TOKEN_INVALID, STEP_UP_REQUIRED (with stepUp block), STEP_UP_TOKEN_INVALID, MAKER_CHECKER_VIOLATION
+      content: *id011
+    NotFound:
+      description: NotFound
+      content: *id011
+    Conflict:
+      description: Conflict
+      content: *id011
+    PreconditionFailed:
+      description: PreconditionFailed
+      content: *id011
+    PayloadTooLarge:
+      description: PayloadTooLarge
+      content: *id011
+    Unprocessable:
+      description: Unprocessable
+      content: *id011
+    Locked:
+      description: Locked
+      content: *id011
+    PreconditionRequired:
+      description: PreconditionRequired
+      content: *id011
+    TooManyRequests:
+      description: TooManyRequests
+      content: *id011
+      headers:
+        Retry-After:
+          schema: {type: integer}
+    InternalError:
+      description: InternalError
+      content: *id011
+    ServiceUnavailable:
+      description: ServiceUnavailable
+      content: *id011
+  schemas:
+    Money:
+      type: object
+      description: Monetary amount. `amount` is a decimal string with exactly the currency exponent digits (SPEC-03 §4.1).
+      additionalProperties: false
+      required: [amount, currency]
+      properties:
+        amount: {type: string, pattern: '^-?(0|[1-9][0-9]{0,14})(\.[0-9]{1,3})?$', examples: ['12505.00']}
+        currency: {$ref: '#/components/schemas/CurrencyCode'}
+    CurrencyCode: {type: string, enum: [AED, USD, EUR, GBP, AED, SAR, BHD, JPY]}
+    Locale: {type: string, enum: [en, ar]}
+    Theme: {type: string, enum: [white, g100, system]}
+    BusinessDate: {type: string, format: date, examples: ['2026-11-18']}
+    Timestamp: {type: string, format: date-time, examples: ['2026-11-18T09:41:00Z']}
+    Id: {type: string, pattern: '^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$', description: Opaque prefixed ULID}
+    Reference: {type: string, pattern: '^HB[0-9]{6}-[A-Z2-7]{6}$', examples: [HB261118-7KQ2MX]}
+    FieldError:
+      type: object
+      required: [field, code]
+      properties:
+        field: {type: string}
+        code: {type: string}
+        message: {type: string}
+    Problem:
+      type: object
+      description: RFC 9457 problem details (SPEC-04 §7)
+      required: [type, title, status, code, traceId]
+      properties:
+        type: {type: string, format: uri}
+        title: {type: string}
+        status: {type: integer}
+        detail: {type: string}
+        instance: {type: string}
+        code: {$ref: '#/components/schemas/ErrorCode'}
+        traceId: {type: string}
+        errors:
+          type: array
+          items: {$ref: '#/components/schemas/FieldError'}
+        params: {type: object, additionalProperties: true, description: 'Values for localized message placeholders (e.g. limit, remaining)'}
+        stepUp:
+          type: object
+          properties:
+            purpose: {$ref: '#/components/schemas/StepUpPurpose'}
+            methods:
+              type: array
+              items: {$ref: '#/components/schemas/MfaMethod'}
+    PageInfo:
+      type: object
+      required: [limit, hasMore]
+      properties:
+        nextCursor: {type: string}
+        limit: {type: integer, minimum: 1, maximum: 100}
+        hasMore: {type: boolean}
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status: {type: string, enum: [ok, degraded, down]}
+        checks:
+          type: object
+          additionalProperties: {type: string, enum: [up, down]}
+    Version:
+      type: object
+      required: [version, gitSha, builtAt, demoMode]
+      properties:
+        version: {type: string}
+        gitSha: {type: string}
+        builtAt: {$ref: '#/components/schemas/Timestamp'}
+        demoMode: {type: boolean}
+    MfaMethod: {type: string, enum: [SMS, TOTP, RECOVERY_CODE]}
+    StepUpPurpose: {type: string, enum: [BENEFICIARY_CREATE, BENEFICIARY_UPDATE, TRANSFER_CREATE, CARD_REVEAL, CARD_REPORT, CONTACT_CHANGE, PASSWORD_CHANGE, MFA_CHANGE,
+        LIMITS_INCREASE, DATA_EXPORT]}
+    UserStatus: {type: string, enum: [PENDING_ENROLMENT, ACTIVE, TEMP_LOCKED, LOCKED, DISABLED]}
+    Role: {type: string, enum: [CUSTOMER, OPS_AGENT, OPS_SUPERVISOR]}
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [username, password]
+      properties:
+        username: {type: string, minLength: 1, maxLength: 64}
+        password: {type: string, minLength: 1, maxLength: 128, format: password}
+    LoginResponse:
+      type: object
+      required: [status]
+      properties:
+        status: {type: string, enum: [MFA_REQUIRED, AUTHENTICATED]}
+        challenge: {$ref: '#/components/schemas/Challenge'}
+        session: {$ref: '#/components/schemas/Session'}
+    Challenge:
+      type: object
+      required: [challengeId, methods, expiresAt]
+      properties:
+        challengeId: {$ref: '#/components/schemas/Id'}
+        methods:
+          type: array
+          items: {$ref: '#/components/schemas/MfaMethod'}
+        sentTo: {type: string, description: Masked destination, examples: [+971 •• ••• 4417]}
+        expiresAt: {$ref: '#/components/schemas/Timestamp'}
+        resendAvailableAt: {$ref: '#/components/schemas/Timestamp'}
+        attemptsRemaining: {type: integer}
+    MfaVerifyRequest:
+      type: object
+      additionalProperties: false
+      required: [challengeId, method, code]
+      properties:
+        challengeId: {$ref: '#/components/schemas/Id'}
+        method: {$ref: '#/components/schemas/MfaMethod'}
+        code: {type: string, pattern: '^([0-9]{6}|[A-Z2-7]{5}-[A-Z2-7]{5})$'}
+        rememberDevice: {type: boolean, default: false}
+    ChallengeRef:
+      type: object
+      additionalProperties: false
+      required: [challengeId]
+      properties:
+        challengeId: {$ref: '#/components/schemas/Id'}
+        method: {$ref: '#/components/schemas/MfaMethod'}
+    Session:
+      type: object
+      required: [user, csrfToken, idleExpiresAt, absoluteExpiresAt]
+      properties:
+        user:
+          type: object
+          required: [id, displayName, roles, locale]
+          properties:
+            id: {$ref: '#/components/schemas/Id'}
+            displayName: {type: string}
+            roles:
+              type: array
+              items: {$ref: '#/components/schemas/Role'}
+            locale: {$ref: '#/components/schemas/Locale'}
+            theme: {$ref: '#/components/schemas/Theme'}
+        csrfToken: {type: string}
+        idleExpiresAt: {$ref: '#/components/schemas/Timestamp'}
+        absoluteExpiresAt: {$ref: '#/components/schemas/Timestamp'}
+        previousLogin: {$ref: '#/components/schemas/PreviousLogin'}
+    PreviousLogin:
+      type: object
+      properties:
+        at: {$ref: '#/components/schemas/Timestamp'}
+        device: {type: string}
+        approximateLocation: {type: string}
+    EnrolmentStartRequest:
+      type: object
+      additionalProperties: false
+      required: [customerNumber, dateOfBirth]
+      properties:
+        customerNumber: {type: string, pattern: '^[0-9]{8}$'}
+        dateOfBirth: {$ref: '#/components/schemas/BusinessDate'}
+    EnrolmentCompleteRequest:
+      type: object
+      additionalProperties: false
+      required: [enrolmentToken, username, password]
+      properties:
+        enrolmentToken: {type: string, description: Returned by verifyEnrolment}
+        username: {type: string, pattern: '^[a-z0-9._-]{6,32}$'}
+        password: {type: string, minLength: 12, maxLength: 128, format: password}
+    EnrolmentToken:
+      type: object
+      required: [enrolmentToken, expiresAt]
+      properties:
+        enrolmentToken: {type: string}
+        expiresAt: {$ref: '#/components/schemas/Timestamp'}
+    PasswordResetRequest:
+      type: object
+      additionalProperties: false
+      required: [username]
+      properties:
+        username: {type: string, minLength: 1, maxLength: 64}
+    PasswordResetVerifyRequest:
+      type: object
+      additionalProperties: false
+      required: [resetToken]
+      properties:
+        resetToken: {type: string, minLength: 32, maxLength: 128}
+    PasswordResetCompleteRequest:
+      type: object
+      additionalProperties: false
+      required: [resetToken, challengeId, code, newPassword]
+      properties:
+        resetToken: {type: string, minLength: 32, maxLength: 128}
+        challengeId: {$ref: '#/components/schemas/Id'}
+        code: {type: string, pattern: '^[0-9]{6}$'}
+        newPassword: {type: string, minLength: 12, maxLength: 128, format: password}
+    StepUpStartRequest:
+      type: object
+      additionalProperties: false
+      required: [purpose]
+      properties:
+        purpose: {$ref: '#/components/schemas/StepUpPurpose'}
+        payloadHash: {type: string, pattern: '^[a-f0-9]{64}$', description: SHA-256 of canonical JSON of the protected request body (payload-bound purposes)}
+        method: {$ref: '#/components/schemas/MfaMethod'}
+    StepUpVerifyRequest:
+      type: object
+      additionalProperties: false
+      required: [challengeId, method, code]
+      properties:
+        challengeId: {$ref: '#/components/schemas/Id'}
+        method: {$ref: '#/components/schemas/MfaMethod'}
+        code: {type: string, pattern: '^[0-9]{6}$'}
+    StepUpToken:
+      type: object
+      required: [stepUpToken, purpose, expiresAt]
+      properties:
+        stepUpToken: {type: string}
+        purpose: {$ref: '#/components/schemas/StepUpPurpose'}
+        expiresAt: {$ref: '#/components/schemas/Timestamp'}
+    AccountType: {type: string, enum: [CURRENT, SAVINGS, CREDIT_CARD, TERM_DEPOSIT, LOAN]}
+    AccountStatus: {type: string, enum: [ACTIVE, FROZEN, DORMANT, CLOSED]}
+    Balances:
+      type: object
+      required: [available, ledger, holds]
+      properties:
+        available: {$ref: '#/components/schemas/Money'}
+        ledger: {$ref: '#/components/schemas/Money'}
+        holds: {$ref: '#/components/schemas/Money'}
+        holdsCount: {type: integer}
+        overdraftLimit: {$ref: '#/components/schemas/Money'}
+    Account:
+      type: object
+      required: [id, type, productName, currency, status, maskedNumber, balances]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        type: {$ref: '#/components/schemas/AccountType'}
+        productName: {type: string}
+        nickname: {type: string, maxLength: 40}
+        currency: {$ref: '#/components/schemas/CurrencyCode'}
+        status: {$ref: '#/components/schemas/AccountStatus'}
+        maskedNumber: {type: string, examples: [•••• 4821]}
+        iban: {type: string, description: Full IBAN; present only on getAccount}
+        accountNumber: {type: string, description: Present only on getAccount}
+        bic: {type: string}
+        openedOn: {$ref: '#/components/schemas/BusinessDate'}
+        balances: {$ref: '#/components/schemas/Balances'}
+        product: {$ref: '#/components/schemas/ProductDetails'}
+        etag: {type: string}
+    ProductDetails:
+      type: object
+      description: Type-specific details (ACCT-005). Only the block for the account type is present.
+      properties:
+        savings:
+          type: object
+          properties:
+            interestRateBps: {type: integer}
+            interestPaidYtd: {$ref: '#/components/schemas/Money'}
+            lastInterestDate: {$ref: '#/components/schemas/BusinessDate'}
+        creditCard:
+          type: object
+          properties:
+            creditLimit: {$ref: '#/components/schemas/Money'}
+            owed: {$ref: '#/components/schemas/Money'}
+            availableCredit: {$ref: '#/components/schemas/Money'}
+            statementBalance: {$ref: '#/components/schemas/Money'}
+            minimumDue: {$ref: '#/components/schemas/Money'}
+            dueDate: {$ref: '#/components/schemas/BusinessDate'}
+        termDeposit:
+          type: object
+          properties:
+            principal: {$ref: '#/components/schemas/Money'}
+            interestRateBps: {type: integer}
+            startDate: {$ref: '#/components/schemas/BusinessDate'}
+            maturityDate: {$ref: '#/components/schemas/BusinessDate'}
+            maturityInstruction: {type: string, enum: [RENEW_PRINCIPAL, RENEW_ALL, CREDIT_TO_ACCOUNT]}
+            projectedInterest: {$ref: '#/components/schemas/Money'}
+        loan:
+          type: object
+          properties:
+            originalAmount: {$ref: '#/components/schemas/Money'}
+            outstandingPrincipal: {$ref: '#/components/schemas/Money'}
+            nextInstalment: {$ref: '#/components/schemas/Money'}
+            nextInstalmentDate: {$ref: '#/components/schemas/BusinessDate'}
+            remainingInstalments: {type: integer}
+    AccountUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        nickname: {type: [string, 'null'], maxLength: 40, pattern: '^[\p{L}\p{N} .,''&()-]*$'}
+    Category:
+      type: string
+      enum: [GROCERIES, DINING, TRANSPORT, SHOPPING, BILLS_UTILITIES, HEALTH, ENTERTAINMENT, TRAVEL, EDUCATION, TRANSFERS, CASH, INCOME, FEES, OTHER]
+    Channel: {type: string, enum: [CARD, TRANSFER, BILL, FEE, INTEREST, CASH, OTHER]}
+    Transaction:
+      type: object
+      required: [id, accountId, status, direction, amount, description, bookedAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        accountId: {$ref: '#/components/schemas/Id'}
+        status: {type: string, enum: [PENDING, POSTED]}
+        direction: {type: string, enum: [DEBIT, CREDIT]}
+        amount: {$ref: '#/components/schemas/Money'}
+        description: {type: string}
+        merchantName: {type: string}
+        counterpartyName: {type: string}
+        category: {$ref: '#/components/schemas/Category'}
+        channel: {$ref: '#/components/schemas/Channel'}
+        reference: {type: string}
+        bookedAt: {$ref: '#/components/schemas/Timestamp'}
+        valueDate: {$ref: '#/components/schemas/BusinessDate'}
+        runningBalance: {$ref: '#/components/schemas/Money'}
+        cardLast4: {type: string, pattern: '^[0-9]{4}$'}
+        originalAmount: {$ref: '#/components/schemas/Money'}
+        fxRate: {type: string, pattern: '^[0-9]+\.[0-9]{4,8}$'}
+        fee: {$ref: '#/components/schemas/Money'}
+        paymentOrderId: {$ref: '#/components/schemas/Id'}
+        finalAmountDiffers: {type: boolean}
+    TransactionUpdate:
+      type: object
+      additionalProperties: false
+      required: [category]
+      properties:
+        category: {$ref: '#/components/schemas/Category'}
+    DashboardSection:
+      type: object
+      required: [status]
+      properties:
+        status: {type: string, enum: [OK, UNAVAILABLE]}
+    DashboardSummary:
+      type: object
+      required: [greetingName, accounts, totals, recent, upcoming, attention]
+      properties:
+        greetingName: {type: string}
+        previousLogin: {$ref: '#/components/schemas/PreviousLogin'}
+        accounts:
+          allOf:
+          - {$ref: '#/components/schemas/DashboardSection'}
+          properties:
+            items:
+              type: array
+              items: {$ref: '#/components/schemas/Account'}
+        totals:
+          allOf:
+          - {$ref: '#/components/schemas/DashboardSection'}
+          properties:
+            byCurrency:
+              type: array
+              items: {$ref: '#/components/schemas/Money'}
+            estimatedInBase: {$ref: '#/components/schemas/Money'}
+            ratesAsOf: {$ref: '#/components/schemas/Timestamp'}
+        recent:
+          allOf:
+          - {$ref: '#/components/schemas/DashboardSection'}
+          properties:
+            items:
+              type: array
+              maxItems: 5
+              items: {$ref: '#/components/schemas/Transaction'}
+        upcoming:
+          allOf:
+          - {$ref: '#/components/schemas/DashboardSection'}
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                required: [date, kind, amount, label]
+                properties:
+                  date: {$ref: '#/components/schemas/BusinessDate'}
+                  kind: {type: string, enum: [SCHEDULED_TRANSFER, STANDING_ORDER, BILL, CARD_DUE]}
+                  amount: {$ref: '#/components/schemas/Money'}
+                  label: {type: string}
+                  link: {type: string}
+        attention:
+          allOf:
+          - {$ref: '#/components/schemas/DashboardSection'}
+          properties:
+            items:
+              type: array
+              maxItems: 3
+              items:
+                type: object
+                required: [kind, messageKey]
+                properties:
+                  kind: {type: string, enum: [SECURITY, CARD_DUE, PAYMENT_HELD, PAYMENT_FAILED, CARD_ACTIVATION, BENEFICIARY_COOLING]}
+                  messageKey: {type: string}
+                  params: {type: object, additionalProperties: true}
+                  link: {type: string}
+    SpendingInsights:
+      type: object
+      required: [month, currency, categories]
+      properties:
+        month: {type: string, pattern: '^[0-9]{4}-[0-9]{2}$'}
+        currency: {$ref: '#/components/schemas/CurrencyCode'}
+        categories:
+          type: array
+          items:
+            type: object
+            required: [category, amount, previous]
+            properties:
+              category: {$ref: '#/components/schemas/Category'}
+              amount: {$ref: '#/components/schemas/Money'}
+              previous: {$ref: '#/components/schemas/Money'}
+    SearchResults:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items: {$ref: '#/components/schemas/Account'}
+        beneficiaries:
+          type: array
+          items: {$ref: '#/components/schemas/Beneficiary'}
+        transactions:
+          type: array
+          items: {$ref: '#/components/schemas/Transaction'}
+        pages:
+          type: array
+          items:
+            type: object
+            properties:
+              titleKey: {type: string}
+              path: {type: string}
+    BeneficiaryType: {type: string, enum: [INTERNAL, DOMESTIC, INTERNATIONAL]}
+    CopResult: {type: string, enum: [MATCH, CLOSE_MATCH, NO_MATCH, UNAVAILABLE]}
+    Address:
+      type: object
+      additionalProperties: false
+      required: [line1, city, country]
+      properties:
+        line1: {type: string, maxLength: 70}
+        line2: {type: string, maxLength: 70}
+        city: {type: string, maxLength: 35}
+        postalCode: {type: string, maxLength: 16}
+        country: {type: string, pattern: '^[A-Z]{2}$'}
+    Beneficiary:
+      type: object
+      required: [id, type, displayName, accountHolderName, maskedAccount, bankName, createdAt, isFavourite]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        type: {$ref: '#/components/schemas/BeneficiaryType'}
+        displayName: {type: string}
+        nickname: {type: string, maxLength: 30}
+        accountHolderName: {type: string}
+        maskedAccount: {type: string}
+        bankName: {type: string}
+        bankCountry: {type: string, pattern: '^[A-Z]{2}$'}
+        currency: {$ref: '#/components/schemas/CurrencyCode'}
+        copResult: {$ref: '#/components/schemas/CopResult'}
+        copAcknowledged: {type: boolean}
+        createdAt: {$ref: '#/components/schemas/Timestamp'}
+        coolingOffUntil: {$ref: '#/components/schemas/Timestamp'}
+        isFavourite: {type: boolean}
+        etag: {type: string}
+    BeneficiaryCreate:
+      type: object
+      additionalProperties: false
+      required: [type, accountHolderName]
+      properties:
+        type: {$ref: '#/components/schemas/BeneficiaryType'}
+        accountHolderName: {type: string, minLength: 2, maxLength: 70}
+        nickname: {type: string, maxLength: 30}
+        iban: {type: string, maxLength: 42}
+        accountNumber: {type: string, pattern: '^[A-Za-z0-9]{4,34}$'}
+        bic: {type: string, pattern: '^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$'}
+        bankCountry: {type: string, pattern: '^[A-Z]{2}$'}
+        currency: {$ref: '#/components/schemas/CurrencyCode'}
+        address: {$ref: '#/components/schemas/Address'}
+        nameCheckId: {$ref: '#/components/schemas/Id'}
+        acceptedSuggestedName: {type: boolean}
+        copRiskAcknowledged: {type: boolean}
+    BeneficiaryUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        nickname: {type: [string, 'null'], maxLength: 30}
+        isFavourite: {type: boolean}
+    NameCheckRequest:
+      type: object
+      additionalProperties: false
+      required: [type, accountHolderName]
+      properties:
+        type: {$ref: '#/components/schemas/BeneficiaryType'}
+        accountHolderName: {type: string, minLength: 2, maxLength: 70}
+        iban: {type: string, maxLength: 42}
+        accountNumber: {type: string, pattern: '^[A-Za-z0-9]{4,34}$'}
+    NameCheckResult:
+      type: object
+      required: [nameCheckId, result]
+      properties:
+        nameCheckId: {$ref: '#/components/schemas/Id'}
+        result: {$ref: '#/components/schemas/CopResult'}
+        suggestedName: {type: string}
+        bankName: {type: string}
+    FxQuoteRequest:
+      type: object
+      additionalProperties: false
+      required: [sellCurrency, buyCurrency]
+      description: Provide exactly one of sellAmount or buyAmount.
+      properties:
+        sellCurrency: {$ref: '#/components/schemas/CurrencyCode'}
+        buyCurrency: {$ref: '#/components/schemas/CurrencyCode'}
+        sellAmount: {$ref: '#/components/schemas/Money'}
+        buyAmount: {$ref: '#/components/schemas/Money'}
+    FxQuote:
+      type: object
+      required: [id, sell, buy, rate, inverseRate, expiresAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        sell: {$ref: '#/components/schemas/Money'}
+        buy: {$ref: '#/components/schemas/Money'}
+        rate: {type: string, description: 'Units of buy currency per 1 sell currency, 6–8 dp'}
+        inverseRate: {type: string}
+        midRate: {type: string}
+        marginBps: {type: integer, examples: [50]}
+        expiresAt: {$ref: '#/components/schemas/Timestamp'}
+    TransferKind: {type: string, enum: [OWN, INTERNAL, DOMESTIC, INTERNATIONAL, BILL]}
+    PaymentStatus: {type: string, enum: [SCHEDULED, PROCESSING, HELD_FOR_REVIEW, COMPLETED, FAILED, REJECTED, CANCELLED, RETURNED]}
+    ChargeBearer: {type: string, enum: [OUR, SHA, BEN]}
+    PurposeCode: {type: string, enum: [FAMILY_SUPPORT, SALARY, EDUCATION, MEDICAL, RENT, GOODS_PURCHASE, SERVICES, INVESTMENT, LOAN_REPAYMENT, GIFT, TRAVEL, OTHER]}
+    Schedule:
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type: {type: string, enum: [NOW, ON_DATE, RECURRING]}
+        executionDate: {$ref: '#/components/schemas/BusinessDate'}
+        frequency: {type: string, enum: [WEEKLY, MONTHLY, QUARTERLY]}
+        dayOfMonth: {type: integer, minimum: 1, maximum: 28}
+        lastBusinessDay: {type: boolean}
+        endDate: {$ref: '#/components/schemas/BusinessDate'}
+        numberOfPayments: {type: integer, minimum: 1, maximum: 120}
+    TransferInstruction:
+      type: object
+      additionalProperties: false
+      required: [kind, debitAccountId, amount, schedule]
+      properties:
+        kind: {$ref: '#/components/schemas/TransferKind'}
+        debitAccountId: {$ref: '#/components/schemas/Id'}
+        creditAccountId: {$ref: '#/components/schemas/Id'}
+        beneficiaryId: {$ref: '#/components/schemas/Id'}
+        amount: {$ref: '#/components/schemas/Money'}
+        amountSide: {type: string, enum: [SEND, RECEIVE], default: SEND}
+        fxQuoteId: {$ref: '#/components/schemas/Id'}
+        customerReference: {type: string, maxLength: 35}
+        purposeCode: {$ref: '#/components/schemas/PurposeCode'}
+        purposeText: {type: string, maxLength: 35}
+        chargeBearer: {$ref: '#/components/schemas/ChargeBearer'}
+        schedule: {$ref: '#/components/schemas/Schedule'}
+    TransferQuote:
+      type: object
+      required: [debitAmount, creditAmount, fee, executionDate, valueDate, stepUpRequired, limits]
+      properties:
+        debitAmount: {$ref: '#/components/schemas/Money'}
+        creditAmount: {$ref: '#/components/schemas/Money'}
+        fee: {$ref: '#/components/schemas/Money'}
+        totalDebited: {$ref: '#/components/schemas/Money'}
+        fxQuote: {$ref: '#/components/schemas/FxQuote'}
+        executionDate: {$ref: '#/components/schemas/BusinessDate'}
+        valueDate: {$ref: '#/components/schemas/BusinessDate'}
+        cutoffPassed: {type: boolean}
+        nextExecutions:
+          type: array
+          maxItems: 3
+          items: {$ref: '#/components/schemas/BusinessDate'}
+        stepUpRequired: {type: boolean}
+        stepUpPurpose: {$ref: '#/components/schemas/StepUpPurpose'}
+        availableAfter: {$ref: '#/components/schemas/Money'}
+        limits:
+          type: object
+          properties:
+            dailyRemaining: {$ref: '#/components/schemas/Money'}
+            beneficiaryCoolingRemaining: {$ref: '#/components/schemas/Money'}
+        warnings:
+          type: array
+          items: {type: string, enum: [CUTOFF_PASSED, NON_BUSINESS_DAY, BENEFICIARY_COOLING_OFF, COP_NOT_MATCHED, INTERMEDIARY_CHARGES_MAY_APPLY]}
+    TransferEvent:
+      type: object
+      required: [at, to]
+      properties:
+        at: {$ref: '#/components/schemas/Timestamp'}
+        from: {$ref: '#/components/schemas/PaymentStatus'}
+        to: {$ref: '#/components/schemas/PaymentStatus'}
+        reasonCode: {type: string}
+    Transfer:
+      type: object
+      required: [id, reference, kind, status, debitAccountId, amount, debitAmount, fee, executionDate, createdAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        reference: {$ref: '#/components/schemas/Reference'}
+        kind: {$ref: '#/components/schemas/TransferKind'}
+        status: {$ref: '#/components/schemas/PaymentStatus'}
+        debitAccountId: {$ref: '#/components/schemas/Id'}
+        creditAccountId: {$ref: '#/components/schemas/Id'}
+        beneficiary: {$ref: '#/components/schemas/Beneficiary'}
+        amount: {$ref: '#/components/schemas/Money'}
+        debitAmount: {$ref: '#/components/schemas/Money'}
+        creditAmount: {$ref: '#/components/schemas/Money'}
+        fee: {$ref: '#/components/schemas/Money'}
+        fxRate: {type: string}
+        chargeBearer: {$ref: '#/components/schemas/ChargeBearer'}
+        purposeCode: {$ref: '#/components/schemas/PurposeCode'}
+        customerReference: {type: string}
+        executionDate: {$ref: '#/components/schemas/BusinessDate'}
+        valueDate: {$ref: '#/components/schemas/BusinessDate'}
+        failureCode: {type: string}
+        standingOrderId: {$ref: '#/components/schemas/Id'}
+        events:
+          type: array
+          items: {$ref: '#/components/schemas/TransferEvent'}
+        createdAt: {$ref: '#/components/schemas/Timestamp'}
+    StandingOrder:
+      type: object
+      required: [id, status, frequency, amount, nextRunDate]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        status: {type: string, enum: [ACTIVE, CANCELLED, COMPLETED]}
+        kind: {$ref: '#/components/schemas/TransferKind'}
+        frequency: {type: string, enum: [WEEKLY, MONTHLY, QUARTERLY]}
+        amount: {$ref: '#/components/schemas/Money'}
+        debitAccountId: {$ref: '#/components/schemas/Id'}
+        payeeLabel: {type: string}
+        nextRunDate: {$ref: '#/components/schemas/BusinessDate'}
+        endDate: {$ref: '#/components/schemas/BusinessDate'}
+        remainingPayments: {type: integer}
+    Limits:
+      type: object
+      required: [perTransactionMax, dailyExternal, customerDailyLimit, usedToday, remainingToday, newBeneficiaryDaily]
+      properties:
+        perTransactionMax: {$ref: '#/components/schemas/Money'}
+        dailyExternal: {$ref: '#/components/schemas/Money'}
+        customerDailyLimit: {$ref: '#/components/schemas/Money'}
+        usedToday: {$ref: '#/components/schemas/Money'}
+        remainingToday: {$ref: '#/components/schemas/Money'}
+        newBeneficiaryDaily: {$ref: '#/components/schemas/Money'}
+        etag: {type: string}
+    LimitsUpdate:
+      type: object
+      additionalProperties: false
+      required: [customerDailyLimit]
+      properties:
+        customerDailyLimit: {$ref: '#/components/schemas/Money'}
+    PurposeCodeItem:
+      type: object
+      required: [code, labelKey]
+      properties:
+        code: {$ref: '#/components/schemas/PurposeCode'}
+        labelKey: {type: string}
+        requiresText: {type: boolean}
+    Bank:
+      type: object
+      required: [name, country]
+      properties:
+        name: {type: string}
+        bic: {type: string}
+        city: {type: string}
+        country: {type: string}
+        ibanBankCode: {type: string}
+    CurrencyInfo:
+      type: object
+      required: [code, exponent, accountCurrency, tradable]
+      properties:
+        code: {$ref: '#/components/schemas/CurrencyCode'}
+        exponent: {type: integer, enum: [0, 2, 3]}
+        accountCurrency: {type: boolean}
+        tradable: {type: boolean}
+    BusinessCalendar:
+      type: object
+      required: [timezone, weekend, holidays, cutoffs]
+      properties:
+        timezone: {type: string, examples: [Asia/Dubai]}
+        weekend:
+          type: array
+          items: {type: string, enum: [MON, TUE, WED, THU, FRI, SAT, SUN]}
+        holidays:
+          type: array
+          items:
+            type: object
+            properties:
+              date: {$ref: '#/components/schemas/BusinessDate'}
+              nameKey: {type: string}
+        cutoffs:
+          type: object
+          properties:
+            DOMESTIC: {type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$'}
+            INTERNATIONAL: {type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$'}
+    Biller:
+      type: object
+      required: [id, name, category, referenceLabelKey, referencePattern, referenceExample, supportsInquiry, paymentRule]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        name: {type: string}
+        nameAr: {type: string}
+        category: {type: string, enum: [ELECTRICITY_WATER, TELECOM, INTERNET, EDUCATION, GOVERNMENT]}
+        referenceLabelKey: {type: string}
+        referencePattern: {type: string}
+        referenceExample: {type: string}
+        supportsInquiry: {type: boolean}
+        paymentRule: {type: string, enum: [EXACT, PARTIAL_ALLOWED, PARTIAL_AND_OVERPAY, DENOMINATIONS]}
+        minAmount: {$ref: '#/components/schemas/Money'}
+        maxOverpay: {$ref: '#/components/schemas/Money'}
+        denominations:
+          type: array
+          items: {$ref: '#/components/schemas/Money'}
+    SavedBiller:
+      type: object
+      required: [id, biller, maskedReference]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        biller: {$ref: '#/components/schemas/Biller'}
+        nickname: {type: string, maxLength: 30}
+        maskedReference: {type: string}
+        lastInquiry: {$ref: '#/components/schemas/BillInquiry'}
+        autoPay: {$ref: '#/components/schemas/StandingOrder'}
+    SavedBillerCreate:
+      type: object
+      additionalProperties: false
+      required: [billerId, reference]
+      properties:
+        billerId: {$ref: '#/components/schemas/Id'}
+        reference: {type: string, minLength: 3, maxLength: 20}
+        nickname: {type: string, maxLength: 30}
+    BillInquiry:
+      type: object
+      required: [amountDue, retrievedAt]
+      properties:
+        amountDue: {$ref: '#/components/schemas/Money'}
+        dueDate: {$ref: '#/components/schemas/BusinessDate'}
+        periodLabel: {type: string}
+        maskedHolderName: {type: string}
+        overdue: {type: boolean}
+        retrievedAt: {$ref: '#/components/schemas/Timestamp'}
+    BillPaymentCreate:
+      type: object
+      additionalProperties: false
+      required: [debitAccountId, amount, schedule]
+      properties:
+        savedBillerId: {$ref: '#/components/schemas/Id'}
+        billerId: {$ref: '#/components/schemas/Id'}
+        reference: {type: string, maxLength: 20, description: For ad-hoc (unsaved) payments such as prepaid top-ups}
+        debitAccountId: {$ref: '#/components/schemas/Id'}
+        amount: {$ref: '#/components/schemas/Money'}
+        schedule: {$ref: '#/components/schemas/Schedule'}
+        autoPay:
+          type: object
+          additionalProperties: false
+          properties:
+            mode: {type: string, enum: [AMOUNT_DUE, FIXED]}
+            maximum: {$ref: '#/components/schemas/Money'}
+    BillPayment:
+      type: object
+      required: [id, reference, status, biller, amount, createdAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        reference: {$ref: '#/components/schemas/Reference'}
+        status: {$ref: '#/components/schemas/PaymentStatus'}
+        biller: {$ref: '#/components/schemas/Biller'}
+        maskedBillerReference: {type: string}
+        amount: {$ref: '#/components/schemas/Money'}
+        debitAccountId: {$ref: '#/components/schemas/Id'}
+        billerConfirmation: {type: string}
+        executionDate: {$ref: '#/components/schemas/BusinessDate'}
+        failureCode: {type: string}
+        createdAt: {$ref: '#/components/schemas/Timestamp'}
+    CardStatus: {type: string, enum: [PENDING_ACTIVATION, ACTIVE, FROZEN, BLOCKED, EXPIRED]}
+    CardControls:
+      type: object
+      additionalProperties: false
+      properties:
+        ecommerce: {type: boolean}
+        international: {type: boolean}
+        contactless: {type: boolean}
+        atm: {type: boolean}
+    CardLimits:
+      type: object
+      additionalProperties: false
+      required: [atmDaily, posDaily, onlineDaily]
+      properties:
+        atmDaily: {$ref: '#/components/schemas/Money'}
+        posDaily: {$ref: '#/components/schemas/Money'}
+        onlineDaily: {$ref: '#/components/schemas/Money'}
+    Card:
+      type: object
+      required: [id, kind, network, last4, expiryMonth, expiryYear, cardholderName, status, accountId, controls, limits]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        kind: {type: string, enum: [DEBIT, CREDIT]}
+        network: {type: string, enum: [VISA, MASTERCARD]}
+        productName: {type: string}
+        last4: {type: string, pattern: '^[0-9]{4}$'}
+        expiryMonth: {type: integer, minimum: 1, maximum: 12}
+        expiryYear: {type: integer}
+        cardholderName: {type: string}
+        status: {$ref: '#/components/schemas/CardStatus'}
+        accountId: {$ref: '#/components/schemas/Id'}
+        controls: {$ref: '#/components/schemas/CardControls'}
+        limits: {$ref: '#/components/schemas/CardLimits'}
+        availableCredit: {$ref: '#/components/schemas/Money'}
+        replacedById: {$ref: '#/components/schemas/Id'}
+        revealsRemainingToday: {type: integer}
+    CardReveal:
+      type: object
+      required: [pan, expiryMonth, expiryYear, cvc, visibleUntil]
+      properties:
+        pan: {type: string, pattern: '^[0-9]{16}$'}
+        expiryMonth: {type: integer}
+        expiryYear: {type: integer}
+        cvc: {type: string, pattern: '^[0-9]{3}$'}
+        visibleUntil: {$ref: '#/components/schemas/Timestamp'}
+    CardReportRequest:
+      type: object
+      additionalProperties: false
+      required: [reason, orderReplacement]
+      properties:
+        reason: {type: string, enum: [LOST, STOLEN, DAMAGED]}
+        orderReplacement: {type: boolean}
+        deliveryAddressId: {$ref: '#/components/schemas/Id'}
+    CardReportResult:
+      type: object
+      required: [card]
+      properties:
+        card: {$ref: '#/components/schemas/Card'}
+        replacement: {$ref: '#/components/schemas/Card'}
+        fee: {$ref: '#/components/schemas/Money'}
+        estimatedDelivery: {type: string, examples: [5–7 business days]}
+    CardActivateRequest:
+      type: object
+      additionalProperties: false
+      required: [last4, expiry]
+      properties:
+        last4: {type: string, pattern: '^[0-9]{4}$'}
+        expiry: {type: string, pattern: '^(0[1-9]|1[0-2])/[0-9]{2}$'}
+    Statement:
+      type: object
+      required: [id, accountId, periodStart, periodEnd, openingBalance, closingBalance]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        accountId: {$ref: '#/components/schemas/Id'}
+        periodStart: {$ref: '#/components/schemas/BusinessDate'}
+        periodEnd: {$ref: '#/components/schemas/BusinessDate'}
+        openingBalance: {$ref: '#/components/schemas/Money'}
+        closingBalance: {$ref: '#/components/schemas/Money'}
+        totalCredits: {$ref: '#/components/schemas/Money'}
+        totalDebits: {$ref: '#/components/schemas/Money'}
+        generatedAt: {$ref: '#/components/schemas/Timestamp'}
+    CustomStatementRequest:
+      type: object
+      additionalProperties: false
+      required: [accountId, from, to]
+      properties:
+        accountId: {$ref: '#/components/schemas/Id'}
+        from: {$ref: '#/components/schemas/BusinessDate'}
+        to: {$ref: '#/components/schemas/BusinessDate'}
+        language: {$ref: '#/components/schemas/Locale'}
+    LetterRequest:
+      type: object
+      additionalProperties: false
+      required: [accountId]
+      properties:
+        accountId: {$ref: '#/components/schemas/Id'}
+        addressedTo: {type: string, maxLength: 60}
+        language: {$ref: '#/components/schemas/Locale'}
+    Document:
+      type: object
+      required: [id, type, createdAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        type: {type: string, enum: [STATEMENT, CUSTOM_STATEMENT, BALANCE_CERTIFICATE, ACCOUNT_DETAILS_LETTER, RECEIPT, DATA_EXPORT]}
+        accountId: {$ref: '#/components/schemas/Id'}
+        title: {type: string}
+        fingerprint: {type: string, pattern: '^[a-f0-9]{64}$'}
+        createdAt: {$ref: '#/components/schemas/Timestamp'}
+        expiresAt: {$ref: '#/components/schemas/Timestamp'}
+    Notification:
+      type: object
+      required: [id, type, severity, titleKey, createdAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        type: {type: string, enum: [SECURITY, PAYMENT, ACCOUNT, CARD, DOCUMENT, MESSAGE]}
+        severity: {type: string, enum: [INFO, SUCCESS, WARNING, CRITICAL]}
+        titleKey: {type: string}
+        bodyKey: {type: string}
+        params: {type: object, additionalProperties: true}
+        deepLink: {type: string, pattern: ^/}
+        readAt: {$ref: '#/components/schemas/Timestamp'}
+        createdAt: {$ref: '#/components/schemas/Timestamp'}
+    AlertRule:
+      type: object
+      additionalProperties: false
+      required: [type, enabled, channels]
+      properties:
+        type:
+          type: string
+          enum: [NEW_DEVICE_SIGN_IN, PASSWORD_CHANGED, MFA_CHANGED, CONTACT_CHANGED, BENEFICIARY_ADDED, ACCOUNT_LOCKED, LOW_BALANCE, LARGE_DEBIT, LARGE_CREDIT, CARD_INTERNATIONAL_USE,
+            PAYMENT_STATUS, STATEMENT_READY, BILL_DUE, CREDIT_CARD_DUE]
+        mandatory: {type: boolean, readOnly: true}
+        enabled: {type: boolean}
+        accountId: {$ref: '#/components/schemas/Id'}
+        threshold: {$ref: '#/components/schemas/Money'}
+        channels:
+          type: array
+          items: {type: string, enum: [IN_APP, EMAIL, SMS]}
+    AlertRules:
+      type: object
+      additionalProperties: false
+      required: [rules]
+      properties:
+        rules:
+          type: array
+          items: {$ref: '#/components/schemas/AlertRule'}
+        quietHours:
+          type: object
+          additionalProperties: false
+          properties:
+            enabled: {type: boolean}
+            start: {type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$'}
+            end: {type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$'}
+    Profile:
+      type: object
+      required: [customerNumber, fullName, email, mobile, preferences]
+      properties:
+        customerNumber: {type: string}
+        fullName: {type: string}
+        preferredName: {type: string}
+        dateOfBirth: {$ref: '#/components/schemas/BusinessDate'}
+        nationalIdMasked: {type: string}
+        email: {type: string, format: email}
+        mobile: {type: string, pattern: '^\+[1-9][0-9]{7,14}$'}
+        addresses:
+          type: array
+          items:
+            allOf:
+            - {$ref: '#/components/schemas/Address'}
+            properties:
+              id: {$ref: '#/components/schemas/Id'}
+              kind: {type: string, enum: [HOME, MAILING]}
+        preferences: {$ref: '#/components/schemas/Preferences'}
+        mfa:
+          type: object
+          properties:
+            sms: {type: boolean}
+            totp: {type: boolean}
+            recoveryCodesRemaining: {type: integer}
+        consents: {$ref: '#/components/schemas/Consents'}
+    Preferences:
+      type: object
+      properties:
+        locale: {$ref: '#/components/schemas/Locale'}
+        theme: {$ref: '#/components/schemas/Theme'}
+        defaultAccountId: {$ref: '#/components/schemas/Id'}
+        hideBalances: {type: boolean}
+        etag: {type: string}
+    PreferencesUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        locale: {$ref: '#/components/schemas/Locale'}
+        theme: {$ref: '#/components/schemas/Theme'}
+        defaultAccountId: {$ref: '#/components/schemas/Id'}
+        hideBalances: {type: boolean}
+    ContactChangeStart:
+      type: object
+      additionalProperties: false
+      required: [field, newValue]
+      properties:
+        field: {type: string, enum: [EMAIL, MOBILE]}
+        newValue: {type: string, maxLength: 254}
+    ContactChangeVerify:
+      type: object
+      additionalProperties: false
+      required: [challengeId, code]
+      properties:
+        challengeId: {$ref: '#/components/schemas/Id'}
+        code: {type: string, pattern: '^[0-9]{6}$'}
+    PasswordChange:
+      type: object
+      additionalProperties: false
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: {type: string, maxLength: 128, format: password}
+        newPassword: {type: string, minLength: 12, maxLength: 128, format: password}
+        signOutOtherSessions: {type: boolean, default: true}
+    TotpSetup:
+      type: object
+      required: [setupId, otpauthUri, manualKey]
+      properties:
+        setupId: {$ref: '#/components/schemas/Id'}
+        otpauthUri: {type: string}
+        manualKey: {type: string}
+    TotpConfirm:
+      type: object
+      additionalProperties: false
+      required: [setupId, code]
+      properties:
+        setupId: {$ref: '#/components/schemas/Id'}
+        code: {type: string, pattern: '^[0-9]{6}$'}
+    RecoveryCodes:
+      type: object
+      required: [codes]
+      properties:
+        codes:
+          type: array
+          minItems: 10
+          maxItems: 10
+          items: {type: string, pattern: '^[A-Z2-7]{5}-[A-Z2-7]{5}$'}
+    TrustedDevice:
+      type: object
+      required: [id, name, createdAt, lastUsedAt, current]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        name: {type: string}
+        createdAt: {$ref: '#/components/schemas/Timestamp'}
+        lastUsedAt: {$ref: '#/components/schemas/Timestamp'}
+        current: {type: boolean}
+    SessionInfo:
+      type: object
+      required: [id, device, startedAt, lastActiveAt, current]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        device: {type: string}
+        approximateLocation: {type: string}
+        startedAt: {$ref: '#/components/schemas/Timestamp'}
+        lastActiveAt: {$ref: '#/components/schemas/Timestamp'}
+        current: {type: boolean}
+    RevokeSessionsRequest:
+      type: object
+      additionalProperties: false
+      required: [scope]
+      properties:
+        scope: {type: string, enum: [OTHERS, ALL]}
+    SecurityActivityItem:
+      type: object
+      required: [id, action, outcome, at]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        action: {type: string}
+        outcome: {type: string, enum: [SUCCESS, FAILURE]}
+        reasonCode: {type: string}
+        device: {type: string}
+        approximateLocation: {type: string}
+        at: {$ref: '#/components/schemas/Timestamp'}
+    Consents:
+      type: object
+      additionalProperties: false
+      properties:
+        marketingEmail: {type: boolean}
+        marketingSms: {type: boolean}
+        textVersion: {type: string, readOnly: true}
+    DataExport:
+      type: object
+      required: [id, status, requestedAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        status: {type: string, enum: [PENDING, READY, EXPIRED]}
+        documentId: {$ref: '#/components/schemas/Id'}
+        requestedAt: {$ref: '#/components/schemas/Timestamp'}
+    MessageCategory: {type: string, enum: [GENERAL, CARD_ISSUE, DISPUTE_TRANSACTION, TECHNICAL, UPDATE_PERSONAL_DETAILS, COMPLAINT]}
+    ThreadStatus: {type: string, enum: [OPEN, AWAITING_CUSTOMER, CLOSED]}
+    Attachment:
+      type: object
+      required: [id, fileName, mediaType, sizeBytes]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        fileName: {type: string, maxLength: 120}
+        mediaType: {type: string, enum: [application/pdf, image/png, image/jpeg]}
+        sizeBytes: {type: integer, maximum: 5242880}
+    Message:
+      type: object
+      required: [id, from, body, sentAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        from: {type: string, enum: [CUSTOMER, BANK, SYSTEM]}
+        senderName: {type: string}
+        body: {type: string, maxLength: 2000}
+        attachments:
+          type: array
+          items: {$ref: '#/components/schemas/Attachment'}
+        sentAt: {$ref: '#/components/schemas/Timestamp'}
+    ThreadSummary:
+      type: object
+      required: [id, subject, category, status, lastActivityAt, unread]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        subject: {type: string}
+        category: {$ref: '#/components/schemas/MessageCategory'}
+        status: {$ref: '#/components/schemas/ThreadStatus'}
+        preview: {type: string, maxLength: 80}
+        lastActivityAt: {$ref: '#/components/schemas/Timestamp'}
+        unread: {type: boolean}
+        customerLabel: {type: string, description: Ops views only (masked name)}
+    Thread:
+      allOf:
+      - {$ref: '#/components/schemas/ThreadSummary'}
+      - type: object
+        properties:
+          transactionId: {$ref: '#/components/schemas/Id'}
+          disputeReason: {type: string}
+          messages:
+            type: array
+            items: {$ref: '#/components/schemas/Message'}
+    ThreadCreate:
+      type: object
+      additionalProperties: false
+      required: [category, subject, body]
+      properties:
+        category: {$ref: '#/components/schemas/MessageCategory'}
+        subject: {type: string, minLength: 3, maxLength: 80}
+        body: {type: string, minLength: 1, maxLength: 2000}
+        attachmentIds:
+          type: array
+          maxItems: 3
+          items: {$ref: '#/components/schemas/Id'}
+        transactionId: {$ref: '#/components/schemas/Id'}
+        disputeReason: {type: string, enum: [UNRECOGNISED, DUPLICATE, WRONG_AMOUNT, GOODS_NOT_RECEIVED, CANCELLED_SUBSCRIPTION, OTHER]}
+        freezeCard: {type: boolean}
+    MessageCreate:
+      type: object
+      additionalProperties: false
+      required: [body]
+      properties:
+        body: {type: string, minLength: 1, maxLength: 2000}
+        attachmentIds:
+          type: array
+          maxItems: 3
+          items: {$ref: '#/components/schemas/Id'}
+    OpsCustomerSummary:
+      type: object
+      required: [customerId, maskedName, customerNumber, userStatus]
+      properties:
+        customerId: {$ref: '#/components/schemas/Id'}
+        maskedName: {type: string}
+        customerNumber: {type: string}
+        maskedMobile: {type: string}
+        userStatus: {$ref: '#/components/schemas/UserStatus'}
+    OpsCustomer360:
+      type: object
+      required: [summary, accounts]
+      properties:
+        summary: {$ref: '#/components/schemas/OpsCustomerSummary'}
+        profile: {$ref: '#/components/schemas/Profile'}
+        accounts:
+          type: array
+          items: {$ref: '#/components/schemas/Account'}
+        recentPayments:
+          type: array
+          items: {$ref: '#/components/schemas/Transfer'}
+        heldPayments:
+          type: array
+          items: {$ref: '#/components/schemas/HeldPayment'}
+        openThreads:
+          type: array
+          items: {$ref: '#/components/schemas/ThreadSummary'}
+        securityActivity:
+          type: array
+          items: {$ref: '#/components/schemas/SecurityActivityItem'}
+        accessValidUntil: {$ref: '#/components/schemas/Timestamp'}
+    OpsNote:
+      type: object
+      additionalProperties: false
+      required: [note]
+      properties:
+        note: {type: string, minLength: 10, maxLength: 500}
+    HeldPayment:
+      type: object
+      required: [transfer, ruleIds, heldAt, slaDeadline]
+      properties:
+        transfer: {$ref: '#/components/schemas/Transfer'}
+        customer: {$ref: '#/components/schemas/OpsCustomerSummary'}
+        ruleIds:
+          type: array
+          items: {type: string, enum: [FR-1, FR-2, FR-3, FR-4]}
+        beneficiaryAgeHours: {type: integer}
+        heldAt: {$ref: '#/components/schemas/Timestamp'}
+        slaDeadline: {$ref: '#/components/schemas/Timestamp'}
+        recommendation:
+          type: object
+          properties:
+            decision: {type: string, enum: [APPROVE, REJECT]}
+            note: {type: string}
+            byUserId: {$ref: '#/components/schemas/Id'}
+            at: {$ref: '#/components/schemas/Timestamp'}
+    OpsRecommendation:
+      type: object
+      additionalProperties: false
+      required: [decision, note]
+      properties:
+        decision: {type: string, enum: [APPROVE, REJECT]}
+        note: {type: string, minLength: 10, maxLength: 500}
+    OpsDecision:
+      type: object
+      additionalProperties: false
+      required: [decision, note]
+      properties:
+        decision: {type: string, enum: [APPROVE, REJECT]}
+        note: {type: string, minLength: 10, maxLength: 500}
+    AuditEvent:
+      type: object
+      required: [id, occurredAt, actorType, action, outcome]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        occurredAt: {$ref: '#/components/schemas/Timestamp'}
+        actorType: {type: string, enum: [CUSTOMER, OPS, SYSTEM]}
+        actorId: {$ref: '#/components/schemas/Id'}
+        action: {type: string}
+        targetType: {type: string}
+        targetId: {type: string}
+        outcome: {type: string, enum: [SUCCESS, FAILURE]}
+        ip: {type: string}
+        traceId: {type: string}
+        metadata: {type: object, additionalProperties: true}
+        chainValid: {type: boolean}
+    DevOutboxItem:
+      type: object
+      required: [id, channel, recipientMasked, createdAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        channel: {type: string, enum: [SMS, EMAIL]}
+        recipientMasked: {type: string}
+        subject: {type: string}
+        body: {type: string}
+        otp: {type: string, description: Extracted OTP for demo convenience}
+        createdAt: {$ref: '#/components/schemas/Timestamp'}
+    DevJobRun:
+      type: object
+      additionalProperties: false
+      required: [job]
+      properties:
+        job: {type: string, enum: [rail.domestic.settle, rail.swift.settle, standing-orders.run, scheduled-transfers.release, statements.generate, holds.expire, sessions.purge,
+            idempotency.purge, held-payments.expire]}
+    DevFaults:
+      type: object
+      additionalProperties: false
+      properties:
+        fx: {type: string, enum: [up, down]}
+        billers: {type: string, enum: [up, down]}
+        cardProcessor: {type: string, enum: [up, down]}
+        notifications: {type: string, enum: [up, down]}
+        insights: {type: string, enum: [up, down]}
+    DevClock:
+      type: object
+      additionalProperties: false
+      required: [offsetSeconds]
+      properties:
+        offsetSeconds: {type: integer, minimum: 0, maximum: 31536000, description: Moves the server clock forward (demo only); 0 resets}
+    ErrorCode:
+      type: string
+      enum: [VALIDATION_FAILED, UNAUTHENTICATED, SESSION_EXPIRED, INVALID_CREDENTIALS, MFA_CODE_INVALID, MFA_CODE_EXPIRED, MFA_ATTEMPTS_EXCEEDED, FORBIDDEN, CSRF_TOKEN_INVALID,
+        STEP_UP_REQUIRED, STEP_UP_TOKEN_INVALID, NOT_FOUND, IDEMPOTENCY_IN_PROGRESS, CONFLICT_STATE, PRECONDITION_FAILED, IDEMPOTENCY_KEY_REUSED, INSUFFICIENT_FUNDS,
+        LIMIT_EXCEEDED_DAILY, LIMIT_EXCEEDED_PER_TRANSACTION, LIMIT_EXCEEDED_NEW_BENEFICIARY, ACCOUNT_NOT_ELIGIBLE, SAME_ACCOUNT, CURRENCY_NOT_SUPPORTED, FX_QUOTE_EXPIRED,
+        FX_UNAVAILABLE, CUTOFF_PASSED, EXECUTION_DATE_INVALID, IBAN_INVALID, BIC_INVALID, BENEFICIARY_DUPLICATE, BENEFICIARY_LIMIT_REACHED, PURPOSE_CODE_REQUIRED,
+        PASSWORD_TOO_SHORT, PASSWORD_TOO_COMMON, PASSWORD_CONTAINS_PERSONAL_INFO, PASSWORD_REUSED, ENROLMENT_DETAILS_MISMATCH, USERNAME_TAKEN, ACCOUNT_TEMPORARILY_LOCKED,
+        ACCOUNT_LOCKED, CARD_STATE_INVALID, CARD_ACTIVATION_FAILED, BILLER_REFERENCE_INVALID, BILLER_REFERENCE_NOT_FOUND, BILLER_UNAVAILABLE, BILL_AMOUNT_NOT_ALLOWED,
+        STATEMENT_RANGE_INVALID, EXPORT_TOO_LARGE, ATTACHMENT_TOO_LARGE, ATTACHMENT_TYPE_NOT_ALLOWED, ATTACHMENT_MALWARE_DETECTED, THREAD_CLOSED, ACCESS_REASON_REQUIRED,
+        MAKER_CHECKER_VIOLATION, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, INTERNAL_ERROR]
+      description: See sdd/contracts/error-codes.md

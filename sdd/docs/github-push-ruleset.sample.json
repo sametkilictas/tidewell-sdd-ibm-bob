@@ -1,0 +1,41 @@
+{
+  "name": "tidewell-sdd-locked-paths",
+  "target": "push",
+  "enforcement": "active",
+  "bypass_actors": [
+    {
+      "actor_id": 0,
+      "actor_type": "Team",
+      "bypass_mode": "always"
+    },
+    {
+      "actor_id": 15368,
+      "actor_type": "Integration",
+      "bypass_mode": "always"
+    }
+  ],
+  "rules": [
+    {
+      "type": "file_path_restriction",
+      "parameters": {
+        "restricted_file_paths": [
+          "sdd/specs/*.md",
+          "sdd/specs/nfr/**",
+          "sdd/specs/templates/**",
+          "sdd/specs/features/*/spec.md",
+          "sdd/specs/features/*/plan.md",
+          "sdd/contracts/**",
+          "sdd/adr/**",
+          "sdd/design/**",
+          "sdd/state/approvals.json",
+          "sdd/governance/**",
+          "sdd/workflows/**",
+          ".bob/**",
+          "sdd/scripts/**",
+          "sonar-project.properties",
+          ".github/**"
+        ]
+      }
+    }
+  ]
+}

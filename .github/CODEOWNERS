@@ -1,0 +1,36 @@
+# Replace the placeholder teams with your real GitHub teams (roles: sdd/docs/ROLES.md), then protect `main` with the
+# ruleset in sdd/governance/github/ruleset-main.json (pull requests, Code Owner review, required checks
+# sdd-policy · signoffs · sonarqube, no squash merges). Setup: sdd/docs/GITHUB.md.
+
+# Human approvals and governance (who may change the rules of the game)
+/sdd/state/approvals.json       @YOUR-ORG/sdd-approvers
+/.bob/                          @YOUR-ORG/sdd-approvers
+/sdd/scripts/                   @YOUR-ORG/sdd-approvers
+/sdd/workflows/                 @YOUR-ORG/sdd-approvers
+/.github/                       @YOUR-ORG/sdd-approvers
+
+# Who may sign what, and what Bob may do on GitHub (also read by the sign-off and Bob workflows)
+/sdd/governance/                @YOUR-ORG/sdd-approvers @YOUR-ORG/product-owners
+/.github/workflows/bob-*.yml    @YOUR-ORG/sdd-approvers @YOUR-ORG/appsec
+/.github/actions/run-bob/       @YOUR-ORG/sdd-approvers @YOUR-ORG/appsec
+
+# Specs and contract (product + architecture own behaviour and shapes)
+# (later lines win; see sdd/docs/ROLES.md for who does what)
+/sdd/specs/                         @YOUR-ORG/architects
+/sdd/specs/00-constitution.md       @YOUR-ORG/product-owners @YOUR-ORG/architects
+/sdd/specs/01-product-vision.md     @YOUR-ORG/product-owners
+/sdd/specs/features/*/spec.md       @YOUR-ORG/business-analysts @YOUR-ORG/architects
+/sdd/specs/change-requests/         @YOUR-ORG/business-analysts @YOUR-ORG/product-owners
+/sdd/contracts/                     @YOUR-ORG/architects
+/sdd/adr/                           @YOUR-ORG/architects
+/sdd/design/                        @YOUR-ORG/product-owners @YOUR-ORG/business-analysts
+
+# Security evidence
+/sdd/reports/security/              @YOUR-ORG/appsec
+
+# External security scan (Article XI): what SonarQube sees, and the gates that use it
+/sonar-project.properties                 @YOUR-ORG/appsec @YOUR-ORG/sdd-approvers
+/.github/workflows/sdd-gates.yml          @YOUR-ORG/appsec @YOUR-ORG/sdd-approvers
+/.github/workflows/promote-to-test.yml    @YOUR-ORG/appsec @YOUR-ORG/sdd-approvers
+/sdd/reports/scan/                            @YOUR-ORG/appsec
+/sdd/docs/SONARQUBE.md                        @YOUR-ORG/appsec

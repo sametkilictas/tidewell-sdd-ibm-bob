@@ -1,0 +1,5 @@
+#!/bin/sh
+# Shift-left checks on what is staged: sdd/governance/checks.json, stage "commit" — the built-in checks plus any
+# organisation tool switched on there (IBM detect-secrets, HashiCorp Vault Radar, …).
+# Install once: git config core.hooksPath sdd/scripts/hooks   (commit-msg then runs the commit rules G1–G10)
+exec node sdd/scripts/checks.mjs --stage commit

@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--isolated"
+      ],
+      "disabled": false,
+      "alwaysAllow": []
+    },
+    "sonarqube": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--init",
+        "-e",
+        "SONARQUBE_TOKEN",
+        "-e",
+        "SONARQUBE_URL",
+        "-e",
+        "SONARQUBE_TOOLSETS",
+        "-e",
+        "SONARQUBE_READ_ONLY",
+        "sonarsource/sonarqube-mcp"
+      ],
+      "env": {
+        "SONARQUBE_URL": "${env:SONAR_HOST_URL}",
+        "SONARQUBE_TOKEN": "${env:SONARQUBE_READONLY_TOKEN}",
+        "SONARQUBE_TOOLSETS": "issues,quality-gates,security-hotspots,dependency-risks,measures,rules,projects",
+        "SONARQUBE_READ_ONLY": "true"
+      },
+      "disabled": false,
+      "alwaysAllow": []
+    }
+  }
+}

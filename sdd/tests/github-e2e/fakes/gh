@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+"""Fake GitHub CLI for the local workflow runner. State lives in $FAKE_GH_STATE (JSON); git data in the bare origin.
+Only the calls the kit's workflows make are implemented; anything else fails loudly so gaps show up."""
+import json, os, subprocess, sys, time, datetime
+
+STATE = os.environ['FAKE_GH_STATE']
+
+def load():
+    return json.load(open(STATE))
+
+def save(s):
+    tmp = STATE + '.tmp'
+    json.dump(s, open(tmp, 'w'), indent=1)
+    os.replace(tmp, STATE)
+
+def now():
+    return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+
+def og(s, *a):
+    return subprocess.run(['git', '--git-dir', s['origin'], *a], check=True, capture_output=True, text=True).stdout
+
+def die(msg, code=1):
+    print(f'fake gh: {msg}', file=sys.stderr)
+    sys.exit(code)
+
+def opt(args, *names, default=None):
+    for n in names:
+        if n in args:
+            i = args.index(n)
+            return args[i + 1]
+    return default
+
+def log(s, entry):
+    s.setdefault('log', []).append(entry)
+
+def check_token():
+    if not os.environ.get('GH_TOKEN') and not os.environ.get('GITHUB_TOKEN'):
+        die('no GH_TOKEN', 4)
+
+def pr_view(s, n, fields):
+    pr = s['prs'][str(n)]
+    head = og(s, 'rev-parse', f'refs/heads/{pr["headRefName"]}').strip()
+    full = {
+        'number': int(n), 'title': pr['title'], 'author': {'login': pr['author']}, 'state': pr.get('state', 'OPEN'),
+        'isCrossRepository': pr.get('isCrossRepository', False), 'headRefName': pr['headRefName'], 'headRefOid': head,
+        'baseRefName': 'main', 'url': f'https://github.com/{s["repo"]}/pull/{n}', 'isDraft': pr.get('draft', False),
+    }
+    if 'commits' in fields:
+        out = og(s, 'log', '--reverse', '--format=%H%x1f%s%x1f%b%x1e', f'refs/heads/main..{head}')
+        full['commits'] = [dict(zip(['oid', 'messageHeadline', 'messageBody'], c.strip('\n').split('\x1f'))) for c in out.split('\x1e') if c.strip()]
+    if 'files' in fields:
+        names = og(s, 'diff', '--name-only', f'refs/heads/main...{head}').split()
+        full['files'] = [{'path': p, 'additions': 0, 'deletions': 0} for p in names]
+    return {k: full[k] for k in fields if k in full}
+
+def main():
+    args = sys.argv[1:]
+    s = load()
+    if not args:
+        die('no command')
+    check_token()
+    cmd = args[0]
+    if cmd == 'pr' and args[1] == 'view':
+        n = args[2]
+        fields = opt(args, '--json').split(',')
+        print(json.dumps(pr_view(s, n, fields)))
+        return
+    if cmd == 'pr' and args[1] == 'diff':
+        pr = s['prs'][args[2]]
+        sys.stdout.write(og(s, 'diff', f'refs/heads/main...refs/heads/{pr["headRefName"]}'))
+        return
+    if cmd == 'pr' and args[1] == 'comment':
+        n = int(args[2])
+        body = open(opt(args, '--body-file')).read() if '--body-file' in args else opt(args, '--body', '-b')
+        if body is None:
+            die('pr comment needs a body')
+        s['next_id'] += 1
+        c = {'id': s['next_id'], 'issue': n, 'user': {'login': 'github-actions[bot]', 'type': 'Bot'}, 'author_association': 'NONE',
+             'body': body, 'created_at': now(), 'html_url': f'https://github.com/{s["repo"]}/pull/{n}#issuecomment-{s["next_id"]}'}
+        s['comments'].append(c)
+        log(s, {'call': 'pr comment', 'pr': n, 'id': c['id']})
+        save(s)
+        print(c['html_url'])
+        return
+    if cmd == 'workflow' and args[1] == 'run':
+        wf, ref = args[2], opt(args, '--ref')
+        sha = og(s, 'rev-parse', f'refs/heads/{ref}').strip()
+        s['dispatches'].append({'workflow': wf, 'ref': ref, 'sha': sha})
+        s['runs'].append({'event': 'workflow_dispatch', 'head_branch': ref, 'head_sha': sha, 'created_at': now()})
+        save(s)
+        return
+    if cmd == 'api':
+        method = (opt(args, '-X', '--method') or 'GET').upper()
+        rest = [a for a in args[1:]]
+        path = next(a for i, a in enumerate(rest) if not a.startswith('-') and (i == 0 or rest[i - 1] not in ('-X', '--method', '-f', '-F', '--jq', '-H', '--field', '--raw-field')))
+        fields = {}
+        for i, a in enumerate(rest):
+            if a in ('-f', '-F', '--field', '--raw-field'):
+                k, v = rest[i + 1].split('=', 1)
+                if a in ('-F', '--field') and v.startswith('@'):
+                    v = open(v[1:]).read()
+                fields[k] = v
+        jq = opt(args, '--jq', '-q')
+        parts = path.strip('/').split('/')
+        result = None
+        # repos/O/R/issues/comments/ID/reactions
+        if method == 'POST' and parts[3:5] == ['issues', 'comments'] and parts[-1] == 'reactions':
+            s['reactions'].append({'comment': int(parts[5]), 'content': fields.get('content')})
+            save(s); result = {}
+        elif method == 'PATCH' and parts[3:5] == ['issues', 'comments']:
+            cid = int(parts[5])
+            c = next((c for c in s['comments'] if c['id'] == cid), None)
+            if not c:
+                die(f'no comment {cid}', 1)
+            c['body'] = fields['body']; c['updated_at'] = now()
+            log(s, {'call': 'patch comment', 'id': cid}); save(s); result = c
+        elif method == 'GET' and parts[3] == 'issues' and parts[5:] == ['comments']:
+            result = [c for c in s['comments'] if c['issue'] == int(parts[4])]
+        else:
+            die(f'unsupported api call {method} {path}', 1)
+        text = json.dumps(result)
+        if jq:
+            p = subprocess.run(['jq', '-r', jq], input=text, capture_output=True, text=True)
+            if p.returncode:
+                die(f'jq: {p.stderr}', 1)
+            sys.stdout.write(p.stdout)
+        else:
+            print(text)
+        return
+    die(f'unsupported command: {" ".join(args)}', 1)
+
+main()

@@ -1,0 +1,54 @@
+{
+  "schema": "sdd-workflow/1",
+  "id": "change-request",
+  "title": "Change something already approved",
+  "summary": "Changes approved scope in the open: a written request, a human decision, the spec edit, then a fresh plan signature.",
+  "target": "cr",
+  "targetPattern": "^CR-\\d{3}$",
+  "start": { "bob": "/sdd-change-request <slug>", "github": "New issue → Change request form" },
+  "steps": [
+    {
+      "id": "raise",
+      "kind": "ai",
+      "title": "Raise the change request",
+      "mode": "any",
+      "command": "/sdd-change-request",
+      "responsible": "business-analyst",
+      "does": "Anyone, Bob included, writes sdd/specs/change-requests/CR-###-<slug>.md: why, options, impact, and which files it affects. A GitHub issue from the change-request form is a good starting point.",
+      "writes": ["sdd/specs/change-requests/"]
+    },
+    {
+      "id": "decide",
+      "kind": "human-gate",
+      "title": "Owner decides",
+      "decision": "cr",
+      "approver": "business-owner",
+      "reviewers": ["business-analyst", "architect"],
+      "github": "/approve-cr CR-### option A   ·   /reject-cr CR-### <reason>",
+      "terminal": "node sdd/scripts/approve.mjs cr CR-### --decision approved|rejected --option A",
+      "does": "The decision is bound to the hash of the change-request file."
+    },
+    {
+      "id": "apply-cr",
+      "kind": "ai",
+      "title": "Apply it to the specs",
+      "mode": "spec-architect",
+      "command": "/sdd-apply-cr",
+      "responsible": "architect",
+      "does": "Bob edits only the files the request lists under \"affects\"; commits are spec(CR-###): …",
+      "writes": ["sdd/specs/", "sdd/contracts/", "sdd/adr/", "sdd/design/"]
+    },
+    {
+      "id": "re-approve-plan",
+      "kind": "human-gate",
+      "title": "Owner re-signs the plan",
+      "decision": "plan",
+      "approver": "business-owner",
+      "when": "the request changed an approved feature's spec or plan",
+      "github": "/approve-plan F##",
+      "terminal": "node sdd/scripts/approve.mjs plan F##",
+      "does": "The new signature cites the approved change request; code follows only after it."
+    }
+  ],
+  "then": "feature-delivery"
+}

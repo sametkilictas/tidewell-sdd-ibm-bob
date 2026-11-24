@@ -1,0 +1,205 @@
+# Ask Bob for something on a pull request, by comment:
+#   /bob review                  → the advisory spec review (also works on drafts); same as bob-review.yml
+#   /bob fix [F04] [what to do]  → Bob works as 🏗️ Spec Builder inside the implement step of that feature,
+#                                  commits test-first, and the workflow pushes those commits to the branch
+# Who may ask: members/collaborators for /bob review; the roles in sdd/governance/approvers.json → bob.fixRoles
+# (read from the default branch) for /bob fix. Fork pull requests are refused.
+# Guard rails for /bob fix, in order: the pull request must not change Bob's own config or the SDD guards; the
+# step guard refuses if the feature's plan is not signed; the PreToolUse hook confines Bob's writes to code and
+# tests of that feature and blocks push, comments and sign-offs; the commit-msg hook checks every commit;
+# afterwards plain code re-checks every changed file and commit message (bob-ci.mjs scope) and the SDD commit
+# policy (git-check) before anything is pushed. Then sdd-gates runs again on the new head.
+# Needs the repository secret BOB_API_KEY. Governance-protected (CODEOWNERS: sdd-approvers).
+name: bob-commands
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+concurrency:
+  group: bob-commands-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  bob:
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/bob ')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write        # push Bob's commits (/bob fix)
+      pull-requests: write   # comments
+      issues: write          # reactions
+      actions: write         # re-run sdd-gates on the new head
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      PR: ${{ github.event.issue.number }}
+    steps:
+      - name: Acknowledge
+        run: gh api -X POST "repos/$REPO/issues/comments/${{ github.event.comment.id }}/reactions" -f content=eyes >/dev/null
+
+      - name: Trusted scripts, prompts and approver list (default branch)
+        uses: actions/checkout@v4
+        with:
+          path: trusted
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Pull request details
+        run: gh pr view "$PR" --repo "$REPO" --json number,title,state,isCrossRepository,headRefName,headRefOid,commits,files,author > "$RUNNER_TEMP/pr.json"
+
+      - name: Who may ask Bob for what
+        id: auth
+        run: |
+          node trusted/sdd/scripts/github/bob-ci.mjs authorize --event "$GITHUB_EVENT_PATH" --pr "$RUNNER_TEMP/pr.json" \
+            --approvers trusted/sdd/governance/approvers.json --reply "$RUNNER_TEMP/reply.md" --instructions "$RUNNER_TEMP/instructions.txt"
+          node trusted/sdd/scripts/github/bob-ci.mjs config --approvers trusted/sdd/governance/approvers.json
+          echo "ref=$(jq -r .headRefName "$RUNNER_TEMP/pr.json")" >> "$GITHUB_OUTPUT"
+          echo "sha=$(jq -r .headRefOid "$RUNNER_TEMP/pr.json")" >> "$GITHUB_OUTPUT"
+      - name: Is there a Bob API key?
+        if: steps.auth.outputs.run == 'review' || steps.auth.outputs.run == 'fix'
+        env:
+          KEY: ${{ secrets.BOB_API_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "✖ Bob can't run here yet: the repository secret BOB_API_KEY (a Bob API key) is not set. See sdd/docs/GITHUB.md." > "$RUNNER_TEMP/reply.md"
+            exit 1
+          fi
+
+      - name: Pull request head
+        if: steps.auth.outputs.run == 'review' || steps.auth.outputs.run == 'fix'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.auth.outputs.sha }}
+          path: pr
+          fetch-depth: 0
+          persist-credentials: false   # Bob never holds a token that can push; the push step below does
+
+      - name: Workspace for tests (once the app exists)
+        if: steps.auth.outputs.run == 'fix' && hashFiles('pr/pnpm-lock.yaml') != ''
+        working-directory: pr
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Context, step and prompt
+        if: steps.auth.outputs.run == 'review' || steps.auth.outputs.run == 'fix'
+        id: prep
+        env:
+          SDD_ROOT: pr
+          KIND: ${{ steps.auth.outputs.run }}
+          FEATURE: ${{ steps.auth.outputs.feature }}
+          LOGIN: ${{ steps.auth.outputs.login }}
+        run: |
+          if [ "$KIND" = "fix" ]; then
+            # Bob's commits are made under the default branch's config and guards; a pull request that changes them
+            # gets no fixes until that change is reviewed and merged on its own (run-bob checks this again).
+            for p in .bob sdd/scripts sdd/governance sdd/workflows; do
+              if ! diff -r -q "trusted/$p" "pr/$p" >/dev/null 2>&1; then
+                echo "✖ Bob doesn't push fixes to a pull request that changes \`$p/\` (Bob's own configuration or the SDD guards). Merge that change in its own pull request first, after an SDD approver has reviewed it." > "$RUNNER_TEMP/reply.md"
+                exit 1
+              fi
+            done
+          fi
+          mkdir -p pr/.sdd-ci
+          gh pr diff "$PR" --repo "$REPO" > pr/.sdd-ci/pr.diff
+          if [ "$KIND" = "fix" ]; then
+            gh api "repos/$REPO/issues/$PR/comments" --paginate --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- sdd-bob-review -->"))) | .body' | tail -n 400 > "$RUNNER_TEMP/review.md" || true
+            # The implement step is started by plain code; it refuses if the plan is not signed or the phase is wrong.
+            if ! node trusted/sdd/scripts/step.mjs start implement "$FEATURE" --mode spec-builder > "$RUNNER_TEMP/step.txt"; then
+              { echo "✖ Bob can't work on $FEATURE yet:"; echo; sed 's/^/> /' "$RUNNER_TEMP/step.txt"; } > "$RUNNER_TEMP/reply.md"
+              exit 1
+            fi
+            echo "base=$(git -C pr rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            git -C pr config user.name "IBM Bob (for @$LOGIN)"
+            git -C pr config user.email "bob-sdd@users.noreply.github.com"
+            node trusted/sdd/scripts/github/bob-ci.mjs prompt --kind fix --feature "$FEATURE" --pr "$RUNNER_TEMP/pr.json" --diff .sdd-ci/pr.diff \
+              --instructions "$RUNNER_TEMP/instructions.txt" --review "$RUNNER_TEMP/review.md" --out "$RUNNER_TEMP/prompt.txt"
+          else
+            node trusted/sdd/scripts/github/bob-ci.mjs prompt --kind review --pr "$RUNNER_TEMP/pr.json" --diff .sdd-ci/pr.diff --out "$RUNNER_TEMP/prompt.txt"
+          fi
+
+      - name: Bob reviews (read-only mode)
+        if: steps.auth.outputs.run == 'review'
+        uses: ./trusted/.github/actions/run-bob
+        with:
+          api-key: ${{ secrets.BOB_API_KEY }}
+          mode: ${{ steps.auth.outputs.review_mode }}
+          prompt-file: ${{ runner.temp }}/prompt.txt
+          output-file: ${{ runner.temp }}/bob.json
+          working-directory: pr
+          trusted-path: trusted
+          trusted-config: restore
+          max-cost: ${{ steps.auth.outputs.review_max_cost }}
+          max-turns: ${{ steps.auth.outputs.max_turns }}
+          install-url: ${{ vars.BOB_SHELL_INSTALL_URL }}
+
+      - name: Bob fixes (Spec Builder, implement step, cost-capped)
+        if: steps.auth.outputs.run == 'fix'
+        uses: ./trusted/.github/actions/run-bob
+        with:
+          api-key: ${{ secrets.BOB_API_KEY }}
+          mode: ${{ steps.auth.outputs.fix_mode }}
+          prompt-file: ${{ runner.temp }}/prompt.txt
+          output-file: ${{ runner.temp }}/bob.json
+          working-directory: pr
+          trusted-path: trusted
+          trusted-config: require-same
+          max-cost: ${{ steps.auth.outputs.fix_max_cost }}
+          max-turns: ${{ steps.auth.outputs.max_turns }}
+          install-url: ${{ vars.BOB_SHELL_INSTALL_URL }}
+
+      - name: Check what Bob changed before anything is pushed
+        if: steps.auth.outputs.run == 'fix'
+        id: check
+        env:
+          SDD_ROOT: pr
+          FEATURE: ${{ steps.auth.outputs.feature }}
+          BASE: ${{ steps.prep.outputs.base }}
+        run: |
+          node trusted/sdd/scripts/step.mjs finish --outcome done --note "/bob fix on PR #$PR" >/dev/null || true
+          git -C pr reset -q --hard HEAD     # uncommitted leftovers are dropped: only reviewed commits go out
+          git -C pr clean -q -fd -e .sdd-ci
+          node trusted/sdd/scripts/github/bob-ci.mjs scope --feature "$FEATURE" --base "$BASE"
+          node trusted/sdd/scripts/git-check.mjs --ci --base "$BASE"
+
+      - name: Push Bob's commits and re-run the SDD checks
+        if: steps.auth.outputs.run == 'fix' && steps.check.outputs.commits != '0'
+        working-directory: pr
+        env:
+          BRANCH: ${{ steps.auth.outputs.ref }}
+        run: |
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "HEAD:refs/heads/${BRANCH}"
+          gh workflow run sdd-gates.yml --repo "$REPO" --ref "$BRANCH"
+
+      - name: Answer in the thread
+        if: always()
+        env:
+          SDD_ROOT: pr
+          KIND: ${{ steps.auth.outputs.run }}
+          HEAD_SHA: ${{ steps.auth.outputs.sha }}
+        run: |
+          if [ ! -s "$RUNNER_TEMP/reply.md" ] && [ -s "$RUNNER_TEMP/bob.json" ]; then
+            node trusted/sdd/scripts/github/bob-ci.mjs extract --kind "$KIND" --in "$RUNNER_TEMP/bob.json" --head "$HEAD_SHA" --out "$RUNNER_TEMP/reply.md"
+            if [ "$KIND" = "fix" ] && [ "${{ steps.check.outcome }}" != "success" ]; then
+              printf '\n\n✖ **Nothing was pushed:** the commits failed the scope or policy check (see the run log: %s).\n' "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> "$RUNNER_TEMP/reply.md"
+            fi
+            if [ "$KIND" = "fix" ] && [ "${{ steps.check.outputs.commits }}" = "0" ]; then printf '\n\nBob made no commits, so nothing was pushed.\n' >> "$RUNNER_TEMP/reply.md"; fi
+          fi
+          if [ ! -s "$RUNNER_TEMP/reply.md" ]; then
+            [ "$KIND" = "ignore" ] && exit 0
+            echo "✖ The Bob workflow failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > "$RUNNER_TEMP/reply.md"
+          fi
+          if [ "$KIND" = "review" ]; then
+            id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- sdd-bob-review -->"))) | .id' | tail -n 1)
+            if [ -n "$id" ] && head -n1 "$RUNNER_TEMP/reply.md" | grep -q '^<!-- sdd-bob-review -->'; then
+              gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@"$RUNNER_TEMP/reply.md" >/dev/null
+              gh pr comment "$PR" --repo "$REPO" --body "Bob's review is updated above (head \`${HEAD_SHA:0:12}\`)."
+              exit 0
+            fi
+          fi
+          gh pr comment "$PR" --repo "$REPO" --body-file "$RUNNER_TEMP/reply.md"

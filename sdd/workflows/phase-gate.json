@@ -1,0 +1,49 @@
+{
+  "schema": "sdd-workflow/1",
+  "id": "phase-gate",
+  "title": "Close a phase",
+  "summary": "Ends a delivery phase: every feature done, the demo run, coverage checked, then the owner's signature opens the next phase.",
+  "target": "phase",
+  "targetPattern": "^\\d$",
+  "start": { "bob": "/sdd-workflow phase", "github": "/sdd status (comment on the phase pull request)" },
+  "steps": [
+    {
+      "id": "features-done",
+      "kind": "deterministic",
+      "title": "Every feature done",
+      "run": "node sdd/scripts/workflow.mjs status --phase N",
+      "responsible": "developer",
+      "does": "Each feature in the phase has an approved plan, all tasks ticked, a passing scan, and passing verification and security reports."
+    },
+    {
+      "id": "coverage",
+      "kind": "deterministic",
+      "title": "P1 requirements covered",
+      "run": "node sdd/scripts/validate-specs.mjs --trace --strict=P1",
+      "responsible": "developer",
+      "accountable": "business-analyst",
+      "does": "No priority-1 requirement in scope is left without a test."
+    },
+    {
+      "id": "demo",
+      "kind": "ai",
+      "title": "Run the demo",
+      "mode": "spec-verifier",
+      "command": "/sdd-demo",
+      "responsible": "business-analyst",
+      "does": "Bob drives the demo script in a browser and captures a screenshot per step; the analyst walks the business owner through it."
+    },
+    {
+      "id": "approve-phase",
+      "kind": "human-gate",
+      "title": "Owner signs the phase",
+      "decision": "phase",
+      "approver": "business-owner",
+      "reviewers": ["business-analyst", "appsec"],
+      "github": "/approve-phase N",
+      "terminal": "node sdd/scripts/approve.mjs phase N",
+      "does": "Opens the next phase. The pull request then merges (merge commit, not squash) and promote-to-test deploys what passed."
+    }
+  ],
+  "then": "feature-delivery"
+}

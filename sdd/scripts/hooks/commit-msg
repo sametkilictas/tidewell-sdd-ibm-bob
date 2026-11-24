@@ -1,0 +1,3 @@
+#!/bin/sh
+# SDD commit policy (install once: git config core.hooksPath sdd/scripts/hooks)
+exec node sdd/scripts/git-check.mjs --commit-msg "$1"

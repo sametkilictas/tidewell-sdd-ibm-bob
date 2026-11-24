@@ -1,0 +1,122 @@
+# Sign-offs as pull-request comments (sdd/workflows/*.json → ✍️ steps). A person types, on a pull request:
+#   /approve-plan F04 · /approve-phase 3 · /approve-cr CR-002 option A · /reject-cr CR-002 <reason>
+#   /accept-risk CVE-2026-12345 F03 until 2026-12-31 because <reason> · /revoke plan F04 · /sdd status [F04]
+# This workflow checks the person against sdd/governance/approvers.json ON THE DEFAULT BRANCH, binds the
+# sign-off to the files at the pull request head, commits sdd/state/approvals.json on its own to the pull
+# request branch, re-runs the SDD checks on the new head and answers in the thread. It refuses if anything was
+# pushed after the comment, judged by GitHub's record of the push (the sdd-gates run it started), not by commit
+# dates; that lookup is why the job may read Actions runs.
+# Nothing from the pull request is executed: the scripts run from a checkout of the default branch and only
+# read the pull request's files (SDD_ROOT). The "signoffs" check in sdd-gates.yml later re-verifies every
+# sign-off against the comment that gave it.
+# Governance-protected (CODEOWNERS: sdd-approvers).
+name: sdd-signoff
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+concurrency:
+  group: sdd-signoff-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  signoff:
+    if: >-
+      github.event.issue.pull_request &&
+      (startsWith(github.event.comment.body, '/approve-') || startsWith(github.event.comment.body, '/reject-cr') ||
+       startsWith(github.event.comment.body, '/accept-risk') || startsWith(github.event.comment.body, '/revoke') ||
+       startsWith(github.event.comment.body, '/sdd status'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write        # commit approvals.json to the pull request branch
+      pull-requests: write   # answer in the thread
+      issues: write          # reactions on the comment
+      actions: write         # re-run sdd-gates on the new head; read push runs (when the content last changed)
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      PR: ${{ github.event.issue.number }}
+    steps:
+      - name: Acknowledge
+        run: gh api -X POST "repos/$REPO/issues/comments/${{ github.event.comment.id }}/reactions" -f content=eyes >/dev/null
+
+      - name: Trusted scripts and approver list (default branch)
+        uses: actions/checkout@v4
+        with:
+          path: trusted
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Pull request details
+        run: gh pr view "$PR" --repo "$REPO" --json number,author,state,isCrossRepository,headRefName,headRefOid,baseRefName,url > "$RUNNER_TEMP/pr.json"
+
+      - name: Who may sign what
+        id: auth
+        run: >-
+          node trusted/sdd/scripts/github/signoff.mjs authorize --event "$GITHUB_EVENT_PATH" --pr "$RUNNER_TEMP/pr.json"
+          --approvers trusted/sdd/governance/approvers.json --reply "$RUNNER_TEMP/reply.md"
+
+      - name: Pull request head (read as data)
+        if: steps.auth.outputs.run == 'record' || steps.auth.outputs.run == 'status'
+        id: head
+        run: |
+          echo "ref=$(jq -r .headRefName "$RUNNER_TEMP/pr.json")" >> "$GITHUB_OUTPUT"
+          echo "sha=$(jq -r .headRefOid "$RUNNER_TEMP/pr.json")" >> "$GITHUB_OUTPUT"
+      - if: steps.auth.outputs.run == 'record' || steps.auth.outputs.run == 'status'
+        uses: actions/checkout@v4
+        with:
+          path: pr
+          ref: ${{ steps.head.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Workflow status
+        if: steps.auth.outputs.run == 'status'
+        env:
+          SDD_ROOT: pr
+        run: node trusted/sdd/scripts/github/signoff.mjs status --event "$GITHUB_EVENT_PATH" --reply "$RUNNER_TEMP/reply.md"
+
+      - name: Record the sign-off (approvals.json, committed on its own)
+        if: steps.auth.outputs.run == 'record'
+        id: record
+        env:
+          SDD_ROOT: pr
+        run: >-
+          node trusted/sdd/scripts/github/signoff.mjs record --event "$GITHUB_EVENT_PATH" --pr "$RUNNER_TEMP/pr.json"
+          --approvers trusted/sdd/governance/approvers.json --reply "$RUNNER_TEMP/reply.md"
+
+      - name: Push to the pull request branch (fails safely if the branch moved meanwhile)
+        if: steps.record.outputs.committed == 'true'
+        working-directory: pr
+        env:
+          BRANCH: ${{ steps.head.outputs.ref }}
+        run: |
+          if ! git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "HEAD:refs/heads/${BRANCH}"; then
+            echo "✖ Not recorded: the pull request branch changed while the sign-off was being recorded. Check the latest changes and comment again." > "$RUNNER_TEMP/reply.md"
+            exit 1
+          fi
+
+      - name: Re-run the SDD checks on the new head
+        if: steps.record.outputs.committed == 'true'
+        env:
+          BRANCH: ${{ steps.head.outputs.ref }}
+        run: gh workflow run sdd-gates.yml --repo "$REPO" --ref "$BRANCH"
+
+      - name: Answer in the thread
+        if: always()
+        run: |
+          if [ ! -s "$RUNNER_TEMP/reply.md" ]; then
+            [ "${{ job.status }}" = "success" ] && exit 0
+            echo "✖ The sign-off workflow failed before recording anything: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > "$RUNNER_TEMP/reply.md"
+          fi
+          gh pr comment "$PR" --repo "$REPO" --body-file "$RUNNER_TEMP/reply.md"
+          if [ "${{ steps.record.outputs.committed }}" = "true" ]; then reaction='+1'; else reaction='confused'; fi
+          [ "${{ steps.auth.outputs.run }}" = "status" ] && reaction='rocket'
+          gh api -X POST "repos/$REPO/issues/comments/${{ github.event.comment.id }}/reactions" -f content="$reaction" >/dev/null || true

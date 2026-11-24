@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""Fake Bob Shell. `bob run` acts out the scenario in $FAKE_BOB (review | fix-in-scope | fix-out-of-scope |
+fix-signoff-message | fix-none | fix-dirty) in the current directory and prints a JSON result like
+`bob run --format json`. Every call is logged to $FAKE_GH_STATE so the tests can check the flags."""
+import json, os, subprocess, sys, hashlib
+
+def log(entry):
+    p = os.environ['FAKE_GH_STATE']
+    s = json.load(open(p))
+    s.setdefault('bob_calls', []).append(entry)
+    json.dump(s, open(p, 'w'), indent=1)
+
+def tree_hash(path):
+    h = hashlib.sha256()
+    for root, _, files in sorted(os.walk(path)):
+        for f in sorted(files):
+            fp = os.path.join(root, f)
+            h.update(fp[len(path):].encode()); h.update(open(fp, 'rb').read())
+    return h.hexdigest()[:16]
+
+def git(*a, check=True):
+    return subprocess.run(['git', *a], check=check, capture_output=True, text=True)
+
+args = sys.argv[1:]
+if args == ['--version']:
+    print('bob 2.4.0 (fake)'); sys.exit(0)
+if not args or args[0] != 'run':
+    print('fake bob: only "bob run" and "--version"', file=sys.stderr); sys.exit(2)
+
+mode = args[args.index('--mode') + 1]
+prompt = args[-1]
+scenario = os.environ.get('FAKE_BOB', 'review')
+entry = {'mode': mode, 'flags': [a for a in args[1:-1] if a.startswith('--')], 'max_cost': args[args.index('--max-cost') + 1],
+         'scenario': scenario, 'has_key': bool(os.environ.get('BOB_API_KEY')), 'cwd': os.getcwd(),
+         'bob_dir': tree_hash('.bob'), 'scripts_dir': tree_hash('sdd/scripts'), 'prompt_head': prompt[:200],
+         'hooks_path': git('config', 'core.hooksPath', check=False).stdout.strip()}
+log(entry)
+if not os.environ.get('BOB_API_KEY'):
+    print('fake bob: BOB_API_KEY is not set', file=sys.stderr); sys.exit(1)
+
+def result(text):
+    print(json.dumps({'type': 'result', 'status': 'success', 'stats': {'session_costs': 0.42}, 'last_message': text}))
+
+def commit(msg, files, verify=True):
+    for path, content in files.items():
+        os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+        with open(path, 'a') as fh:
+            fh.write(content)
+    git('add', '--', *files.keys())
+    p = git('commit', '-q', *([] if verify else ['--no-verify']), '-m', msg, check=False)
+    if p.returncode:
+        print(f'fake bob: commit refused by the hook:\n{p.stdout}{p.stderr}', file=sys.stderr)
+    return p.returncode == 0
+
+if mode == 'sdd-pr-reviewer':
+    result('Here is my review.\n<<<SDD_REVIEW_BEGIN>>>\n**Verdict:** changes requested\n\n| Severity | Blocking | Where | Requirement | Finding |\n|---|---|---|---|---|\n| High | yes | apps/api/src/main.ts:1 | FND-001 | No health endpoint |\n\n**Fix prompts**\n- `/bob fix F00 add the health endpoint`\n<<<SDD_REVIEW_END>>>')
+    sys.exit(0)
+
+code = 'apps/api/src/health.ts'
+test = 'apps/api/src/health.test.ts'
+if scenario == 'fix-in-scope':
+    ok = commit('test(F00): T005 health endpoint test [FND-001]', {test: "// [FND-001] health endpoint answers 200\n"})
+    ok = ok and commit('feat(F00): T005 health endpoint [FND-001]', {code: "export const health = () => ({ status: 'ok' });\n"})
+    if not ok: sys.exit(1)
+elif scenario == 'fix-dirty':
+    commit('feat(F00): T005 health endpoint [FND-001]', {code: "export const health = () => ({ status: 'ok' });\n"})
+    open('apps/api/src/scratch.ts', 'w').write('// left behind\n')
+elif scenario == 'fix-out-of-scope':
+    commit('fix(F00): relax the requirement [FND-001]', {code: '// x\n', 'sdd/specs/features/F00-foundation/spec.md': '\nThe system may skip health checks.\n'}, verify=False)
+elif scenario == 'fix-signoff-message':
+    commit('chore: /approve-plan F01', {code: '// y\n'}, verify=False)
+elif scenario == 'fix-none':
+    pass
+result(f'Done.\n<<<SDD_FIX_BEGIN>>>\nScenario {scenario}: added the health endpoint test-first (T005).\n<<<SDD_FIX_END>>>')

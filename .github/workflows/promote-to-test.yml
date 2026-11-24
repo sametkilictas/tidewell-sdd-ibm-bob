@@ -1,0 +1,68 @@
+# Promotion to the TEST environment (Article XI.4). Nothing is deployed to testing unless the commits that
+# reached main pass the SDD rules (G1–G9) and SonarQube has analysed this exact commit of main and its
+# quality gate passed. Governance-protected (CODEOWNERS: appsec + sdd-approvers).
+# Add required reviewers to the "test" environment in GitHub settings. For private repositories GitHub
+# offers environment required reviewers only on GitHub Enterprise; on Team, restrict who can run this
+# workflow instead, or deploy from a protected tag.
+name: promote-to-test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote-to-test
+  cancel-in-progress: false
+
+jobs:
+  security-gate:
+    runs-on: ubuntu-latest
+    env:
+      OSV_SCANNER_VERSION: v2.4.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: SDD commit policy for what reached main (catches direct pushes)
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: node sdd/scripts/git-check.mjs --ci --base auto --before "$BEFORE"
+      - name: Install workspace and produce coverage
+        if: hashFiles('pnpm-lock.yaml') != ''
+        continue-on-error: true
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm test
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Install OSV-Scanner
+        run: |
+          go install github.com/google/osv-scanner/v2/cmd/osv-scanner@${OSV_SCANNER_VERSION}
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Scan main at this commit (waits for the quality gate)
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: node sdd/scripts/scan.mjs --ci
+      - name: Confirm the gate is for exactly this commit
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: node sdd/scripts/scan.mjs --gate-only --branch main --revision "${{ github.sha }}"
+
+  deploy-test:
+    needs: security-gate
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - name: Deploy to the test environment
+        run: echo "Deploy ${{ github.sha }} to TEST here (prototype placeholder; replace with your deployment)."

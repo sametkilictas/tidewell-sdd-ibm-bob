@@ -1,0 +1,86 @@
+// The SDD gate in Jenkins (multibranch pipeline).
+// For GitHub Enterprise without Actions, Bitbucket, GitLab or any git server: Jenkins runs the same checks Bob and the
+// git hooks run on the laptop, and reports the result as a commit status that branch protection can require.
+// Copy to the repository root as Jenkinsfile. Needs: Node 20+, git, and the Pipeline Utility Steps plugin (readJSON).
+// Credentials: only if sdd/governance/checks.json says "scanner": "sonarqube" — a "Secret text" credential sonar-token
+// and SONAR_HOST_URL as a global environment variable. The built-in scanner needs none.
+
+pipeline {
+  agent any                                   // or: agent { docker { image 'node:22' } }
+  options { timestamps(); disableConcurrentBuilds() }
+  parameters { string(name: 'SDD_PHASE', defaultValue: '', description: 'Phase to release to production (main only)') }
+  environment { SDD_DEFAULT_BRANCH = 'main' }
+
+  stages {
+    stage('Full history') {
+      // The gate judges every commit since the target branch, so it needs history, not a shallow clone.
+      steps {
+        sh 'git rev-parse --is-shallow-repository | grep -q true && git fetch --unshallow || true'
+        sh 'git fetch --no-tags origin "+refs/heads/${SDD_DEFAULT_BRANCH}:refs/remotes/origin/${SDD_DEFAULT_BRANCH}"'
+      }
+    }
+
+    stage('Rules: policy, specs, commits, sign-offs, secrets') {
+      steps { sh 'node sdd/scripts/ci.mjs policy specs commits signoffs secrets --junit sdd-gate-rules.xml' }
+    }
+
+    stage('Tests') {
+      steps { sh 'node sdd/scripts/ci.mjs tests --junit sdd-gate-tests.xml' }
+    }
+
+    stage('Security checks before testing') {
+      // The scanner is set in sdd/governance/checks.json: "builtin" needs no credentials; "sonarqube" needs the
+      // sonar-token credential. Your organisation's tools switched on there run here too.
+      steps {
+        script {
+          if (readJSON(file: 'sdd/governance/checks.json').scanner == 'sonarqube') {
+            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+              sh 'node sdd/scripts/ci.mjs scan --require-scan --junit sdd-gate-scan.xml'
+            }
+          } else {
+            sh 'node sdd/scripts/ci.mjs scan --junit sdd-gate-scan.xml'
+          }
+        }
+      }
+    }
+
+    stage('Deploy to test (automatic)') {
+      when { branch 'main' }
+      steps {
+        script {
+          // The scan result must belong to this exact commit, or nothing is deployed.
+          def gate = 'node sdd/scripts/scan.mjs --gate-only --branch main --revision "$(git rev-parse HEAD)"'
+          if (readJSON(file: 'sdd/governance/checks.json').scanner == 'sonarqube') {
+            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) { sh gate }
+          } else { sh gate }
+        }
+        sh 'echo "deploy to test here (your deployment step)"'
+      }
+    }
+
+    stage('Release to production (people decide)') {
+      when { allOf { branch 'main'; expression { params.SDD_PHASE?.trim() } } }
+      steps {
+        sh 'node sdd/scripts/ci.mjs release --phase "$SDD_PHASE" --env production --approvers-out release-approvers.json'
+        script {
+          def ra = readJSON file: 'release-approvers.json'
+          // policy.json decides who: tier 1 needs the business owner AND AppSec. Map each role to a Jenkins group.
+          def groups = ['business-owner': 'sdd-business-owners', 'appsec': 'sdd-appsec']   // your Jenkins groups
+          def approvedBy = []
+          for (role in ra.roles) {
+            def who = input(message: "Release phase ${params.SDD_PHASE} to production: approval by the ${role}",
+                            submitter: groups[role] ?: role, submitterParameter: 'approver')
+            if (approvedBy.contains(who)) { error("${who} already approved as another role: two different people are required") }
+            approvedBy << who
+          }
+          echo "Approved by: ${approvedBy.join(', ')}"
+        }
+        sh 'echo "deploy to production here (your deployment step)"'
+      }
+    }
+  }
+
+  post {
+    always { junit allowEmptyResults: true, testResults: 'sdd-gate-*.xml' }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "sdd-policy/1",
+  "_comment": [
+    "The automation dial. Each feature has a risk tier; the tier decides who signs, whether a hand security review is required, how far Bob may run on its own, and who approves a release to production.",
+    "Governance-protected like approvers.json: change it only in a chore(SDD) commit reviewed by the code owners. Pipelines read it from the target branch, so a change cannot approve itself.",
+    "node sdd/scripts/policy.mjs check   validates this file. Some gates are locked: the check fails if a setting would remove a human decision the organisation must keep (see 'locked' below).",
+    "Roles are the ones in approvers.json: business-owner, business-analyst, architect, developer, appsec."
+  ],
+  "defaultTier": 2,
+  "tiers": {
+    "1": {
+      "label": "Critical",
+      "means": "Can move money or other value, guards access or credentials, or changes security settings.",
+      "approve": { "plan": ["business-owner"], "phase": ["business-owner"] },
+      "securityReview": "required",
+      "bobAutonomy": "step",
+      "release": { "production": ["business-owner", "appsec"] },
+      "dast": "required"
+    },
+    "2": {
+      "label": "Sensitive",
+      "means": "Shows or stores personal or confidential data, but moves no value.",
+      "approve": { "plan": ["business-owner"], "phase": ["business-owner"] },
+      "securityReview": "required",
+      "bobAutonomy": "step",
+      "release": { "production": ["business-owner"] },
+      "dast": "recommended"
+    },
+    "3": {
+      "label": "Standard",
+      "means": "Moves no value, holds no credentials, adds no personal data.",
+      "approve": { "plan": ["business-owner", "architect"], "phase": ["business-owner"] },
+      "securityReview": "optional",
+      "bobAutonomy": "drive",
+      "release": { "production": ["business-owner"] },
+      "dast": "optional"
+    }
+  },
+  "features": {
+    "F00": 2, "F01": 1, "F02": 3, "F03": 2, "F04": 1, "F05": 1,
+    "F06": 1, "F07": 2, "F08": 3, "F09": 1, "F10": 2, "F11": 1
+  },
+  "alwaysAutomated": [
+    "Commit rules G1–G10 (in Bob, in the git hook and again in the pipeline)",
+    "Secret scan of every change",
+    "Spec and traceability validation",
+    "Unit and integration tests",
+    "SonarQube scan of production code before any testing step",
+    "Pipeline check that every sign-off was made by a listed person with the right role"
+  ],
+  "locked": [
+    "Every tier needs a human plan sign-off and a human phase sign-off. No tier can hand them to Bob or the pipeline.",
+    "Tier 1 plans and phases are signed by the business owner only.",
+    "The developer role never signs plans or phases (the maker is never the checker).",
+    "Tier 1 and 2 features always get a hand security review.",
+    "Bob runs tier 1 features one step at a time.",
+    "Accepting a security risk (a waiver) is always AppSec's decision.",
+    "Change requests are always decided by the business owner.",
+    "Every release to production needs a person; tier 1 needs two people with different roles.",
+    "Nobody signs their own work unless the repository is marked as a training repository."
+  ]
+}

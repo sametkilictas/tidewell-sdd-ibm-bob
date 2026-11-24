@@ -1,0 +1,118 @@
+{
+  "schema": "sdd-checks/1",
+  "_comment": [
+    "The security checks, and where each one runs. Shift-left means the same control runs as early as it can, and again later where nobody can switch it off.",
+    "Stages: bob = Bob's hook, on every write before it lands (built-in checks only; IDE tools such as Bob's own scans or IBM Concert Secure Coder sit here too) · commit = the git pre-commit hook, on what is staged · scan = /sdd-scan before any testing, and the pipeline's scan stage, on all production code · pipeline = the pipeline only (slow or licensed tools).",
+    "scanner: who gives the verdict at /sdd-scan and in the pipeline's scan stage. 'builtin' = the checks below (no server, ideal for labs); 'sonarqube' = SonarQube's quality gate plus dependency CVEs (sdd/docs/SONARQUBE.md); the checks below still run alongside it.",
+    "Plug in your organisation's own tools as 'command' checks: the command gets the files to check in {files}; exit code 0 passes, anything else is a finding. An enabled tool that is not installed fails the check (fail closed), so switching a tool on is a real decision.",
+    "Governance file: change it in a chore(SDD) commit that code owners review. node sdd/scripts/checks.mjs --validate runs in every pipeline; the secrets check cannot be switched off or downgraded.",
+    "node sdd/scripts/checks.mjs --list shows what runs where. sdd/docs/CHECKS.md maps each stage to tools, including the IBM portfolio."
+  ],
+  "scanner": "builtin",
+  "checks": [
+    {
+      "id": "secrets",
+      "title": "No secrets in code",
+      "run": {
+        "builtin": "secrets"
+      },
+      "stages": [
+        "bob",
+        "scan"
+      ],
+      "onFinding": "block",
+      "enabled": true,
+      "note": "Also locked on as commit rule G10 and as the pipeline's secrets stage."
+    },
+    {
+      "id": "risky-code",
+      "title": "Risky code patterns: SQL built from strings, TLS checks switched off, eval, weak hashes, Math.random for secret values",
+      "run": {
+        "builtin": "risky-code"
+      },
+      "stages": [
+        "bob",
+        "commit",
+        "scan"
+      ],
+      "onFinding": "block",
+      "enabled": true
+    },
+    {
+      "id": "dependencies",
+      "title": "Dependency rules: nothing on the deny-list; exact versions preferred",
+      "run": {
+        "builtin": "dependencies"
+      },
+      "stages": [
+        "commit",
+        "scan"
+      ],
+      "onFinding": "block",
+      "enabled": true,
+      "note": "Deny-list in sdd/governance/dependency-denylist.json. Unpinned versions are a warning, not a block."
+    },
+    {
+      "id": "ibm-detect-secrets",
+      "title": "IBM detect-secrets (open source): deterministic secret scanning at commit and on all code, with an audited baseline",
+      "run": {
+        "command": "detect-secrets-hook --baseline .secrets.baseline {files}"
+      },
+      "stages": [
+        "commit",
+        "scan"
+      ],
+      "onFinding": "block",
+      "enabled": false,
+      "install": "pip install --upgrade \"git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets\" && detect-secrets scan --update .secrets.baseline && detect-secrets audit .secrets.baseline",
+      "docs": "https://github.com/IBM/detect-secrets"
+    },
+    {
+      "id": "vault-radar",
+      "title": "HashiCorp Vault Radar (IBM): secret scanning tied to your HashiCorp Vault",
+      "run": {
+        "command": "vault-radar scan git pre-commit"
+      },
+      "stages": [
+        "commit"
+      ],
+      "onFinding": "block",
+      "enabled": false,
+      "needs": [
+        "HCP_CLIENT_ID",
+        "HCP_CLIENT_SECRET",
+        "HCP_PROJECT_ID"
+      ],
+      "docs": "https://developer.hashicorp.com/hcp/tutorials/hcp-vault-radar-developer/vault-radar-pre-commit-hooks"
+    },
+    {
+      "id": "osv-scanner",
+      "title": "OSV-Scanner: known vulnerabilities in dependencies",
+      "run": {
+        "command": "osv-scanner scan source -r ."
+      },
+      "stages": [
+        "scan"
+      ],
+      "onFinding": "block",
+      "enabled": false,
+      "docs": "https://google.github.io/osv-scanner/"
+    },
+    {
+      "id": "bob-review",
+      "title": "IBM Bob Shell (bob run) review of the change, in the read-only 🔎 SDD PR Reviewer mode (advisory: Bob flags, the checks and people decide)",
+      "run": {
+        "command": "bob run --mode sdd-pr-reviewer --trust --accept-license --disable-mcp --disable-subagents --max-turns 30 --max-cost 2 --format json \"Review the changes on this branch against their specs. List only real problems, with file and line. If there are none, answer exactly NO FINDINGS.\" > .scannerwork/bob-review.json; grep -q 'NO FINDINGS' .scannerwork/bob-review.json"
+      },
+      "stages": [
+        "pipeline"
+      ],
+      "onFinding": "warn",
+      "enabled": false,
+      "needs": [
+        "BOB_API_KEY"
+      ],
+      "docs": "https://bob.ibm.com/docs/shell/getting-started/start-bobshell-non-interactive"
+    }
+  ]
+}

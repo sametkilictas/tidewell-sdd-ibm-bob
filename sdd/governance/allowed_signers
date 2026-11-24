@@ -1,0 +1,2 @@
+# One line per approver who signs sign-off commits with SSH (approvers.json rules.requireSignedApprovals).
+# Format: <email> <public key>   e.g.  sara@tidewell.example ssh-ed25519 AAAAC3Nza... sara

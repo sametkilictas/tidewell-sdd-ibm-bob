@@ -1,0 +1,45 @@
+name: Feature request
+description: Ask for something the product does not do yet. The business analyst turns it into a spec.
+title: "Feature: <short title>"
+labels: ["sdd/feature-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New behaviour starts as a written spec, not as code. The business analyst writes the spec from this request
+        (Bob helps: EARS requirements and acceptance examples), the architect plans it, and the business owner signs the
+        plan on the phase pull request (`/approve-plan F##`). See `sdd/workflows/feature-delivery.json`.
+  - type: textarea
+    id: who
+    attributes:
+      label: Who needs it?
+      description: The customer or staff persona (see sdd/specs/01-product-vision.md) and the situation they are in.
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What should they be able to do?
+      description: In their words. One or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples that would prove it works
+      description: Concrete cases with numbers, e.g. "A customer with a daily limit of 50 who has used 45 today cannot use 6 more, and sees 5 left."
+      placeholder: |
+        Given … when … then …
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options: ["P1 — must have for the prototype", "P2 — should have", "P3 — nice to have"]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Rules, limits or regulations that apply

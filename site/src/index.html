@@ -1,0 +1,89 @@
+{{HEAD}}
+{{HEADER}}
+<main id="main">
+<section class="hero"><div class="wrap">
+  <p class="eyebrow">Spec-driven development with IBM Bob · an open worked example</p>
+  <h1><span class="b">Bob builds.</span><br><span class="p">People approve.</span><br><span class="c">Checks verify.</span></h1>
+  <p class="lede">AI can now write working software in hours. For a regulated business the hard part is control: building exactly what was
+  decided, proving it, keeping it secure, and showing an auditor who decided what. This kit shows how, end to end, with IBM Bob and a
+  fictional bank.</p>
+  <div class="btns"><a class="btn" href="atlas/">Explore the interactive Atlas</a><a class="btn ghost" href="{{REPO}}">Get the kit on GitHub</a></div>
+  <p class="meta"><span class="m1">{{features}} features specified</span><span class="m2">{{reqs}} requirements</span>
+  <span class="m3">{{acs}} acceptance criteria</span><span class="m4">{{ops}} API operations</span></p>
+</div></section>
+
+<section class="video" id="video" aria-label="Explainer video"><div class="wrap">
+  <figure>
+    <video controls preload="metadata" poster="media/poster.jpg" playsinline>
+      <source src="media/tidewell-sdd-explainer-720p.mp4" type="video/mp4">
+      Your browser cannot play this video. <a href="media/tidewell-sdd-explainer-720p.mp4">Download it (MP4)</a>.
+    </video>
+    <figcaption>The whole cycle in four minutes: the nine steps, Bob's modes, the human sign-offs, the automation dial, shift-left
+    security, tools that plug in, and one pipeline gate for any CI. Music only, no narration.</figcaption>
+  </figure>
+</div></section>
+
+<section><div class="wrap">
+  <p class="eyebrow">Start here</p>
+  <h2>Pick the format that suits you</h2>
+  <p class="sub">The same story, five ways: explore it, run it, present it, read it, or clone it.</p>
+  <div class="grid g3">
+    <a class="tile" href="atlas/"><span class="tag">Interactive</span><h3>The Atlas</h3><p>The cycle as a 3D ring, the signed-layer tower, the automation dial, a threat sent through eight defence layers, the plug-in board and the pipeline simulator.</p></a>
+    <a class="tile" href="labs/"><span class="tag t2">Hands-on · a day</span><h3>Lab guide</h3><p>In pairs, run the cycle for real: clarify a spec, sign a plan, build test-first, get caught by the checks, prove every example, release.</p></a>
+    <a class="tile" href="deck/tidewell-sdd-ibm-bob-deck.pdf"><span class="tag t3">PDF · 21 slides</span><h3>Presentation</h3><p>For a mixed audience: why it matters, how SDD fits the SDLC, who decides what, shift-left security, CI/CD and audit evidence.</p></a>
+    <a class="tile" href="article/"><span class="tag t4">Article · 8 min</span><h3>Why spec-driven development matters for a bank</h3><p>The argument in plain words, with the questions people ask.</p></a>
+    <a class="tile" href="{{REPO}}"><span class="tag t5">Open source</span><h3>The kit on GitHub</h3><p>Specs, {{modes}} Bob modes, {{commands}} slash commands, guardrail scripts, CI templates for Jenkins, Azure DevOps, GitLab and GitHub, and self-tests.</p></a>
+    <a class="tile" href="{{REPO}}/releases"><span class="tag t5">v1.0.0</span><h3>Releases</h3><p>Release notes and downloads: the full-resolution video and the presentation.</p></a>
+  </div>
+</div></section>
+
+<section class="layer"><div class="wrap">
+  <p class="eyebrow">The idea</p>
+  <h2>The maker is never the checker</h2>
+  <p class="sub">Banks call it maker–checker. The kit enforces it in Bob, in git and in the pipeline.</p>
+  <div class="actors">
+    <div class="actor" style="--c:var(--bob)"><h3>Bob builds</h3><p>Drafts specs, plans, tasks, code and tests in modes that can each write only their own files. Bob can never sign, never write a check's verdict and never skip a step.</p></div>
+    <div class="actor" style="--c:var(--people)"><h3>People approve</h3><p>The business owner signs plans and phases; AppSec accepts risk; the analyst checks the proof. Each sign-off is bound to the exact files it approved, and some decisions stay with people whatever the settings.</p></div>
+    <div class="actor" style="--c:var(--checks)"><h3>Checks verify</h3><p>Security checks run as Bob writes, at commit and before any testing — built-in ones, and your organisation's own tools. The pipeline runs them again, where nobody can switch them off.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap split">
+  <div>
+    <p class="eyebrow">What's in the kit</p>
+    <h2>Everything that makes a spec binding</h2>
+    <ul class="ticks">
+      <li><b>IBM Bob V2 configuration</b> — modes fenced to their own files (Bob's Agent, Plan and Ask included), rules, slash commands, skills and lifecycle hooks.</li>
+      <li><b>Human sign-offs</b> by terminal command or pull-request comment, verified in the pipeline: right role, not the maker, bound to the files.</li>
+      <li><b>The automation dial</b> — risk tiers decide who signs and how far Bob may run; locked gates no setting can remove.</li>
+      <li><b>Shift-left security</b> — secrets, risky code and bad dependencies refused as Bob writes, at commit, before testing and in CI. IBM detect-secrets, HashiCorp Vault Radar or SonarQube plug in through one file.</li>
+      <li><b>One gate for any CI</b> — <code>node sdd/scripts/ci.mjs pr</code> in Jenkins, Azure DevOps, GitLab or GitHub Actions; no Actions needed.</li>
+      <li><b>Evidence for auditors</b> — one command assembles who decided what, which test proves which requirement, and what the checks said.</li>
+    </ul>
+  </div>
+  <div>
+    <p class="eyebrow">Quick start · five minutes</p>
+    <h2>Clone, then ask "what's next?"</h2>
+<pre><code>git clone {{REPO}}.git
+cd tidewell-sdd-ibm-bob
+git config core.hooksPath sdd/scripts/hooks
+
+node sdd/scripts/policy.mjs show   # the automation dial
+node sdd/scripts/state.mjs         # where the project is
+node sdd/scripts/ci.mjs pr         # the gate every pipeline runs</code></pre>
+    <p class="sub" style="margin-top:16px">Then open the folder in IBM Bob, trust it, pick <b>🧭 SDD Navigator</b> and ask <i>"what's next?"</i>. Node 22 is all you need for the labs.</p>
+  </div>
+</div></section>
+
+<section class="layer"><div class="wrap">
+  <p class="eyebrow">Any industry</p>
+  <h2>A bank is the example, not a dependency</h2>
+  <p class="sub">Bob's modes, rules, commands and skills, the scripts and the governance files know nothing about banking. The bank lives in the specs.</p>
+  <div class="grid g2">
+    <div class="tile" style="min-height:0;padding-bottom:24px"><span class="tag">The kit · any industry</span><p>Bob's configuration (<code>.bob/</code>), the guardrail scripts, the workflows, the governance files and the CI templates. A Security Reviewer, not a bank reviewer; a <code>domain-rules</code> skill that reads whatever domain the specs define.</p></div>
+    <div class="tile" style="min-height:0;padding-bottom:24px"><span class="tag t3">The example · Tidewell Bank</span><p>A fictional UAE bank (AED, English and Arabic): product vision, domain model, 12 feature specs, NFRs, the API contract, and the rules Bob must never break in <code>sdd/specs/domain/</code>. Replace them for insurance, health, retail or the public sector.</p></div>
+  </div>
+</div></section>
+</main>
+{{FOOTER}}
+</body></html>

@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tidewell SDD Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: calm, exact, enterprise. IBM Carbon, productive with a few expressive moments.
+   IDEA: a bank's delivery control room, where every layer is built only on the signed layer below it.
+   PICTURE: a 3D tower of signed layers, a ring of nine steps, stacked defence layers, an isometric feature city.
+   COLOUR and TYPE: Carbon White / Gray 100 themes; purple = Bob writes, magenta = people sign, teal = checks verify, blue = pipeline; IBM Plex Sans and Mono.
+   LAYOUT: Carbon UI shell (48px header, 256px side nav), 16-column 2x grid, square tiles, 1px condensed tile grids. */
+:root{color-scheme:light;
+--bg:#fff;--l1:#f4f4f4;--l2:#fff;--l1h:#e8e8e8;--l2h:#e8e8e8;--la:#e0e0e0;--sel:#e0e0e0;--bs:#e0e0e0;--bs1:#c6c6c6;--bst:#8d8d8d;
+--tp:#161616;--ts:#525252;--th:#6f6f6f;--tph:#a8a8a8;--inv:#393939;--tinv:#f4f4f4;--sinv:#161616;--tsinv:#fff;
+--link:#0f62fe;--int:#0f62fe;--focus:#0f62fe;--bp:#0f62fe;--bph:#0050e6;--bpa:#002d9c;
+--err:#da1e28;--ok:#24a148;--warn:#f1c21b;--info:#0043ce;
+--n-err:#fff1f1;--n-ok:#defbe6;--n-warn:#fcf4d6;--n-info:#edf5ff;
+--bob:#8a3ffc;--bobbg:#e8daff;--bobtx:#6929c4;--hum:#d02670;--humbg:#ffd6e8;--humtx:#9f1853;
+--tool:#007d79;--toolbg:#9ef0f0;--tooltx:#005d5d;--pipe:#0f62fe;--pipebg:#d0e2ff;--pipetx:#0043ce;
+--t1:#da1e28;--t1bg:#ffd7d9;--t1tx:#a2191f;--t2:#ff832b;--t2bg:#ffd9be;--t2tx:#8a3800;--t3:#24a148;--t3bg:#a7f0ba;--t3tx:#0e6027;
+--graybg:#e0e0e0;--graytx:#161616;--code:#f4f4f4;--term:#161616;--termtx:#f4f4f4;
+--hdr:#161616;--hdrtx:#f4f4f4;--hdrh:#2c2c2c;--hdrb:#393939;--scrim:rgba(22,22,22,.5);--shadow:0 2px 6px rgba(0,0,0,.3);
+--ease:cubic-bezier(.2,0,.38,.9);--ex:cubic-bezier(.4,.14,.3,1);--plex:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',Menlo,'DejaVu Sans Mono',Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#161616;--l1:#262626;--l2:#393939;--l1h:#333333;--l2h:#474747;--la:#393939;--sel:#525252;--bs:#393939;--bs1:#525252;--bst:#6f6f6f;
+--tp:#f4f4f4;--ts:#c6c6c6;--th:#a8a8a8;--tph:#6f6f6f;--inv:#f4f4f4;--tinv:#161616;--sinv:#f4f4f4;--tsinv:#161616;
+--link:#78a9ff;--int:#4589ff;--focus:#fff;--err:#fa4d56;--ok:#42be65;--warn:#f1c21b;--info:#4589ff;
+--n-err:#3a1d20;--n-ok:#183223;--n-warn:#3a3317;--n-info:#1c2a43;
+--bob:#a56eff;--bobbg:#6929c4;--bobtx:#e8daff;--hum:#ff7eb6;--humbg:#9f1853;--humtx:#ffd6e8;--tool:#08bdba;--toolbg:#005d5d;--tooltx:#9ef0f0;--pipe:#4589ff;--pipebg:#0043ce;--pipetx:#d0e2ff;
+--t1:#fa4d56;--t1bg:#a2191f;--t1tx:#ffd7d9;--t2:#ff832b;--t2bg:#8a3800;--t2tx:#ffd9be;--t3:#42be65;--t3bg:#0e6027;--t3tx:#a7f0ba;
+--graybg:#525252;--graytx:#e0e0e0;--code:#262626;--term:#0b0b0b;--hdrb:#393939;--scrim:rgba(0,0,0,.6);--shadow:0 2px 6px rgba(0,0,0,.8)}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#161616;--l1:#262626;--l2:#393939;--l1h:#333333;--l2h:#474747;--la:#393939;--sel:#525252;--bs:#393939;--bs1:#525252;--bst:#6f6f6f;
+--tp:#f4f4f4;--ts:#c6c6c6;--th:#a8a8a8;--tph:#6f6f6f;--inv:#f4f4f4;--tinv:#161616;--sinv:#f4f4f4;--tsinv:#161616;
+--link:#78a9ff;--int:#4589ff;--focus:#fff;--err:#fa4d56;--ok:#42be65;--warn:#f1c21b;--info:#4589ff;
+--n-err:#3a1d20;--n-ok:#183223;--n-warn:#3a3317;--n-info:#1c2a43;
+--bob:#a56eff;--bobbg:#6929c4;--bobtx:#e8daff;--hum:#ff7eb6;--humbg:#9f1853;--humtx:#ffd6e8;--tool:#08bdba;--toolbg:#005d5d;--tooltx:#9ef0f0;--pipe:#4589ff;--pipebg:#0043ce;--pipetx:#d0e2ff;
+--t1:#fa4d56;--t1bg:#a2191f;--t1tx:#ffd7d9;--t2:#ff832b;--t2bg:#8a3800;--t2tx:#ffd9be;--t3:#42be65;--t3bg:#0e6027;--t3tx:#a7f0ba;
+--graybg:#525252;--graytx:#e0e0e0;--code:#262626;--term:#0b0b0b;--hdrb:#393939;--scrim:rgba(0,0,0,.6);--shadow:0 2px 6px rgba(0,0,0,.8)}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:64px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tp);font:400 16px/1.5 var(--plex);overflow-x:clip;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+:focus{outline:none}:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}[tabindex="-1"]:focus-visible{outline:none}
+button{font:inherit;color:inherit}
+code,.mono{font-family:var(--mono);font-size:.875em}code{background:var(--l1);padding:0 4px;overflow-wrap:anywhere}
+.skip{position:absolute;left:-9999px;top:0;z-index:99;background:var(--bp);color:#fff;padding:14px 16px}.skip:focus{left:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- UI shell ---------- */
+.hdr{position:fixed;inset:0 0 auto 0;height:48px;z-index:30;display:flex;align-items:center;background:var(--hdr);color:var(--hdrtx);border-bottom:1px solid var(--hdrb)}
+.hbtn{width:48px;height:48px;border:0;background:none;color:var(--hdrtx);display:grid;place-items:center;cursor:pointer;flex:none}
+.hbtn:hover{background:var(--hdrh)}.hbtn svg{width:20px;height:20px;fill:currentColor}
+.hname{display:flex;align-items:center;height:48px;padding:0 16px 0 8px;color:var(--hdrtx);font-size:14px;letter-spacing:.1px;white-space:nowrap}
+.hname:hover{text-decoration:none;background:var(--hdrh)}.hname b{font-weight:600;margin-left:4px}
+.hmark{width:24px;height:24px;margin-right:10px;flex:none}
+.hsp{flex:1}
+.hlink{height:48px;display:flex;align-items:center;gap:8px;padding:0 16px;color:var(--hdrtx);font-size:14px;white-space:nowrap}.hlink:hover{background:var(--hdrh);text-decoration:none}
+.hlink svg{width:16px;height:16px;fill:currentColor}
+.hpath{display:flex;align-items:center;gap:12px;padding:0 16px;font-size:12px;color:#c6c6c6;letter-spacing:.32px}
+.side{position:fixed;top:48px;bottom:0;left:0;width:256px;z-index:25;background:var(--l1);border-right:1px solid var(--bs);overflow-y:auto;padding:16px 0 32px;transition:transform .24s var(--ease)}
+.side h6{margin:16px 16px 8px;font:400 12px/16px var(--plex);letter-spacing:.32px;color:var(--th)}
+.side a{display:flex;align-items:center;gap:12px;min-height:40px;padding:8px 16px;color:var(--ts);font:600 14px/18px var(--plex);letter-spacing:.16px;border-left:3px solid transparent}
+.side a svg{width:16px;height:16px;fill:currentColor;flex:none}
+.side a:hover{background:var(--l1h);color:var(--tp);text-decoration:none}
+.side a[aria-current=page]{background:var(--sel);color:var(--tp);border-left-color:var(--int)}
+.side .sidepath{display:none;padding:8px 16px 16px;border-bottom:1px solid var(--bs);margin-bottom:8px}
+.scrim{position:fixed;inset:48px 0 0 0;background:var(--scrim);z-index:24;opacity:0;pointer-events:none;transition:opacity .24s var(--ease)}
+main{margin-left:256px;padding-top:48px;min-height:100vh}
+.wrap{max-width:1584px;padding:0 32px}
+.hamb{display:none}
+@media(max-width:1055px){.hamb{display:grid}main{margin-left:0}.side{transform:translateX(-100%);box-shadow:var(--shadow)}
+ body.nav-open .side{transform:none}body.nav-open .scrim{opacity:1;pointer-events:auto}.wrap{padding:0 16px}}
+@media(max-width:671px){.hpath,.hlink span{display:none}.side .sidepath{display:block}.hname{padding-right:8px}}
+
+/* ---------- grid & type ---------- */
+.row{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));column-gap:32px;row-gap:32px}
+.c16{grid-column:span 16}.c12{grid-column:span 12}.c11{grid-column:span 11}.c10{grid-column:span 10}.c9{grid-column:span 9}.c8{grid-column:span 8}.c7{grid-column:span 7}.c6{grid-column:span 6}.c5{grid-column:span 5}.c4{grid-column:span 4}
+@media(max-width:1311px){.row{column-gap:24px}}
+@media(max-width:1055px){.row{grid-template-columns:repeat(8,minmax(0,1fr))}.row>*{grid-column:span 8}.row>.c4{grid-column:span 4}}
+@media(max-width:671px){.row{grid-template-columns:repeat(4,minmax(0,1fr));column-gap:16px}.row>*,.row>.c4{grid-column:span 4}}
+.page{padding:40px 0 96px;animation:enter .4s var(--ex) both}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.eyebrow{font:400 14px/18px var(--plex);letter-spacing:.16px;color:var(--ts);margin:0 0 8px}
+.display{font:300 clamp(2.25rem,1rem + 2.1vw,3.5rem)/1.12 var(--plex);letter-spacing:0;margin:0 0 24px;text-wrap:balance}
+h1{font:300 clamp(2rem,1.5rem + 1.6vw,2.625rem)/1.2 var(--plex);margin:0 0 16px;text-wrap:balance}
+h2{font:400 clamp(1.5rem,1.3rem + .6vw,1.75rem)/1.29 var(--plex);margin:64px 0 8px;text-wrap:balance}
+h3{font:400 20px/28px var(--plex);margin:0 0 8px}
+h4{font:600 16px/24px var(--plex);margin:0 0 4px}
+p{margin:0 0 16px}
+.lede{font:300 clamp(1.125rem,1rem + .4vw,1.25rem)/1.5 var(--plex);color:var(--tp);max-width:46em;margin:0 0 24px}
+.sub{color:var(--ts);max-width:46em;margin:0 0 24px}
+.helper{font:400 12px/16px var(--plex);letter-spacing:.32px;color:var(--th)}
+.label{font:400 12px/16px var(--plex);letter-spacing:.32px;color:var(--ts)}
+.muted{color:var(--ts)}
+hr.div{border:0;border-top:1px solid var(--bs);margin:48px 0}
+
+/* ---------- components ---------- */
+.btn{position:relative;display:inline-flex;align-items:center;min-height:48px;padding:13px 64px 13px 16px;border:1px solid transparent;border-radius:0;font:400 14px/18px var(--plex);letter-spacing:.16px;cursor:pointer;text-decoration:none!important;transition:background .11s var(--ease)}
+.btn svg{position:absolute;right:16px;width:16px;height:16px;fill:currentColor}
+.btn.pri{background:var(--bp);color:#fff}.btn.pri:hover{background:var(--bph)}.btn.pri:active{background:var(--bpa)}
+.btn.pri:focus-visible{outline:0;box-shadow:inset 0 0 0 1px var(--focus),inset 0 0 0 3px var(--bg)}
+.btn.ter{background:transparent;border-color:var(--int);color:var(--int)}.btn.ter:hover{background:var(--bph);color:#fff;border-color:var(--bph)}
+.btn.sec{background:#393939;color:#fff}.btn.sec:hover{background:#474747}
+.btn.ghost{background:transparent;color:var(--link);padding:13px 16px}.btn.ghost:hover{background:var(--l1h)}
+.btn.ghost svg{position:static;margin-left:8px}
+.btn.md{min-height:40px;padding-top:9px;padding-bottom:9px}
+.btns{display:flex;flex-wrap:wrap;gap:1px}
+.ibtn{width:40px;height:40px;display:inline-grid;place-items:center;border:0;background:transparent;color:var(--tp);cursor:pointer}
+.ibtn:hover{background:var(--l1h)}.ibtn svg{width:16px;height:16px;fill:currentColor}.ibtn:disabled{color:var(--tph);cursor:not-allowed;background:none}
+.tag{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:2px 8px;border-radius:12px;font:400 12px/16px var(--plex);letter-spacing:.32px;white-space:nowrap;background:var(--graybg);color:var(--graytx);vertical-align:middle}
+.tag svg{width:12px;height:12px;fill:currentColor}
+.tag.bob{background:var(--bobbg);color:var(--bobtx)}.tag.hum{background:var(--humbg);color:var(--humtx)}.tag.tool{background:var(--toolbg);color:var(--tooltx)}.tag.pipe{background:var(--pipebg);color:var(--pipetx)}
+.tag.t1{background:var(--t1bg);color:var(--t1tx)}.tag.t2{background:var(--t2bg);color:var(--t2tx)}.tag.t3{background:var(--t3bg);color:var(--t3tx)}
+.tag.red{background:var(--t1bg);color:var(--t1tx)}.tag.green{background:var(--t3bg);color:var(--t3tx)}.tag.outline{background:transparent;box-shadow:inset 0 0 0 1px var(--bst);color:var(--tp)}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tile{display:block;background:var(--l1);padding:16px;color:var(--tp);position:relative}
+a.tile,button.tile{border:0;text-align:left;width:100%;cursor:pointer;text-decoration:none;transition:background .11s var(--ease)}
+a.tile:hover,button.tile:hover{background:var(--l1h)}
+.tile .arrow{position:absolute;right:16px;bottom:16px;width:20px;height:20px;fill:var(--link)}
+.tile.sel{box-shadow:inset 0 0 0 1px var(--tp)}
+.tgrid{display:grid;gap:1px;background:var(--bs);border:1px solid var(--bs)}
+.tgrid>*{background:var(--l1)}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1055px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:671px){.g2,.g3,.g4{grid-template-columns:minmax(0,1fr)}}
+.ico{width:48px;height:48px;display:grid;place-items:center;margin-bottom:24px}.ico svg{width:24px;height:24px;fill:#fff}
+.ico.bob{background:var(--bob)}.ico.hum{background:var(--hum)}.ico.tool{background:var(--tool)}.ico.pipe{background:var(--pipe)}
+.big{font:300 clamp(2.5rem,2rem + 1.5vw,3.375rem)/1.1 var(--plex);margin:0 0 8px;font-variant-numeric:tabular-nums}
+.notif{display:flex;gap:12px;align-items:flex-start;padding:14px 16px 14px 13px;border-left:3px solid var(--info);background:var(--n-info);color:var(--tp);font-size:14px;line-height:20px}
+.notif>svg{width:20px;height:20px;flex:none;fill:var(--info)}.notif b{font-weight:600}
+.notif.ok{border-color:var(--ok);background:var(--n-ok)}.notif.ok>svg{fill:var(--ok)}
+.notif.err{border-color:var(--err);background:var(--n-err)}.notif.err>svg{fill:var(--err)}
+.notif.warn{border-color:var(--warn);background:var(--n-warn)}.notif.warn>svg{fill:#b28600}
+.notif ul{margin:4px 0 0;padding-left:18px}.notif p{margin:0}
+.cs{display:inline-flex;max-width:100%;overflow-x:auto}
+.cs button{min-height:40px;padding:0 16px;border:1px solid var(--tp);border-left-width:0;background:transparent;color:var(--ts);font:400 14px/18px var(--plex);letter-spacing:.16px;cursor:pointer;white-space:nowrap;flex:none}
+.cs button:first-child{border-left-width:1px}.cs button:hover{background:var(--l1h);color:var(--tp)}
+.cs button[aria-pressed=true],.cs button[aria-selected=true]{background:var(--sinv);color:var(--tsinv)}
+.cs.sm button{min-height:32px;padding:0 12px}
+.hdr .cs button{border-color:#8d8d8d;color:#c6c6c6}.hdr .cs button:hover{background:#353535;color:#f4f4f4}.hdr .cs button[aria-pressed=true]{background:#f4f4f4;color:#161616;border-color:#f4f4f4}
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;min-height:48px;padding:0 16px;border:0;border-top:2px solid transparent;background:var(--la);color:var(--ts);font:400 14px/18px var(--plex);letter-spacing:.16px;cursor:pointer;margin-right:1px;white-space:nowrap}
+.tabs button:hover{background:var(--bs1);color:var(--tp)}
+.tabs button[aria-selected=true]{background:var(--l1);color:var(--tp);font-weight:600;border-top-color:var(--int)}
+.tabpanel{background:var(--l1);padding:16px}
+table.dt{width:100%;border-collapse:collapse;font-size:14px;line-height:20px}
+.dt th{background:var(--la);text-align:left;font-weight:600;padding:14px 16px;vertical-align:top}
+.dt td{background:var(--l1);border-top:1px solid var(--bs1);padding:14px 16px;vertical-align:top}
+.dt tbody tr:hover td{background:var(--l1h)}
+.dt td.num,.dt th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dt th button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.dt th button svg{width:16px;height:16px;fill:currentColor}
+.tablewrap{overflow-x:auto;border:1px solid var(--bs)}
+.snip{position:relative;background:var(--code);margin:0 0 16px}
+.snip pre{margin:0;padding:16px 56px 16px 16px;font:400 14px/20px var(--mono);overflow-x:auto;white-space:pre;color:var(--tp);max-height:var(--mh,none)}
+.snip .copy{position:absolute;top:4px;right:4px;background:var(--code)}
+.snip.long pre{--mh:360px;overflow-y:auto}.snip.wrapt pre{white-space:pre-wrap;overflow-wrap:anywhere}
+.snip .cap{display:block;padding:8px 16px 0;font:400 12px/16px var(--plex);letter-spacing:.32px;color:var(--th)}
+.toast{position:fixed;right:16px;bottom:16px;z-index:40;background:var(--inv);color:var(--tinv);padding:14px 16px;font-size:14px;transform:translateY(calc(100% + 32px));visibility:hidden;transition:transform .24s var(--ex),visibility .24s}.toast.on{transform:none;visibility:visible}
+dl.sl{margin:0;display:grid;grid-template-columns:minmax(120px,200px) minmax(0,1fr)}
+.sl dt,.sl dd{margin:0;padding:16px 16px 16px 0;border-top:1px solid var(--bs)}
+.sl dt{font:600 14px/20px var(--plex);color:var(--tp)}.sl dd{font-size:14px;line-height:20px}
+@media(max-width:671px){dl.sl{grid-template-columns:minmax(0,1fr)}.sl dd{border-top:0;padding-top:0}.sl dt{padding-bottom:4px}}
+.sel-native{appearance:none;-webkit-appearance:none;min-height:40px;padding:0 48px 0 16px;border:0;border-bottom:1px solid var(--bst);background:var(--l1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='%23888'%3E%3Cpath d='M16 22L6 12l1.4-1.4 8.6 8.6 8.6-8.6L26 12z'/%3E%3C/svg%3E") no-repeat right 16px center/16px;color:var(--tp);font:400 16px/20px var(--plex);cursor:pointer}
+.field{display:flex;flex-direction:column;gap:8px}
+.search{position:relative}.search svg{position:absolute;left:12px;top:12px;width:16px;height:16px;fill:var(--ts)}
+.search input{width:100%;min-height:40px;padding:0 16px 0 40px;border:0;border-bottom:1px solid var(--bst);background:var(--l1);color:var(--tp);font:400 16px/20px var(--plex)}
+.chk{display:flex;align-items:flex-start;gap:8px;min-height:32px;padding:6px 0;font-size:14px;line-height:20px;cursor:pointer}
+.chk input{appearance:none;-webkit-appearance:none;flex:none;width:16px;height:16px;margin:2px 0 0;border:1px solid var(--tp);background:transparent;cursor:pointer;display:grid;place-items:center}
+.chk input[type=radio]{border-radius:50%;width:18px;height:18px;margin-top:1px}
+.chk input:checked{background:var(--tp)}
+.chk input[type=checkbox]:checked::after{content:"";width:9px;height:5px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px)}
+.chk input[type=radio]:checked{background:transparent;box-shadow:inset 0 0 0 4px var(--bg),inset 0 0 0 9px var(--tp)}
+.chk input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.tog{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;min-height:32px}
+.tog input{appearance:none;-webkit-appearance:none;width:48px;height:24px;border-radius:12px;background:var(--bst);position:relative;cursor:pointer;flex:none;transition:background .11s var(--ease)}
+.tog input::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .11s var(--ease)}
+.tog input:checked{background:var(--ok)}.tog input:checked::after{transform:translateX(24px)}
+.tog input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.acc{border-bottom:1px solid var(--bs)}
+.acc summary{list-style:none;display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:0 16px;border-top:1px solid var(--bs);cursor:pointer;font-size:16px}
+.acc summary::-webkit-details-marker{display:none}.acc summary:hover{background:var(--l1h)}
+.acc summary svg{width:16px;height:16px;fill:currentColor;transition:transform .24s var(--ease)}.acc[open] summary svg{transform:rotate(180deg)}
+.acc .in{padding:8px 16px 24px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;color:var(--ts)}
+.legend i{display:inline-block;width:12px;height:12px;margin-right:8px;vertical-align:-1px}
+.sw-bob{background:var(--bob)}.sw-hum{background:var(--hum)}.sw-tool{background:var(--tool)}.sw-pipe{background:var(--pipe)}.sw-t1{background:var(--t1)}.sw-t2{background:var(--t2)}.sw-t3{background:var(--t3)}
+.panel{background:var(--l1);padding:24px}
+.foot{border-top:1px solid var(--bs);padding:24px 0 48px;color:var(--ts);font-size:14px}
+
+/* ---------- prog indicator ---------- */
+.prog{display:flex;overflow-x:auto;list-style:none;margin:0;padding:0;scrollbar-width:thin}
+.prog li{flex:1 0 112px}
+.prog button{all:unset;box-sizing:border-box;display:block;width:100%;padding:10px 8px 8px 0;border-top:2px solid var(--bs1);cursor:pointer;font-size:14px;line-height:18px;color:var(--tp)}
+.prog button:focus-visible{outline:2px solid var(--focus)}
+.prog .dot{display:flex;align-items:center;gap:8px}.prog svg{width:16px;height:16px;flex:none;fill:var(--int)}
+.prog li.done button{border-top-color:var(--int)}.prog li.cur button{border-top-color:var(--int)}.prog li.cur span.t{font-weight:600}
+.prog .s{display:block;margin-left:24px;color:var(--ts);font-size:12px;line-height:16px;letter-spacing:.32px}
+.prog li.dim{opacity:.4}
+
+/* ---------- 3D: iso stack (tower) ---------- */
+.iso{position:relative;height:var(--h,460px);perspective:1600px;perspective-origin:50% 30%;touch-action:pan-y;cursor:grab;user-select:none}
+.iso.drag{cursor:grabbing}
+.iso .stage{position:absolute;left:50%;top:var(--top,62%);width:0;height:0;transform-style:preserve-3d;transform:rotateX(58deg) rotateZ(var(--rz,-38deg))}
+.iso .lay{position:absolute;transform-style:preserve-3d;animation:drop .8s var(--ex) backwards;animation-delay:calc(var(--i)*110ms)}
+@keyframes drop{from{transform:translateZ(420px)}to{transform:none}}
+.iso .slab{position:absolute;left:calc(var(--w)/-2);top:calc(var(--w)/-2);width:var(--w);height:var(--w);transform-style:preserve-3d;transform:translateZ(var(--z));transition:transform .4s var(--ex)}
+.iso .f{position:absolute;backface-visibility:hidden;background:var(--c)}
+.iso .top{inset:0;transform:translateZ(var(--t));display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.iso .top svg{width:28%;height:28%;fill:rgba(255,255,255,.92);transform:rotate(38deg)}
+.iso .fn{left:0;top:0;width:var(--w);height:var(--t);transform-origin:top;transform:rotateX(90deg);box-shadow:inset 0 0 0 999px rgba(0,0,0,var(--dn,.3))}
+.iso .fs{left:0;top:calc(var(--w) - var(--t));width:var(--w);height:var(--t);transform-origin:bottom;transform:rotateX(-90deg);box-shadow:inset 0 0 0 999px rgba(0,0,0,var(--ds,.3))}
+.iso .fe{left:calc(var(--w) - var(--t));top:0;width:var(--t);height:var(--w);transform-origin:right;transform:rotateY(90deg);box-shadow:inset 0 0 0 999px rgba(0,0,0,var(--de,.3))}
+.iso .fw{left:0;top:0;width:var(--t);height:var(--w);transform-origin:left;transform:rotateY(-90deg);box-shadow:inset 0 0 0 999px rgba(0,0,0,var(--dw,.3))}
+.iso .gate .top{background:rgba(208,38,112,.3);background:color-mix(in srgb,var(--hum) 34%,transparent);box-shadow:inset 0 0 0 2px var(--hum);backface-visibility:visible}
+.iso .gate .top svg{fill:var(--hum);width:22%;height:22%}
+.iso .gate .fn,.iso .gate .fs,.iso .gate .fe,.iso .gate .fw{display:none}
+.iso .on .top{box-shadow:inset 0 0 0 3px #fff}
+.iso .shadow{position:absolute;left:calc(var(--w)*-.62);top:calc(var(--w)*-.62);width:calc(var(--w)*1.24);height:calc(var(--w)*1.24);background:radial-gradient(closest-side,rgba(0,0,0,.28),transparent);transform:translateZ(-1px)}
+.stack-legend{list-style:none;margin:0;padding:0;border-top:1px solid var(--bs)}
+.stack-legend li{border-bottom:1px solid var(--bs)}
+.stack-legend button,.stack-legend a{all:unset;box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:10px 8px;cursor:pointer}
+.stack-legend button:hover,.stack-legend a:hover,.stack-legend .on{background:var(--l1h)}
+.stack-legend button:focus-visible,.stack-legend a:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.stack-legend i{width:16px;height:16px;background:var(--c)}.stack-legend i.g{background:transparent;box-shadow:inset 0 0 0 2px var(--hum)}
+.stack-legend b{font-weight:600;font-size:14px;display:block}.stack-legend small{font-size:12px;color:var(--ts);letter-spacing:.32px;line-height:16px;display:block}
+.hint{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.32px;color:var(--th)}.hint svg{width:16px;height:16px;fill:currentColor}
+
+/* ---------- 3D: ring carousel ---------- */
+.ring-wrap{position:relative;height:var(--rh,380px);perspective:1100px;overflow:hidden;touch-action:pan-y;user-select:none;background:linear-gradient(var(--bg),var(--l1))}
+.ring{position:absolute;left:50%;top:24px;width:0;height:0;transform-style:preserve-3d;transform:translateZ(calc(var(--R)*-1)) rotateY(var(--ry,0deg));transition:transform .7s var(--ex)}
+.ring.drag{transition:none}
+.card3{position:absolute;left:calc(var(--cw)/-2);top:0;width:var(--cw);height:calc(var(--rh,380px) - 64px);background:var(--l2);border:1px solid var(--bs1);padding:20px;backface-visibility:hidden;transform:rotateY(calc(var(--i)*40deg)) translateZ(var(--R));display:flex;flex-direction:column;cursor:pointer;transition:opacity .4s var(--ease),box-shadow .4s var(--ease);opacity:var(--o,1)}
+.card3.front{box-shadow:0 12px 32px rgba(0,0,0,.22),inset 0 -4px 0 var(--k)}
+.card3 .n{font:300 54px/1 var(--plex);color:var(--k)}.card3 h3{margin:12px 0 4px}.card3 p{font-size:14px;line-height:20px;color:var(--ts);margin:0}
+.card3 .who{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px}
+.card3.dim{opacity:.22!important}
+.ring-ctl{display:flex;align-items:center;gap:1px;flex-wrap:wrap;margin:16px 0}
+.ring-ctl .sp{flex:1}
+.bar{height:2px;background:var(--bs1);position:relative;overflow:hidden}.bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--int)}
+
+/* ---------- flip cards ---------- */
+.flip{perspective:1200px;min-height:300px}
+.flip button.inner{all:unset;box-sizing:border-box;display:block;position:relative;width:100%;height:100%;min-height:300px;transform-style:preserve-3d;transition:transform .7s var(--ex);cursor:pointer}
+.flip:hover button.inner{transform:rotateY(12deg)}.flip.on:hover button.inner{transform:rotateY(168deg)}
+.flip.on button.inner{transform:rotateY(180deg)}
+.flip button.inner:focus-visible{outline:2px solid var(--focus)}
+.flip .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--l1);padding:20px;display:flex;flex-direction:column;overflow:hidden}
+.flip .back{transform:rotateY(180deg);background:var(--l2);box-shadow:inset 0 0 0 1px var(--bs1)}
+.flip .face p{font-size:14px;line-height:20px;margin:0 0 10px}.flip .face .hint{margin-top:auto}
+.flip .back dl{margin:0;font-size:14px;line-height:20px}.flip .back dt{font-weight:600;margin-top:10px}.flip .back dd{margin:0;color:var(--ts)}
+.flipgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--bs);border:1px solid var(--bs)}
+.flipgrid>.flip{background:var(--bg)}
+@media(max-width:1055px){.flipgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:671px){.flipgrid{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- matrices ---------- */
+.mx td,.mx th{text-align:center;padding:10px 8px}.mx th:first-child,.mx td:first-child{text-align:left;padding-left:16px}
+.mx .d{display:inline-grid;place-items:center;min-width:28px;height:24px;padding:0 6px;border-radius:12px;font:600 12px/1 var(--plex);letter-spacing:.32px}
+.d.W{background:var(--bob);color:#fff}.d.S{background:var(--hum);color:#fff}.d.J,.d.V{background:var(--tool);color:#fff}.d.D{background:var(--tp);color:var(--bg)}.d.C{box-shadow:inset 0 0 0 2px var(--tp);color:var(--tp)}.d.H{color:var(--ts);box-shadow:inset 0 0 0 1px var(--bst)}
+.d.Y{background:var(--t3);color:#fff}.d.N{background:var(--la);color:var(--th)}.d.R{background:var(--toolbg);color:var(--tooltx)}
+.mx tr.hl td{background:var(--l1h)}.mx td.hl,.mx th.hl{background:var(--l1h)}
+
+/* ---------- loops / flows / knobs / plates ---------- */
+.fig{position:relative}.fig svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--plex)}
+.svgbtn{cursor:pointer}.svgbtn:focus{outline:none}.svgbtn:focus-visible rect.fx,.svgbtn:focus-visible circle.fx{stroke:var(--focus);stroke-width:3}
+.knob{touch-action:none;cursor:grab}
+.knob:focus-visible .kring{stroke:var(--focus);stroke-width:3}
+.sflow{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1px;background:var(--bs);border:1px solid var(--bs)}
+.sflow .st{background:var(--l1);padding:12px;min-height:120px;position:relative;transition:background .24s var(--ease)}
+.sflow .st b{display:block;font:600 14px/18px var(--plex);margin:8px 0 4px}.sflow .st small{display:block;font-size:12px;line-height:16px;letter-spacing:.32px;color:var(--ts)}
+.sflow .st svg{width:20px;height:20px}
+.st.run{background:var(--n-info)}.st.pass{background:var(--n-ok)}.st.fail{background:var(--n-err)}.st.skip{opacity:.6}
+@media(max-width:1055px){.sflow{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:671px){.sflow{grid-template-columns:repeat(2,minmax(0,1fr))}.sflow .st{min-height:84px}}
+.spin{animation:spin 690ms linear infinite;transform-origin:center}@keyframes spin{to{transform:rotate(360deg)}}
+.term{background:var(--term);color:var(--termtx);font:400 13px/20px var(--mono);padding:16px;min-height:260px;max-height:420px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.term .g{color:#42be65}.term .r{color:#ff8389}.term .y{color:#f1c21b}.term .m{color:#8d8d8d}.term .p{color:#be95ff}.term .c{color:#3ddbd9}
+.term .cur::after{content:"▋";animation:blink 1s steps(1) infinite;color:#8d8d8d}@keyframes blink{50%{opacity:0}}
+.optlist{list-style:none;margin:0;padding:0;border-top:1px solid var(--bs)}
+.optlist button{all:unset;box-sizing:border-box;display:flex;gap:12px;align-items:flex-start;width:100%;padding:12px 16px;border-bottom:1px solid var(--bs);cursor:pointer;font-size:14px;line-height:20px}
+.optlist button:hover{background:var(--l1h)}.optlist button[aria-pressed=true]{background:var(--sel);box-shadow:inset 3px 0 0 var(--int)}
+.optlist button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.optlist svg{width:16px;height:16px;fill:var(--ts);flex:none;margin-top:2px}
+.meter{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:2px;margin:8px 0}
+.meter i{height:8px;background:var(--la)}.meter i.on{background:var(--c)}
+.chain{display:flex;gap:0;overflow-x:auto;padding:24px 4px 8px;scroll-snap-type:x mandatory}
+.chain .nd{flex:0 0 150px;scroll-snap-align:start;position:relative}
+.doc3{all:unset;box-sizing:border-box;display:block;width:128px;height:150px;margin:0 auto;position:relative;cursor:pointer;transform:perspective(600px) rotateY(-18deg) rotateX(8deg);transition:transform .4s var(--ex)}
+.doc3:hover,.doc3.on{transform:perspective(600px) rotateY(0) rotateX(0) translateY(-6px)}
+.doc3:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
+.doc3 i{position:absolute;inset:0;background:var(--l2);box-shadow:inset 0 0 0 1px var(--bs1)}
+.doc3 i:nth-child(1){transform:translate(10px,-10px);opacity:.5}.doc3 i:nth-child(2){transform:translate(5px,-5px);opacity:.75}
+.doc3 .pg{position:absolute;inset:0;background:var(--l2);box-shadow:inset 0 0 0 1px var(--bs1),0 10px 20px rgba(0,0,0,.14);padding:12px;display:flex;flex-direction:column;gap:6px}
+.doc3 .pg em{font-style:normal;width:32px;height:32px;display:grid;place-items:center;background:var(--k)}.doc3 .pg em svg{width:18px;height:18px;fill:#fff}
+.doc3 .pg b{font:600 13px/16px var(--plex)}.doc3 .pg small{font:400 12px/16px var(--mono);color:var(--ts);overflow-wrap:anywhere}
+.doc3 .pg s{display:block;height:4px;background:var(--la);text-decoration:none}
+.chain .nd::after{content:"";position:absolute;top:75px;right:-6px;width:12px;height:12px;border-top:2px solid var(--bst);border-right:2px solid var(--bst);transform:rotate(45deg)}
+.chain .nd:last-child::after{display:none}
+.chain .lab{text-align:center;font-size:12px;letter-spacing:.32px;color:var(--ts);margin-top:14px}
+.city{touch-action:pan-y}.city .tw{cursor:pointer;transition:opacity .24s var(--ease)}.city .tw:focus{outline:none}.city .tw:focus-visible .tt{stroke:var(--focus);stroke-width:3}
+.city .tw.dim{opacity:.18}
+.tip{position:absolute;pointer-events:none;background:var(--inv);color:var(--tinv);padding:8px 12px;font-size:12px;line-height:16px;letter-spacing:.32px;max-width:240px;opacity:0;transition:opacity .11s;z-index:3}
+.tip.on{opacity:1}
+.vsteps{list-style:none;margin:0;padding:0;counter-reset:s}
+.vsteps>li{position:relative;padding:0 0 32px 48px;counter-increment:s}
+.vsteps>li::before{content:counter(s);position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--int);color:var(--int);font:600 14px/1 var(--plex)}
+.vsteps>li::after{content:"";position:absolute;left:15px;top:36px;bottom:4px;width:2px;background:var(--bs1)}
+.vsteps>li:last-child::after{display:none}
+.vsteps h4{margin:4px 0 8px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+</style></head><body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="hdr" id="hdr"></header><nav class="side" id="side" aria-label="Atlas sections"></nav><div class="scrim" id="scrim"></div>
+<main id="main" tabindex="-1"><div id="page"></div><footer class="foot"><div class="wrap">Tidewell Bank is fictional: invented customers, banks, codes and numbers; synthetic data only. IBM Bob, SonarQube and the other tools named here belong to their owners. Built with the Carbon design language.</div></footer></main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script id="data" type="application/json">{"nums": {"specs": 16, "reqs": 212, "acs": 287, "ops": 116}, "features": [{"id": "F00", "title": "Foundation — workspace, platform primitives, app shell, quality gates", "phase": 0, "priority": "P1", "tier": 2, "reqs": 21, "acs": 34, "prefix": "FND", "hasPlan": true, "hasTasks": true}, {"id": "F01", "title": "Authentication, Enrolment, MFA, Sessions and Step-up", "phase": 1, "priority": "P1", "tier": 1, "reqs": 20, "acs": 28, "prefix": "AUTH", "hasPlan": false, "hasTasks": false}, {"id": "F02", "title": "Dashboard", "phase": 2, "priority": "P1", "tier": 3, "reqs": 13, "acs": 17, "prefix": "DASH", "hasPlan": false, "hasTasks": false}, {"id": "F03", "title": "Accounts and Transaction History", "phase": 2, "priority": "P1", "tier": 2, "reqs": 12, "acs": 18, "prefix": "ACCT", "hasPlan": false, "hasTasks": false}, {"id": "F04", "title": "Transfers, Beneficiaries, Standing Orders and Limits", "phase": 3, "priority": "P1 (international = P2)", "tier": 1, "reqs": 27, "acs": 38, "prefix": "XFER", "hasPlan": false, "hasTasks": false}, {"id": "F05", "title": "Bill Payments and Top-ups", "phase": 5, "priority": "P2", "tier": 1, "reqs": 9, "acs": 11, "prefix": "BILL", "hasPlan": false, "hasTasks": false}, {"id": "F06", "title": "Card Management", "phase": 5, "priority": "P2", "tier": 1, "reqs": 8, "acs": 11, "prefix": "CARD", "hasPlan": false, "hasTasks": false}, {"id": "F07", "title": "Statements and Documents", "phase": 5, "priority": "P2", "tier": 2, "reqs": 8, "acs": 8, "prefix": "STMT", "hasPlan": false, "hasTasks": false}, {"id": "F08", "title": "Notifications and Alerts", "phase": 4, "priority": "P2", "tier": 3, "reqs": 7, "acs": 7, "prefix": "NOTF", "hasPlan": false, "hasTasks": false}, {"id": "F09", "title": "Profile, Preferences and Security Settings", "phase": 4, "priority": "P1 (security core) / P2 (rest)", "tier": 1, "reqs": 12, "acs": 12, "prefix": "PROF", "hasPlan": false, "hasTasks": false}, {"id": "F10", "title": "Secure Messaging, Help and Disputes", "phase": 6, "priority": "P3", "tier": 2, "reqs": 6, "acs": 6, "prefix": "MSG", "hasPlan": false, "hasTasks": false}, {"id": "F11", "title": "Operations Console (maker-checker, unlock, messaging, audit)", "phase": 6, "priority": "P3", "tier": 1, "reqs": 8, "acs": 9, "prefix": "OPS", "hasPlan": false, "hasTasks": false}], "policy": {"schema": "sdd-policy/1", "_comment": ["The automation dial. Each feature has a risk tier; the tier decides who signs, whether a hand security review is required, how far Bob may run on its own, and who approves a release to production.", "Governance-protected like approvers.json: change it only in a chore(SDD) commit reviewed by the code owners. Pipelines read it from the target branch, so a change cannot approve itself.", "node sdd/scripts/policy.mjs check   validates this file. Some gates are locked: the check fails if a setting would remove a human decision the organisation must keep (see 'locked' below).", "Roles are the ones in approvers.json: business-owner, business-analyst, architect, developer, appsec."], "defaultTier": 2, "tiers": {"1": {"label": "Critical", "means": "Can move money or other value, guards access or credentials, or changes security settings.", "approve": {"plan": ["business-owner"], "phase": ["business-owner"]}, "securityReview": "required", "bobAutonomy": "step", "release": {"production": ["business-owner", "appsec"]}, "dast": "required"}, "2": {"label": "Sensitive", "means": "Shows or stores personal or confidential data, but moves no value.", "approve": {"plan": ["business-owner"], "phase": ["business-owner"]}, "securityReview": "required", "bobAutonomy": "step", "release": {"production": ["business-owner"]}, "dast": "recommended"}, "3": {"label": "Standard", "means": "Moves no value, holds no credentials, adds no personal data.", "approve": {"plan": ["business-owner", "architect"], "phase": ["business-owner"]}, "securityReview": "optional", "bobAutonomy": "drive", "release": {"production": ["business-owner"]}, "dast": "optional"}}, "features": {"F00": 2, "F01": 1, "F02": 3, "F03": 2, "F04": 1, "F05": 1, "F06": 1, "F07": 2, "F08": 3, "F09": 1, "F10": 2, "F11": 1}, "alwaysAutomated": ["Commit rules G1–G10 (in Bob, in the git hook and again in the pipeline)", "Secret scan of every change", "Spec and traceability validation", "Unit and integration tests", "SonarQube scan of production code before any testing step", "Pipeline check that every sign-off was made by a listed person with the right role"], "locked": ["Every tier needs a human plan sign-off and a human phase sign-off. No tier can hand them to Bob or the pipeline.", "Tier 1 plans and phases are signed by the business owner only.", "The developer role never signs plans or phases (the maker is never the checker).", "Tier 1 and 2 features always get a hand security review.", "Bob runs tier 1 features one step at a time.", "Accepting a security risk (a waiver) is always AppSec's decision.", "Change requests are always decided by the business owner.", "Every release to production needs a person; tier 1 needs two people with different roles.", "Nobody signs their own work unless the repository is marked as a training repository."]}, "decisions": {"cr": ["business-owner"], "waiver": ["appsec"], "revoke": ["business-owner", "appsec"]}, "rules": {"forbidSelfApproval": true, "trainingMode": false, "requireSignedApprovals": false, "allowedAssociations": ["OWNER", "MEMBER", "COLLABORATOR"]}, "steps": [{"n": 1, "label": "Clarify", "plain": "make the spec clear", "id": "clarify", "in_short": "Analyst + Bob", "whose_turn": "Business analyst, in Bob", "what_they_do": "Start Bob's clarify step for the feature and answer its questions, one or two at a time. Each question comes with options and a suggested answer.", "what_bob_does": "Reads the spec, finds what is vague or missing, asks up to eight questions, and writes each answer into the spec.", "who_else_helps": "Business owner — answers the business questions the analyst can't. Architect — says early if something can't be built.", "done_when": "Every open question has an answer written in the spec."}, {"n": 2, "label": "Plan", "plain": "decide how to build it", "id": "plan", "in_short": "Architect + Bob", "whose_turn": "Architect, in Bob", "what_they_do": "Start Bob's plan step and steer it: the approach, the changes to the API, any new libraries.", "what_bob_does": "Writes the plan and the API changes, checks them against the project's ground rules (the constitution), then stops so people can review.", "who_else_helps": "Business analyst — checks every requirement is covered. Developer — checks the work is realistic. AppSec — looks at the security choices.", "done_when": "The plan is on the pull request, ready for the business owner."}, {"n": 3, "label": "Approve plan", "plain": "sign the plan", "id": "approve-plan", "in_short": "Owner signs", "whose_turn": "Business owner (for a tier 3 feature the architect may sign instead; see `sdd/governance/policy.json`)", "what_they_do": "Read the spec and the plan, then sign: `node sdd/scripts/approve.mjs plan F04` in a terminal (committed on its own), or the comment `/approve-plan F04` on the pull request on the GitHub path. It means: this is what the business needs.", "what_bob_does": "Nothing. Bob can't sign; it waits.", "who_else_helps": "Architect — reviews and approves the plan first. Business analyst — confirms the examples in the spec are complete.", "done_when": "The sign-off is recorded in `sdd/state/approvals.json`, bound to the exact spec and plan. From now on the spec and the plan are locked: changing them needs a change request."}, {"n": 4, "label": "Tasks", "plain": "split the work into small tasks", "id": "tasks", "in_short": "Architect + Bob", "whose_turn": "Architect, in Bob", "what_they_do": "Start Bob's tasks step and check that the split follows the plan.", "what_bob_does": "Breaks the signed plan into tasks of one to four hours, each linked to the requirements it delivers.", "who_else_helps": "Developer — checks each task is small enough to do in one go.", "done_when": "Every requirement is covered by at least one task."}, {"n": 5, "label": "Implement", "plain": "build it, test first", "id": "implement", "in_short": "Developer + Bob", "whose_turn": "Developer, in Bob", "what_they_do": "Start Bob's build step, task by task, and review every change Bob makes.", "what_bob_does": "For each task, writes a test that fails, then the code that makes it pass, then saves the change with the requirement it delivers. On GitHub it also reviews the pull request, and fixes what a developer asks for with `/bob fix`.", "who_else_helps": "Business analyst — answers questions, and raises a change request if a business rule turns out to be wrong. Architect — reviews tricky changes.", "done_when": "Every task is ticked and the tests pass."}, {"n": 6, "label": "Scan", "plain": "the security checks run before any testing", "id": "scan", "in_short": "Developer + checks", "whose_turn": "Developer, in Bob", "what_they_do": "Start the scan, and send anything it finds back to the build step.", "what_bob_does": "Runs the security checks — scripts and tools Bob doesn't control: the built-in checks, the organisation's own tools, or SonarQube — and explains what they found. It never changes code in this step.", "final_say": "AppSec — owns the checks and their pass/fail rules, and decides which findings are false alarms.", "done_when": "The checks pass this exact code. Any later change to the code means scanning again."}, {"n": 7, "label": "Verify", "plain": "prove every example works", "id": "verify", "in_short": "Developer + Bob", "whose_turn": "Developer, in Bob", "what_they_do": "Start Bob's verify step and fix any defect it finds.", "what_bob_does": "Makes sure every example in the spec has a test that passes, and writes a verification report.", "final_say": "Business analyst — checks each example is proven the way the business meant it.", "done_when": "The report shows every example proven."}, {"n": 8, "label": "Secure", "plain": "review security by hand", "id": "secure", "in_short": "Developer + Bob", "whose_turn": "Developer, in Bob", "what_they_do": "Start Bob's security review and fix what it finds.", "what_bob_does": "Looks for what scanners can't see: who may do what, money movements, secrets, audit trails. It writes a security report.", "final_say": "AppSec — reads the report and decides on any serious (High or Critical) finding.", "done_when": "AppSec accepts the report and no serious finding is open."}, {"n": 9, "label": "Approve phase", "plain": "show it, then sign the phase", "id": "approve-phase", "in_short": "Analyst demo, owner signs", "whose_turn": "Business analyst, then the business owner", "what_they_do": "The analyst runs the demo and checks the phase checklist. The owner watches the demo, then signs the phase: `node sdd/scripts/approve.mjs phase 3`, or `/approve-phase 3` on the pull request on the GitHub path.", "what_bob_does": "Can click through the demo in a browser and take a screenshot of each step. It can't sign.", "who_else_helps": "Architect and AppSec — confirm nothing serious is still open.", "done_when": "The phase sign-off is recorded, and the next phase opens."}], "people": [{"name": "Business owner", "signs": "the plan of each feature (which locks its spec), the end of each phase, change requests, and,", "works_in": "the pull request (reading, commenting), a terminal or the pull request for signing, the phase demo, and the Atlas", "github_team": "`@YOUR-ORG/product-owners` (and `@YOUR-ORG/sdd-approvers` for approvals).", "intro": "Also called product owner or sponsor. Owns **why** and **how much**: what the product is for, what is in"}, {"name": "Business analyst", "writes": "the feature specs: before the plan is signed, directly or by answering Bob's questions in the", "checks": "that the plan covers every requirement, and that the tests prove each example the way the", "works_in": "Bob (the clarify step), the pull request, the Atlas site.", "github_team": "`@YOUR-ORG/business-analysts`.", "intro": "Owns **what**: the requirements, written as short \"when …, the system shall …\" sentences (EARS), each with"}, {"name": "Architect", "runs": "the plan and tasks steps in Bob, and applies approved change requests.", "reviews": "every plan before the business owner signs it, and the technical impact of change requests.", "works_in": "Bob (📐 Spec Architect), the pull request.", "github_team": "`@YOUR-ORG/architects`.", "intro": "Lead architect or tech lead. Owns **how**: the plan, the API contract, technical decisions (ADRs) and"}, {"name": "Developer", "works_in": "Bob (🏗️ Spec Builder, 🔐 Check Runner, 🔍 Spec Verifier, 🛡️ Security Reviewer), git, the pull", "intro": "Builds the feature with Bob: runs the build, scan, verify and security-review steps, reviews every change"}, {"name": "AppSec", "works_in": "the pull request (`sdd/governance/checks.json`, `sdd/reports/security/`, `sdd/reports/scan/`), the organisation's security tools (SonarQube, if it is the scanner).", "github_team": "`@YOUR-ORG/appsec`.", "intro": "Owns security risk: which security checks run where (`sdd/governance/checks.json`, including your organisation's own tools)"}, {"name": "Bob", "intro": "The AI assistant, in one mode per kind of work. It writes specs, plans, code, tests and reports inside"}], "workflow": [{"id": "clarify", "kind": "ai", "title": "Clarify the spec", "mode": "spec-architect", "command": "/sdd-clarify", "optional": true, "responsible": "business-analyst", "does": "Bob looks for gaps and asks up to eight questions; the analyst answers; answers are recorded in spec.md.", "writes": ["sdd/specs/features/F##-*/spec.md"]}, {"id": "plan", "kind": "ai", "title": "Plan the build", "mode": "spec-architect", "command": "/sdd-plan", "responsible": "architect", "does": "Bob drafts plan.md against the constitution checklist; contract, ADR and design changes are allowed while the plan is unapproved.", "writes": ["sdd/specs/features/F##-*/plan.md", "sdd/contracts/", "sdd/adr/", "sdd/design/"]}, {"id": "approve-plan", "kind": "human-gate", "title": "Owner signs the plan", "decision": "plan", "approver": "business-owner", "reviewers": ["architect", "business-analyst"], "github": "/approve-plan F##", "terminal": "node sdd/scripts/approve.mjs plan F##", "does": "The signature is bound to the hashes of plan.md and spec.md: the spec is locked from here on, and any change goes through the change-request workflow."}, {"id": "tasks", "kind": "ai", "title": "Split into tasks", "mode": "spec-architect", "command": "/sdd-tasks", "responsible": "architect", "does": "Bob breaks the signed plan into small test-first tasks, each tagged with the requirements it serves.", "writes": ["sdd/specs/features/F##-*/tasks.md"]}, {"id": "implement", "kind": "ai", "title": "Build, test first", "mode": "spec-builder", "command": "/sdd-implement", "responsible": "developer", "subagents": "Independent task groups may run as parallel subagents; each commit still names its task and requirement IDs.", "github": "/bob fix [what to change]", "does": "One commit per task: failing tagged test, code, tests green, tick the task. On GitHub, a developer can ask Bob to address review findings on the pull request."}, {"id": "scan", "kind": "deterministic", "title": "Security scan", "mode": "check-runner", "command": "/sdd-scan", "run": "node sdd/scripts/scan.mjs F##", "responsible": "developer", "accountable": "appsec", "onFail": "implement", "does": "The security checks in sdd/governance/checks.json (or SonarQube, if it is the scanner) give the verdict; it is bound to a fingerprint of the code it saw. Any later code change makes it stale."}, {"id": "verify", "kind": "ai", "title": "Prove every example", "mode": "spec-verifier", "command": "/sdd-verify", "responsible": "developer", "accountable": "business-analyst", "onFail": "implement", "does": "Every acceptance criterion gets a tagged test; the verification report and traceability matrix are written."}, {"id": "secure", "kind": "ai", "title": "Security review", "mode": "security-reviewer", "command": "/sdd-secure", "responsible": "developer", "onFail": "implement", "does": "An ASVS L2 review of what tools cannot see: authorization, business logic and the domain invariants, secrets, audit."}], "modes": {"agent": "🧭 SDD Navigator (start here)", "plan": "🗺️ Plan → use 📐 Spec Architect", "ask": "❓ Ask (read-only)", "sdd-conductor": "🎼 SDD Conductor", "spec-architect": "📐 Spec Architect", "spec-builder": "🏗️ Spec Builder", "check-runner": "🔐 Check Runner", "spec-verifier": "🔍 Spec Verifier", "security-reviewer": "🛡️ Security Reviewer", "sdd-pr-reviewer": "🔎 SDD PR Reviewer"}, "commands": [{"cmd": "/sdd-apply-cr", "desc": "Apply a human-approved change request to the specs, contract, ADRs and design (📐 Spec Architect)", "args": "<CR-###>"}, {"cmd": "/sdd-change-request", "desc": "Raise a change request when a spec is ambiguous, contradictory or infeasible, then pause that work", "args": "<short-slug>"}, {"cmd": "/sdd-clarify", "desc": "Interrogate a feature spec for ambiguity and record decisions (📐 Spec Architect)", "args": "<F##>"}, {"cmd": "/sdd-demo", "desc": "Start the prototype and walk the stakeholder demo script, reporting any step that fails", "args": ""}, {"cmd": "/sdd-implement", "desc": "Implement tasks for a feature test-first, one commit per task (🏗️ Spec Builder)", "args": "<F##> [T0NN | group-letter]"}, {"cmd": "/sdd-next", "desc": "Tell me the single next action in the SDD cycle, who does it, and switch me to the right mode", "args": ""}, {"cmd": "/sdd-plan", "desc": "Write the implementation plan for a feature and request approval (📐 Spec Architect)", "args": "<F##>"}, {"cmd": "/sdd-prototype", "desc": "Build the whole product by executing the delivery plan phase by phase (needs 🎼 SDD Conductor mode)", "args": "[start-phase]"}, {"cmd": "/sdd-review", "desc": "Advisory spec review of your branch before you push — the same review GitHub runs on the pull request (🔎 SDD PR Reviewer)", "args": "[base branch, default main]"}, {"cmd": "/sdd-scan", "desc": "Security scan that gates promotion to testing — the checks in sdd/governance/checks.json, or SonarQube (🔐 Check Runner)", "args": "<F##> [--with-bob-review]"}, {"cmd": "/sdd-secure", "desc": "Security review of a feature against OWASP ASVS L2 and the project's own checklist (🛡️ Security Reviewer)", "args": "<F##>"}, {"cmd": "/sdd-start", "desc": "Orient in the spec pack and report the current phase, feature states and next step", "args": ""}, {"cmd": "/sdd-status", "desc": "Progress report — phases, features, requirement coverage, open defects and change requests", "args": ""}, {"cmd": "/sdd-tasks", "desc": "Break an approved plan into ordered, testable tasks (📐 Spec Architect)", "args": "<F##>"}, {"cmd": "/sdd-verify", "desc": "Prove every acceptance criterion of a feature and write the verification report (🔍 Spec Verifier)", "args": "<F##>"}, {"cmd": "/sdd-workflow", "desc": "Walk a feature (or the phase) through the SDD workflow — where it is, whose turn it is, and the next step", "args": "[F## | phase | cr]"}], "grules": [{"id": "G1", "text": "Conventional Commit header; scope F##, CR-###, SDD or a plain word."}, {"id": "G2", "text": "feat/fix commits touching code need a feature scope (F##) and at least one [REQ-ID] tag."}, {"id": "G3", "text": "Code changes require that feature's plan to be human-approved (hash-bound) and tasks.md to exist."}, {"id": "G4", "text": "A commit must not mix code with spec/contract/ADR/design changes (tasks.md ticks and CRs excepted)."}, {"id": "G5", "text": "Constitution changes require an approved CR that lists the constitution in \"affects\"."}, {"id": "G6", "text": "sdd/state/approvals.json must be committed alone (type chore, scope SDD). Whether each sign-off in it is"}, {"id": "G7", "text": "Governance files (.bob/, sdd/scripts/, sdd/governance/, sdd/workflows/, everything under .github/ except the"}, {"id": "G8", "text": "No suppression of SonarQube findings in code (NOSONAR, sonar.issue.ignore) — Article XI.3."}, {"id": "G10", "text": "No secrets in what is committed (private keys, tokens, hard-coded passwords) — sdd/scripts/secrets.mjs."}, {"id": "G9", "text": "Approved scope is locked (Article I.4): a change to an approved feature's spec/plan, to a foundation"}], "evidence": "# Evidence pack — F00 Foundation — workspace, platform primitives, app shell, quality gates\n\nGenerated 2026-11-24T05:29:17.021Z from commit `e326c667fec1` by `node sdd/scripts/evidence.mjs F00`. Every line below points at a file or a commit in this repository.\n\n**Risk tier 2 — Sensitive.** Shows or stores customer data, but moves no money. Plan signed by: business owner. Hand security review: required. Release to production approved by: business owner.\n\n**Where it stands:** implementing (0/31).\n\n## 1. Decisions — who decided what, bound to which files\n| Decision | By | When | How | Bound to | Still valid? |\n|---|---|---|---|---|---|\n| Plan sign-off | Bea Owner (business-owner) | 2026-11-24T05:29:16.626Z | terminal sign-off, committed by bea@tidewell.example | plan.md `3b7b5426cd1d`, spec.md `774b7465d84c` | ✔ files unchanged since |\n| Phase 0 sign-off | — | — | — | — | not yet |\n\nFour-eyes: plan.md was last changed by ali@tidewell.example; it was signed by bea@tidewell.example. ✔\n\n## 2. Requirements → tasks → commits → tests\nTasks: 0 of 31 done · requirements in the spec: 21.\n\n| Requirement | Priority | Tasks | Commits | Tests (traceability matrix) |\n|---|---|---|---|---|\n| FND-001 Monorepo workspace and scripts | P1 | T001 T002 T003 | — | ⬜ Not covered |\n| FND-002 Pinned toolchain | P1 | T001 T030 | — | ⬜ Not covered |\n| FND-003 Local infrastructure | P1 | T009 | — | ⬜ Not covered |\n| FND-004 Configuration validation | P1 | T010 | — | ⬜ Not covered |\n| FND-005 API platform skeleton | P1 | T011 T012 T013 | — | ⬜ Not covered |\n| FND-006 Structured logging and trace propagation | P1 | T011 | — | ⬜ Not covered |\n| FND-007 Health, readiness and version | P1 | T017 | — | ⬜ Not covered |\n| FND-008 Database baseline, migrations, seed runner | P1 | T014 | — | ⬜ Not covered |\n| FND-009 Money and currency domain | P1 | T004 T005 | — | ⬜ Not covered |\n| FND-010 Identifier validators | P1 | T006 | — | ⬜ Not covered |\n| FND-011 Business calendar | P1 | T007 | — | ⬜ Not covered |\n| FND-012 Web application shell | P1 | T020 T023 T026 | — | ⬜ Not covered |\n| FND-013 Theming and i18n infrastructure | P1 | T021 T022 | — | ⬜ Not covered |\n| FND-014 Typed API client and server-state layer | P1 | T019 T024 | — | ⬜ Not covered |\n| FND-015 Demo affordances | P1 | T016 T018 T023 T026 | — | ⬜ Not covered |\n| FND-016 Platform primitives: audit, idempotency, outbox | P1 | T008 T015 | — | ⬜ Not covered |\n| FND-017 Job runner | P1 | T016 | — | ⬜ Not covered |\n| FND-018 Test infrastructure | P1 | T025 T026 | — | ⬜ Not covered |\n| FND-019 Quality gate and CI | P1 | T027 | — | ⬜ Not covered |\n| FND-020 Spec tooling | P1 | T028 | — | ⬜ Not covered |\n| FND-021 SDD governance wiring | P1 | T029 | — | ⬜ Not covered |\n\n## 3. Security and quality evidence\n| Check | Who or what decided | Result |\n|---|---|---|\n| Secrets (rule G10) | the git hook, Bob's hook and the pipeline, on every commit | ✔ enforced on every commit (a commit with a secret cannot be made or merged) |\n| Security checks before testing (the checks in sdd/governance/checks.json) | the scan (sdd/reports/scan/F00.json, written only by scan.mjs) | ✖ not scanned yet |\n| Acceptance criteria proven by tests | 🔍 Spec Verifier, checked by the business analyst (sdd/reports/verification/F00.md) | ✖ not verified yet |\n| Hand security review (ASVS L2) | 🛡️ Security Reviewer, decided by AppSec (sdd/reports/security/F00.md) | ✖ not reviewed yet |\n\n## 4. Controls this evidence supports\n| Control | How it is met here |\n|---|---|\n| Maker–checker (four-eyes) | Bob and the developer make; a different, listed person signs. The pipeline re-checks every sign-off against its commit or comment. |\n| Segregation of duties | Roles from sdd/governance/approvers.json; who may sign depends on the risk tier (sdd/governance/policy.json). |\n| Change control | Signed specs are locked; changes need a change request decided by the business owner (rule G9). |\n| Traceability | Every commit names its requirement IDs (rule G2); every requirement is tagged in tests (matrix above). |\n| Independent security testing | The security checks run while Bob writes, at commit and before any testing step, by scripts Bob cannot change; Bob cannot write their evidence. |\n| Secure configuration | No secrets in the repository (rule G10); tokens come from the environment or the pipeline's secret store. |\n\n## 5. Open items\n- 31 task(s) open\n- scan: missing\n- verification: not done\n- security review: not done\n", "checks": {"schema": "sdd-checks/1", "_comment": ["The security checks, and where each one runs. Shift-left means the same control runs as early as it can, and again later where nobody can switch it off.", "Stages: bob = Bob's hook, on every write before it lands (built-in checks only; IDE tools such as Bob's own scans or IBM Concert Secure Coder sit here too) · commit = the git pre-commit hook, on what is staged · scan = /sdd-scan before any testing, and the pipeline's scan stage, on all production code · pipeline = the pipeline only (slow or licensed tools).", "scanner: who gives the verdict at /sdd-scan and in the pipeline's scan stage. 'builtin' = the checks below (no server, ideal for labs); 'sonarqube' = SonarQube's quality gate plus dependency CVEs (sdd/docs/SONARQUBE.md); the checks below still run alongside it.", "Plug in your organisation's own tools as 'command' checks: the command gets the files to check in {files}; exit code 0 passes, anything else is a finding. An enabled tool that is not installed fails the check (fail closed), so switching a tool on is a real decision.", "Governance file: change it in a chore(SDD) commit that code owners review. node sdd/scripts/checks.mjs --validate runs in every pipeline; the secrets check cannot be switched off or downgraded.", "node sdd/scripts/checks.mjs --list shows what runs where. sdd/docs/CHECKS.md maps each stage to tools, including the IBM portfolio."], "scanner": "builtin", "checks": [{"id": "secrets", "title": "No secrets in code", "run": {"builtin": "secrets"}, "stages": ["bob", "scan"], "onFinding": "block", "enabled": true, "note": "Also locked on as commit rule G10 and as the pipeline's secrets stage."}, {"id": "risky-code", "title": "Risky code patterns: SQL built from strings, TLS checks switched off, eval, weak hashes, Math.random for secret values", "run": {"builtin": "risky-code"}, "stages": ["bob", "commit", "scan"], "onFinding": "block", "enabled": true}, {"id": "dependencies", "title": "Dependency rules: nothing on the deny-list; exact versions preferred", "run": {"builtin": "dependencies"}, "stages": ["commit", "scan"], "onFinding": "block", "enabled": true, "note": "Deny-list in sdd/governance/dependency-denylist.json. Unpinned versions are a warning, not a block."}, {"id": "ibm-detect-secrets", "title": "IBM detect-secrets (open source): deterministic secret scanning at commit and on all code, with an audited baseline", "run": {"command": "detect-secrets-hook --baseline .secrets.baseline {files}"}, "stages": ["commit", "scan"], "onFinding": "block", "enabled": false, "install": "pip install --upgrade \"git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets\" && detect-secrets scan --update .secrets.baseline && detect-secrets audit .secrets.baseline", "docs": "https://github.com/IBM/detect-secrets"}, {"id": "vault-radar", "title": "HashiCorp Vault Radar (IBM): secret scanning tied to your HashiCorp Vault", "run": {"command": "vault-radar scan git pre-commit"}, "stages": ["commit"], "onFinding": "block", "enabled": false, "needs": ["HCP_CLIENT_ID", "HCP_CLIENT_SECRET", "HCP_PROJECT_ID"], "docs": "https://developer.hashicorp.com/hcp/tutorials/hcp-vault-radar-developer/vault-radar-pre-commit-hooks"}, {"id": "osv-scanner", "title": "OSV-Scanner: known vulnerabilities in dependencies", "run": {"command": "osv-scanner scan source -r ."}, "stages": ["scan"], "onFinding": "block", "enabled": false, "docs": "https://google.github.io/osv-scanner/"}, {"id": "bob-review", "title": "IBM Bob Shell (bob run) review of the change, in the read-only 🔎 SDD PR Reviewer mode (advisory: Bob flags, the checks and people decide)", "run": {"command": "bob run --mode sdd-pr-reviewer --trust --accept-license --disable-mcp --disable-subagents --max-turns 30 --max-cost 2 --format json \"Review the changes on this branch against their specs. List only real problems, with file and line. If there are none, answer exactly NO FINDINGS.\" > .scannerwork/bob-review.json; grep -q 'NO FINDINGS' .scannerwork/bob-review.json"}, "stages": ["pipeline"], "onFinding": "warn", "enabled": false, "needs": ["BOB_API_KEY"], "docs": "https://bob.ibm.com/docs/shell/getting-started/start-bobshell-non-interactive"}]}, "ci": {"jenkins": "// The SDD gate in Jenkins (multibranch pipeline).\n// For GitHub Enterprise without Actions, Bitbucket, GitLab or any git server: Jenkins runs the same checks Bob and the\n// git hooks run on the laptop, and reports the result as a commit status that branch protection can require.\n// Copy to the repository root as Jenkinsfile. Needs: Node 20+, git, and the Pipeline Utility Steps plugin (readJSON).\n// Credentials: only if sdd/governance/checks.json says \"scanner\": \"sonarqube\" — a \"Secret text\" credential sonar-token\n// and SONAR_HOST_URL as a global environment variable. The built-in scanner needs none.\n\npipeline {\n  agent any                                   // or: agent { docker { image 'node:22' } }\n  options { timestamps(); disableConcurrentBuilds() }\n  parameters { string(name: 'SDD_PHASE', defaultValue: '', description: 'Phase to release to production (main only)') }\n  environment { SDD_DEFAULT_BRANCH = 'main' }\n\n  stages {\n    stage('Full history') {\n      // The gate judges every commit since the target branch, so it needs history, not a shallow clone.\n      steps {\n        sh 'git rev-parse --is-shallow-repository | grep -q true && git fetch --unshallow || true'\n        sh 'git fetch --no-tags origin \"+refs/heads/${SDD_DEFAULT_BRANCH}:refs/remotes/origin/${SDD_DEFAULT_BRANCH}\"'\n      }\n    }\n\n    stage('Rules: policy, specs, commits, sign-offs, secrets') {\n      steps { sh 'node sdd/scripts/ci.mjs policy specs commits signoffs secrets --junit sdd-gate-rules.xml' }\n    }\n\n    stage('Tests') {\n      steps { sh 'node sdd/scripts/ci.mjs tests --junit sdd-gate-tests.xml' }\n    }\n\n    stage('Security checks before testing') {\n      // The scanner is set in sdd/governance/checks.json: \"builtin\" needs no credentials; \"sonarqube\" needs the\n      // sonar-token credential. Your organisation's tools switched on there run here too.\n      steps {\n        script {\n          if (readJSON(file: 'sdd/governance/checks.json').scanner == 'sonarqube') {\n            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {\n              sh 'node sdd/scripts/ci.mjs scan --require-scan --junit sdd-gate-scan.xml'\n            }\n          } else {\n            sh 'node sdd/scripts/ci.mjs scan --junit sdd-gate-scan.xml'\n          }\n        }\n      }\n    }\n\n    stage('Deploy to test (automatic)') {\n      when { branch 'main' }\n      steps {\n        script {\n          // The scan result must belong to this exact commit, or nothing is deployed.\n          def gate = 'node sdd/scripts/scan.mjs --gate-only --branch main --revision \"$(git rev-parse HEAD)\"'\n          if (readJSON(file: 'sdd/governance/checks.json').scanner == 'sonarqube') {\n            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) { sh gate }\n          } else { sh gate }\n        }\n        sh 'echo \"deploy to test here (your deployment step)\"'\n      }\n    }\n\n    stage('Release to production (people decide)') {\n      when { allOf { branch 'main'; expression { params.SDD_PHASE?.trim() } } }\n      steps {\n        sh 'node sdd/scripts/ci.mjs release --phase \"$SDD_PHASE\" --env production --approvers-out release-approvers.json'\n        script {\n          def ra = readJSON file: 'release-approvers.json'\n          // policy.json decides who: tier 1 needs the business owner AND AppSec. Map each role to a Jenkins group.\n          def groups = ['business-owner': 'sdd-business-owners', 'appsec': 'sdd-appsec']   // your Jenkins groups\n          def approvedBy = []\n          for (role in ra.roles) {\n            def who = input(message: \"Release phase ${params.SDD_PHASE} to production: approval by the ${role}\",\n                            submitter: groups[role] ?: role, submitterParameter: 'approver')\n            if (approvedBy.contains(who)) { error(\"${who} already approved as another role: two different people are required\") }\n            approvedBy << who\n          }\n          echo \"Approved by: ${approvedBy.join(', ')}\"\n        }\n        sh 'echo \"deploy to production here (your deployment step)\"'\n      }\n    }\n  }\n\n  post {\n    always { junit allowEmptyResults: true, testResults: 'sdd-gate-*.xml' }\n  }\n}\n", "azure": "# The SDD gate in Azure DevOps Pipelines (Azure Repos, GitHub Enterprise or any git server).\n# Copy to the repository root. Only when sdd/governance/checks.json says \"scanner\": \"sonarqube\": variable group\n# \"sdd-secrets\" holds SONAR_TOKEN (secret) and SONAR_HOST_URL. The built-in scanner (default) needs none.\n# Make it a required check: Repos → Branches → main → Branch policies → Build validation → this pipeline.\n# Approvals live on the environments: Pipelines → Environments → production → Approvals and checks →\n# add the business owner group and the AppSec group (policy.json: a tier 1 release needs both).\n\ntrigger: { branches: { include: [main] } }\npr: { branches: { include: [main] } }\npool: { vmImage: ubuntu-latest }\nvariables:\n  - group: sdd-secrets\n  - name: SDD_DEFAULT_BRANCH\n    value: main\n\nstages:\n  - stage: gate\n    displayName: SDD gate\n    jobs:\n      - job: sdd\n        steps:\n          - checkout: self\n            fetchDepth: 0                       # the gate judges every commit since main\n          - task: NodeTool@0\n            inputs: { versionSpec: '22.x' }\n          - script: git fetch --no-tags origin \"+refs/heads/main:refs/remotes/origin/main\"\n            displayName: Fetch main\n          - script: node sdd/scripts/ci.mjs pr --require-scan --junit $(Common.TestResultsDirectory)/sdd-gate.xml --summary $(Build.ArtifactStagingDirectory)/sdd-gate.md\n            displayName: Policy, specs, commits, sign-offs, secrets, tests, security scan\n            env: { SONAR_TOKEN: $(SONAR_TOKEN), SONAR_HOST_URL: $(SONAR_HOST_URL) }\n          - task: PublishTestResults@2\n            condition: always()\n            inputs: { testResultsFormat: JUnit, testResultsFiles: '$(Common.TestResultsDirectory)/sdd-gate.xml', testRunTitle: SDD gate }\n\n  - stage: test\n    displayName: Deploy to test (automatic)\n    dependsOn: gate\n    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))\n    jobs:\n      - deployment: deploy_test\n        environment: test                       # no approvals: the gate is the control\n        strategy:\n          runOnce:\n            deploy:\n              steps:\n                - checkout: self\n                - script: node sdd/scripts/scan.mjs --gate-only --branch main --revision $(Build.SourceVersion)\n                  env: { SONAR_TOKEN: $(SONAR_TOKEN), SONAR_HOST_URL: $(SONAR_HOST_URL) }\n                - script: echo \"deploy to test here (your deployment step)\"\n\n  - stage: production\n    displayName: Release to production (people decide)\n    dependsOn: test\n    jobs:\n      - deployment: deploy_production\n        environment: production                 # approvals configured on the environment (see top of file)\n        strategy:\n          runOnce:\n            deploy:\n              steps:\n                - checkout: self\n                  fetchDepth: 0\n                - script: node sdd/scripts/ci.mjs release --env production\n                - script: echo \"deploy to production here (your deployment step)\"\n", "gitlab": "# The SDD gate in GitLab CI. Copy to the repository root as .gitlab-ci.yml.\n# CI/CD variables, only when sdd/governance/checks.json says \"scanner\": \"sonarqube\": SONAR_TOKEN (masked, protected) and\n# SONAR_HOST_URL. With the built-in scanner (default) no variables are needed.\n# Make it required: Settings → Merge requests → \"Pipelines must succeed\".\n# Production approvals: Settings → CI/CD → Protected environments → production → required approvals from the\n# business owner and AppSec groups (policy.json: a tier 1 release needs both).\n\nstages: [gate, deploy-test, deploy-production]\ndefault:\n  image: node:22\nvariables:\n  GIT_DEPTH: \"0\"                    # the gate judges every commit since the target branch\n  SDD_DEFAULT_BRANCH: main\n\nsdd-gate:\n  stage: gate\n  rules:\n    - if: $CI_PIPELINE_SOURCE == \"merge_request_event\"\n    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH\n  script:\n    - git fetch --no-tags origin \"+refs/heads/$CI_DEFAULT_BRANCH:refs/remotes/origin/$CI_DEFAULT_BRANCH\"\n    - node sdd/scripts/ci.mjs pr --require-scan --junit sdd-gate.xml --summary sdd-gate.md\n  artifacts:\n    when: always\n    paths: [sdd-gate.md]\n    reports: { junit: sdd-gate.xml }\n\ndeploy-test:\n  stage: deploy-test\n  rules:\n    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH\n  environment: { name: test }\n  script:\n    - node sdd/scripts/scan.mjs --gate-only --branch main --revision \"$CI_COMMIT_SHA\"\n    - echo \"deploy to test here (your deployment step)\"\n\ndeploy-production:\n  stage: deploy-production\n  rules:\n    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH\n      when: manual                  # a person starts it; the protected environment asks for the approvals\n  environment: { name: production }\n  script:\n    - node sdd/scripts/ci.mjs release --env production\n    - echo \"deploy to production here (your deployment step)\"\n", "shell": "#!/bin/sh\n# The SDD gate for any other pipeline (TeamCity, Bamboo, Tekton, Bitbucket Pipelines, a cron job…) or a person.\n# Exit code: 0 pass · 1 a check failed · 2 the gate could not run. Needs Node 20+ and full git history.\nset -e\ngit fetch --no-tags origin \"+refs/heads/${SDD_DEFAULT_BRANCH:-main}:refs/remotes/origin/${SDD_DEFAULT_BRANCH:-main}\" 2>/dev/null || true\nexec node sdd/scripts/ci.mjs pr \"$@\"\n"}}</script>
+<script>{
+const D=JSON.parse(document.getElementById('data').textContent);
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inline=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2">$1</a>');
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const store={get(k,d){try{return localStorage.getItem(k)??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let PATH=store.get('sdd-path','terminal');
+const ROLEW={'business-owner':'business owner','business-analyst':'business analyst',architect:'architect',developer:'developer',appsec:'AppSec'};
+const roles=rs=>(rs||[]).map(r=>ROLEW[r]||r).join(' or ');
+const both=rs=>(rs||[]).map(r=>ROLEW[r]||r).join(' and ');
+const TIER=t=>D.policy.tiers[String(t)];
+const tierTag=t=>`<span class="tag t${t}">Tier ${t} · ${esc(TIER(t).label)}</span>`;
+
+/* Carbon-style icons, 32px grid */
+const IP={menu:'M4 6h24v2H4zM4 24h24v2H4zM4 12h24v2H4zM4 18h24v2H4z',close:'M24 9.4 22.6 8 16 14.6 9.4 8 8 9.4l6.6 6.6L8 22.6 9.4 24l6.6-6.6 6.6 6.6 1.4-1.4-6.6-6.6z',
+arrow:'M18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z',chevD:'M16 22 6 12l1.4-1.4 8.6 8.6 8.6-8.6L26 12z',chevR:'M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z',chevL:'M10 16 20 6l1.4 1.4-8.6 8.6 8.6 8.6L20 26z',
+ok:'M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm-2 19.59-5-5L10.59 15 14 18.41 21.41 11l1.596 1.586z',err:'M16 2C8.2 2 2 8.2 2 16s6.2 14 14 14 14-6.2 14-14S23.8 2 16 2zm5.4 21L16 17.6 10.6 23 9 21.4l5.4-5.4L9 10.6 10.6 9l5.4 5.4L21.4 9l1.6 1.6-5.4 5.4 5.4 5.4z',
+warn:'M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm-1.1 6h2.2v11h-2.2zM16 25a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 16 25z',info:'M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 6a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 16 8zm4 16.125h-8v-2.25h2.875v-5.75H13v-2.25h4.125v8H20z',
+lock:'M24 14h-2V8a6 6 0 0 0-12 0v6H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V16a2 2 0 0 0-2-2zM12 8a4 4 0 0 1 8 0v6h-8zm12 20H8V16h16z',
+copy:'M28 10v18H10V10h18m0-2H10a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zM4 18H2V4a2 2 0 0 1 2-2h14v2H4z',
+play:'M7 28a1 1 0 0 1-1-1V5a1 1 0 0 1 1.48-.88l20 11a1 1 0 0 1 0 1.76l-20 11A1 1 0 0 1 7 28z',pause:'M12 6h-2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm10 0h-2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z',
+reset:'M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10z',
+user:'M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7zm10 28h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7z',
+bot:'M15 3h2v5h-2zM6 8h20a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2zm0 2v13h20V10zm5 4a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm10 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM11 27h10v2H11z',
+pen:'M2 26h28v2H2zM25.4 9c.8-.8.8-2 0-2.8l-3.6-3.6c-.8-.8-2-.8-2.8 0l-15 15V24h6.4zm-5-5L24 7.6l-3 3L17.4 7zM6 22v-3.6l10-10 3.6 3.6-10 10z',
+shield:'M14 16.59 11.41 14 10 15.41l4 4 8-8L20.59 10zM16 30l-6.18-2.91A10 10 0 0 1 4 18.04V4h24v14.04a10 10 0 0 1-5.82 9.05zM6 6v12.04a8 8 0 0 0 4.66 7.24L16 27.79l5.34-2.51A8 8 0 0 0 26 18.04V6z',
+term:'M26 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 2v4H6V6zM6 26V12h20v14zm2.6-11.4L12.2 18l-3.6 3.4L10 22.8l5-4.8-5-4.8zM16 21h6v2h-6z',
+branch:'M10 3a3 3 0 0 0-1 5.83v14.34a3 3 0 1 0 2 0V8.83A3 3 0 0 0 10 3zm0 2a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0 22a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm12-3.83V12a4 4 0 0 0-4-4h-3.17l2.58-2.59L16 4l-5 5 5 5 1.41-1.41L14.83 10H18a2 2 0 0 1 2 2v11.17a3 3 0 1 0 2 0zM21 27a1 1 0 1 1 0-2 1 1 0 0 1 0 2z',
+doc:'M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7zM18 4.4l5.6 5.6H18zM24 28H8V4h8v6a2 2 0 0 0 2 2h6zM10 22h12v2H10zm0-6h12v2H10z',
+loop:'M22.59 19.41 26.17 23H8a4 4 0 0 1 0-8h16a6 6 0 0 0 0-12h-4v2h4a4 4 0 0 1 0 8H8a6 6 0 0 0 0 12h18.17l-3.58 3.59L24 30l6-6-6-6z',
+meter:'M26 16a9.9 9.9 0 0 0-1.14-4.62l-1.5 1.5A7.95 7.95 0 0 1 24 16zm-2.59-6L22 8.59l-4.77 4.77A3 3 0 1 0 19 16a3 3 0 0 0-.36-1.23zM16 17a1 1 0 1 1 1-1 1 1 0 0 1-1 1zm0-9a7.95 7.95 0 0 1 3.12.64l1.5-1.5A9.99 9.99 0 0 0 6 16h2a8 8 0 0 1 8-8zm0 22a14 14 0 1 1 14-14 14 14 0 0 1-14 14zm0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4z',
+rocket:'M6.76 23.83 8.17 25.24 4.24 29.17 2.83 27.76zM29.08 2.92a1 1 0 0 0-1.08-.21C21.46 4.13 16.52 9.24 14.78 14.04l-3.4-.85-4.95 4.95 3.54 1.06 3.82 3.82 1.06 3.54 4.95-4.95-.85-3.4c4.8-1.74 9.91-6.68 11.33-13.22a1 1 0 0 0-.2-1.07zM24 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4z',
+search:'M29 27.59l-7.55-7.55a11 11 0 1 0-1.41 1.41L27.59 29zM4 13a9 9 0 1 1 9 9 9 9 0 0 1-9-9z',launch:'M26 28H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10v2H6v20h20V16h2v10a2 2 0 0 1-2 2zM20 2v2h6.59L18 12.59 19.41 14 28 5.41V12h2V2z',
+judge:'M29 27.59l-7.55-7.55a11 11 0 1 0-1.41 1.41L27.59 29zM4 13a9 9 0 1 1 9 9 9 9 0 0 1-9-9zm8 3.6-3-3L7.6 15l4.4 4.4 7.4-7.4L18 10.6z',
+home:'M16.61 2.21a1 1 0 0 0-1.24 0L1 13.42l1.24 1.57L4 13.62V26a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V13.63L29.76 15 31 13.43zM18 26h-4v-8h4zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.06l10-7.79 10 7.8V26z',
+layers:'M16 24a1 1 0 0 1-.47-.12l-13-7 .95-1.76L16 21.86l12.53-6.74.95 1.76-13 7A1 1 0 0 1 16 24zm0 6a1 1 0 0 1-.47-.12l-13-7 .95-1.76L16 27.86l12.53-6.74.95 1.76-13 7A1 1 0 0 1 16 30zm0-12a1 1 0 0 1-.47-.12l-13-7a1 1 0 0 1 0-1.76l13-7a1 1 0 0 1 .95 0l13 7a1 1 0 0 1 0 1.76l-13 7A1 1 0 0 1 16 18zM5.11 10 16 15.86 26.89 10 16 4.14z',
+book:'M19 10h7v2h-7zm0 5h7v2h-7zm0 5h7v2h-7zM28 5H4a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zM4 7h11v18H4zm13 18V7h11v18z',
+grid:'M12 4H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 8H6V6h6zm14-8h-6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 8h-6V6h6zm-14 6H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2zm0 8H6v-6h6zm14-8h-6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2zm0 8h-6v-6h6z',
+fence:'M2 10h28v2H2zm0 10h28v2H2zM6 6h2v20H6zm18 0h2v20h-2zM15 6h2v20h-2z',
+pending:'M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12z',
+skip:'M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12zM9 15h14v2H9z',
+spin:'M16 4a12 12 0 1 0 12 12h-2.5A9.5 9.5 0 1 1 16 6.5z',
+move:'M20 8l-4-4-4 4 1.4 1.4L15 7.8V15H7.8l1.6-1.6L8 12l-4 4 4 4 1.4-1.4L7.8 17H15v7.2l-1.6-1.6L12 24l4 4 4-4-1.4-1.4-1.6 1.6V17h7.2l-1.6 1.6L24 20l4-4-4-4-1.4 1.4 1.6 1.6H17V7.8l1.6 1.6z',
+cube:'M28.5 8.1l-12-6a1 1 0 0 0-.9 0l-12 6A1 1 0 0 0 3 9v14a1 1 0 0 0 .55.89l12 6a1 1 0 0 0 .9 0l12-6A1 1 0 0 0 29 23V9a1 1 0 0 0-.5-.9zM16 4.12 25.76 9 16 13.88 6.24 9zM5 10.62l10 5v11.76l-10-5zm12 16.76V15.62l10-5v11.76z',
+code:'M31 16l-7 7-1.41-1.41L28.17 16l-5.58-5.59L24 9zM1 16l7-7 1.41 1.41L3.83 16l5.58 5.59L8 23zm11.42 9.484 5.411-19.04 1.924.547-5.411 19.04z',
+chart:'M27 28V9h-6v19h-2V15h-6v13h-2V19H5v9H2v2h28v-2zM9 28H7v-7h2zm8 0h-2V17h2zm8 0h-2V11h2z'};
+const icon=(n,cls='')=>`<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false" class="${cls}"><path fill-rule="evenodd" d="${IP[n]||''}"/></svg>`;
+
+/* actors */
+const ACT={bob:{k:'bob',w:'Bob writes',ic:'bot',c:'var(--bob)'},hum:{k:'hum',w:'A person decides',ic:'pen',c:'var(--hum)'},tool:{k:'tool',w:'Checks verify',ic:'judge',c:'var(--tool)'},pipe:{k:'pipe',w:'The pipeline ships',ic:'rocket',c:'var(--pipe)'}};
+const STEPTYPE={clarify:'bob',plan:'bob','approve-plan':'hum',tasks:'bob',implement:'bob',scan:'tool',verify:'bob',secure:'bob','approve-phase':'hum'};
+const actTag=k=>`<span class="tag ${k}">${icon(ACT[k].ic)}${ACT[k].w}</span>`;
+const wf=id=>D.workflow.find(s=>s.id===id)||{};
+
+/* sign-off commands for the chosen path */
+function signCmd(kind,t){
+ if(PATH==='github')return {plan:`/approve-plan ${t}`,phase:`/approve-phase ${t}`,cr:`/approve-cr ${t} option A`,waiver:`/accept-risk CVE-… ${t} until YYYY-MM-DD because …`}[kind]+'\n# a comment on the pull request, by the business owner';
+ return {plan:`node sdd/scripts/approve.mjs plan ${t}`,phase:`node sdd/scripts/approve.mjs phase ${t}`,cr:`node sdd/scripts/approve.mjs cr ${t} --decision approved --option A`,waiver:`node sdd/scripts/approve.mjs waiver CVE-… --feature ${t} --reason "…" --expires YYYY-MM-DD`}[kind]+`\ngit commit -m "chore(SDD): approve ${kind} ${t}" -- sdd/state/approvals.json`;
+}
+const pathWord=()=>PATH==='github'?'GitHub path':'Terminal path';
+
+/* components */
+const snip=(code,o={})=>`<div class="snip${o.long?' long':''}${o.wrap?' wrapt':''}">${o.cap?`<span class="cap">${esc(o.cap)}</span>`:''}<pre tabindex="0">${esc(code)}</pre><button class="ibtn copy" type="button" aria-label="Copy to clipboard">${icon('copy')}</button></div>`;
+const notif=(kind,title,body)=>`<div class="notif ${kind}" role="status">${icon({ok:'ok',err:'err',warn:'warn',info:'info'}[kind]||'info')}<div><b>${title}</b>${body?` ${body}`:''}</div></div>`;
+const cs=(id,opts,cur,label,sm)=>`<div class="cs${sm?' sm':''}" role="group" aria-label="${esc(label)}" id="${id}">${opts.map(([k,l])=>`<button type="button" data-v="${esc(k)}" aria-pressed="${k===cur}">${l}</button>`).join('')}</div>`;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),1800)}
+document.addEventListener('click',async e=>{const b=e.target.closest('.copy');if(!b)return;const txt=b.closest('.snip').querySelector('pre').textContent;
+ try{await navigator.clipboard.writeText(txt);toast('Copied to clipboard')}catch(err){const r=document.createRange();r.selectNodeContents(b.closest('.snip').querySelector('pre'));const s=getSelection();s.removeAllRanges();s.addRange(r);toast('Text selected: press Ctrl+C or ⌘C to copy')}});
+function bindCS(root,id,fn){const g=$('#'+id,root);if(!g)return;g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('button',g).forEach(x=>x.setAttribute('aria-pressed',x===b));fn(b.dataset.v)})}
+
+/* ---------- 3D isometric stack: the signed-layer tower, reused for Bob's autonomy layers ---------- */
+function isoStack(host,layers,o={}){
+ const W=o.w||200,T=o.t||26,G=o.gap||6;let z=0;const zs=[];
+ layers.forEach((L,i)=>{if(L.gate){z+=10;zs.push(z);z+=12}else{zs.push(z);z+=T+G}});
+ host.innerHTML=`<div class="iso" tabindex="0" role="group" aria-label="${esc(o.label||'3D diagram')}. Use left and right arrows to turn it." style="--h:${o.h||460}px;--top:${o.top||'64%'}"><div class="stage"><div class="shadow" style="--w:${W}px"></div>${layers.map((L,i)=>`<div class="lay" style="--i:${i}"><div class="slab${L.gate?' gate':''}" data-i="${i}" style="--w:${L.gate?W*1.14:W}px;--t:${L.gate?0:T}px;--z:${zs[i]}px;--c:${L.color}"><div class="f top">${L.icon?icon(L.icon):''}</div><div class="f fn"></div><div class="f fs"></div><div class="f fe"></div><div class="f fw"></div></div></div>`).join('')}</div></div>`;
+ const iso=$('.iso',host),stage=$('.stage',iso),slabs=$$('.slab',iso);let rz=o.rz??-38,base=rz,drag=null,moved=0,raf=0,t0=performance.now(),hl=-1;
+ const shade=()=>{const a=rz*Math.PI/180,L=[-.75,.66],n={dn:[0,-1],ds:[0,1],de:[1,0],dw:[-1,0]};
+  for(const k in n){const[x,y]=n[k],xr=x*Math.cos(a)-y*Math.sin(a),yr=x*Math.sin(a)+y*Math.cos(a),d=Math.max(0,xr*L[0]+yr*L[1]);stage.style.setProperty('--'+k,(0.42-0.36*d).toFixed(3))}};
+ const apply=()=>{stage.style.setProperty('--rz',rz.toFixed(2)+'deg');shade()};
+ const tick=now=>{if(!drag&&!RM&&!o.still){rz=base+9*Math.sin((now-t0)/2600)}apply();raf=requestAnimationFrame(tick)};
+ apply();if(!RM&&!o.still)raf=requestAnimationFrame(tick);
+ iso.addEventListener('pointerdown',e=>{drag={x:e.clientX,r:rz};moved=0;iso.setPointerCapture(e.pointerId);iso.classList.add('drag')});
+ iso.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x;moved=Math.max(moved,Math.abs(dx));rz=drag.r+dx*.45;apply()});
+ const up=e=>{if(!drag)return;iso.classList.remove('drag');drag=null;base=rz;t0=performance.now();
+  if(moved<4&&o.onPick){const el=document.elementFromPoint(e.clientX,e.clientY)?.closest('.slab');if(el)o.onPick(+el.dataset.i)}};
+ iso.addEventListener('pointerup',up);iso.addEventListener('pointercancel',()=>{drag=null;iso.classList.remove('drag')});
+ iso.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();base+=e.key==='ArrowLeft'?-15:15;rz=base;t0=performance.now();apply()}});
+ const highlight=i=>{hl=i;slabs.forEach((s,j)=>{const lift=i<0?0:j>i?34:j===i?14:0;s.style.transform=`translateZ(${zs[j]+lift}px)`;s.classList.toggle('on',j===i)})};
+ return {highlight,stop(){cancelAnimationFrame(raf)}};
+}
+
+/* ---------- shell, navigation, router ---------- */
+const NAV=[['Understand',[['overview','Overview','home'],['sdlc','SDLC meets SDD','layers'],['loop','The delivery loop','loop'],['people','People and Bob','user']]],
+ ['Customise',[['dial','Automation dial','meter'],['security','Security, shifted left','shield'],['pipeline','CI/CD pipeline','rocket'],['guardrails','Guardrails','fence']]],
+ ['Prove and start',[['evidence','Evidence for audit','doc'],['features','The bank\'s features','grid'],['start','Get started','book']]]];
+const P={};let CUR=null,CURID='';
+function shell(){
+ const pathCS=sm=>cs(sm?'path-s':'path-h',[['terminal','Terminal'],['github','GitHub']],PATH,'How sign-offs are given',true);
+ $('#hdr').innerHTML=`<button class="hbtn hamb" id="hamb" aria-label="Open menu" aria-expanded="false" aria-controls="side">${icon('menu')}</button>
+ <a class="hname" href="#overview"><svg class="hmark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" fill="#0f62fe"/><path d="M6 20c3.3-3.2 6.7-3.2 10 0s6.7 3.2 10 0" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M6 13c3.3-3.2 6.7-3.2 10 0s6.7 3.2 10 0" fill="none" stroke="#a6c8ff" stroke-width="2.4"/></svg>Tidewell<b>SDD Atlas</b></a>
+ <span class="hsp"></span><div class="hpath"><span>Sign-offs by</span>${pathCS(false)}</div>`;
+ $('#side').innerHTML=`<div class="sidepath"><div class="label" style="margin-bottom:8px">Sign-offs by</div>${pathCS(true)}</div>`+NAV.map(([g,items])=>`<h6>${g}</h6>`+items.map(([k,l,ic])=>`<a href="#${k}" data-k="${k}">${icon(ic)}${l}</a>`).join('')).join('');
+ const close=()=>{document.body.classList.remove('nav-open');$('#hamb').setAttribute('aria-expanded','false')};
+ $('#hamb').onclick=()=>{const o=document.body.classList.toggle('nav-open');$('#hamb').setAttribute('aria-expanded',o);$('#hamb').innerHTML=icon(o?'close':'menu')};
+ $('#scrim').onclick=()=>{close();$('#hamb').innerHTML=icon('menu')};
+ $('#side').addEventListener('click',e=>{if(e.target.closest('a')){close();$('#hamb').innerHTML=icon('menu')}});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('nav-open')){close();$('#hamb').innerHTML=icon('menu');$('#hamb').focus()}});
+ for(const id of ['path-h','path-s'])bindCS(document,id,v=>{PATH=v;store.set('sdd-path',v);$$('#path-h button,#path-s button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));route(true);toast(v==='github'?'Showing the public GitHub path: sign-offs are pull-request comments':'Showing the terminal path: sign-offs are commands, committed by the signer')});
+}
+function route(keep){
+ let id=location.hash.slice(1);if(!P[id])id='overview';
+ if(CUR&&CUR.unmount)CUR.unmount();CUR=P[id];const changed=id!==CURID;CURID=id;
+ const el=$('#page');el.innerHTML=`<div class="page" ${keep?'style="animation:none"':''}>${CUR.render()}</div>`;
+ if(CUR.mount)CUR.mount(el);
+ $$('#side a[data-k]').forEach(a=>{if(a.dataset.k===id)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+ document.title=`${CUR.title} · Tidewell SDD Atlas`;
+ if(changed&&!keep){window.scrollTo(0,0);const h=$('h1,.display',el);if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true})}}
+}
+const next=(id,label)=>`<hr class="div"><a class="tile" href="#${id}" style="max-width:520px"><span class="label">Next</span><h3 style="margin:4px 40px 24px 0">${label}</h3>${icon('arrow','arrow')}</a>`;
+
+/* ============ OVERVIEW ============ */
+let LOOPI=0;
+const TOWER=[{l:'Spec',s:'what the business decided, with examples',c:'#491d8b',ic:'doc',a:'bob',step:'clarify'},
+ {l:'Plan',s:'how it will be built: contract, decisions',c:'#6929c4',ic:'layers',a:'bob',step:'plan'},
+ {gate:1,l:'Plan signed',s:'business owner; locks the spec and plan',ic:'lock',a:'hum',step:'approve-plan'},
+ {l:'Tasks',s:'small steps, each naming its requirements',c:'#8a3ffc',ic:'grid',a:'bob',step:'tasks'},
+ {l:'Code and tests',s:'one task at a time, test first',c:'#a56eff',ic:'code',a:'bob',step:'implement'},
+ {l:'Security checks',s:'built-in and your own tools, before any testing',c:'#007d79',ic:'judge',a:'tool',step:'scan'},
+ {l:'Proof',s:'every acceptance criterion has a passing test',c:'#8a3ffc',ic:'ok',a:'bob',step:'verify'},
+ {l:'Security review',s:'what tools cannot see (OWASP ASVS L2)',c:'#6929c4',ic:'shield',a:'bob',step:'secure'},
+ {gate:1,l:'Phase signed',s:'after the demo, by the business owner',ic:'lock',a:'hum',step:'approve-phase'},
+ {l:'Release',s:'pipeline re-checks it all; people approve production',c:'#0f62fe',ic:'rocket',a:'pipe',go:'pipeline'}];
+const AW={bob:'Bob',hum:'Person',tool:'Checks',pipe:'Pipeline'};
+const goStep=L=>{if(L.step){LOOPI=D.steps.findIndex(s=>s.id===L.step)}location.hash=L.go||'loop'};
+P.overview={title:'Overview',render(){
+ const n=[[D.features.length,'features specified'],[D.nums.reqs,'requirements'],[D.nums.acs,'acceptance criteria'],[D.nums.ops,'API operations'],[D.grules.length,'commit rules, run three times'],[D.policy.locked.length,'locked human gates']];
+ const pages=NAV.flatMap(g=>g[1]).filter(x=>x[0]!=='overview');
+ const blurb={sdlc:'Where SDD sits in the life cycle you already have.',loop:'Nine steps, turned as a 3D ring. Who has the turn at each.',people:'Flip the cards: five roles, one AI, and who may do what.',dial:'Turn the dial: what is automated, what a person must sign.',security:'Send a threat through eight layers; plug in IBM tools.',pipeline:'Run the gate on six pull requests, on any CI.',guardrails:'Try a shortcut and read the refusal.',evidence:'Follow one requirement from spec to production.',features:'Twelve features as a city: height is scope, colour is risk.',start:'From clone to the first sign-off.'};
+ return `<div class="wrap"><div class="row" style="align-items:center">
+ <div class="c7"><p class="eyebrow">Tidewell Bank · a fictional UAE bank · AED</p><h1 class="display">Bob builds. People approve. Checks verify.</h1>
+ <p class="lede">A complete, working example of spec-driven development in a regulated bank. The business writes down what it wants; IBM Bob builds it one step at a time; named people sign the decisions that matter. Security checks run as the code is written, at commit and before anyone tests it: built-in ones and your organisation's own tools. Every check runs again in the pipeline.</p>
+ <div class="btns"><a class="btn pri" href="#loop">Walk the delivery loop${icon('arrow')}</a><a class="btn ter" href="#dial">Set the automation dial${icon('arrow')}</a></div></div>
+ <div class="c9"><div class="row" style="row-gap:16px;align-items:center"><div class="c8" id="tower"></div>
+ <div class="c8"><p class="label" style="margin:0 0 8px">Nothing is built on an unsigned layer</p><ul class="stack-legend" id="tlegend">${TOWER.map((L,i)=>({L,i})).reverse().map(({L,i})=>`<li><button type="button" data-i="${i}"><i class="${L.gate?'g':''}" style="--c:${L.c||''}"></i><span><b>${L.l}</b><small>${L.s}</small></span><span class="tag ${L.a}">${AW[L.a]}</span></button></li>`).join('')}</ul>
+ <p class="hint" style="margin-top:12px">${icon('move')}Drag the tower to turn it. Select a layer to open its step.</p></div></div></div></div>
+ <div class="tgrid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:48px">${n.map(x=>`<div class="tile" style="padding:24px 16px"><p class="big">${x[0]}</p><span class="label">${x[1]}</span></div>`).join('')}</div>
+ <h2>Three parts in every step</h2><p class="sub">Banks know it as maker–checker. The kit enforces it in Bob, in git and in the pipeline.</p>
+ <div class="tgrid g3"><div class="tile" style="padding:24px"><div class="ico bob">${icon('bot')}</div><h3>Bob is the maker</h3><p class="muted">Drafts specs, plans, tasks, code and tests, in modes that can each write only their own files. Bob can never sign, never write the scanner's verdict and never skip a step.</p></div>
+ <div class="tile" style="padding:24px"><div class="ico hum">${icon('pen')}</div><h3>People are the checkers</h3><p class="muted">The business owner signs plans and phases; AppSec accepts risk; the analyst checks the proof. The feature's risk tier decides who must sign, and some decisions are locked to people whatever the settings.</p></div>
+ <div class="tile" style="padding:24px"><div class="ico tool">${icon('judge')}</div><h3>Checks verify</h3><p class="muted">Security checks run while Bob writes, at commit and before any testing: the kit's built-in checks and your organisation's own tools, such as IBM detect-secrets or SonarQube. The pipeline runs them again, so a skipped hook or a laptop without Bob changes nothing.</p></div></div>
+ <h2>Any industry. A bank as the example.</h2><p class="sub">Bob's layer knows nothing about banking. Everything about the bank is in the specs, so another domain swaps the specs and keeps the kit.</p>
+ <div class="tgrid g2"><div class="tile" style="padding:24px"><div class="ico bob">${icon('bot')}</div><h3>The kit · any industry</h3><p class="muted">Bob's modes, rules, slash commands and skills (<code>.bob/</code>), the scripts, the workflows, the governance files and the pipeline templates. A Security Reviewer, not a bank reviewer; a <code>domain-rules</code> skill that reads whatever domain the specs define.</p></div>
+ <div class="tile" style="padding:24px"><div class="ico pipe">${icon('doc')}</div><h3>The example · Tidewell Bank</h3><p class="muted">The product vision, domain model, 12 feature specs and NFRs (<code>sdd/specs/</code>), the contract and design, and the rules Bob must never break in <code>sdd/specs/domain/</code>: money as integer minor units, a balanced ledger, the bank's own abuse cases. Replace them for insurance, health or retail.</p></div></div>
+ <h2>Two ways to run it</h2><p class="sub">Same rules, same gate. Pick the one your git host supports; the choice in the header changes every command on this site.</p>
+ <div class="tgrid g2" id="pathtiles">${[['terminal','Terminal path','term','Default. Works with any git host and any CI: GitHub Enterprise without Actions, GitLab, Bitbucket, Azure Repos; Jenkins, Azure DevOps and GitLab pipeline files included.','Sign-offs are a command (approve.mjs), committed alone by the signer. The pipeline checks who committed them, their role and that they did not make the change.'],
+ ['github','Public GitHub path','branch','For github.com, where GitHub Actions is free on public repositories.','Sign-offs are pull-request comments (/approve-plan F04) recorded by Actions. Bob also reviews each pull request and fixes on request.']].map(([k,t,ic,a,b])=>`<button type="button" class="tile${PATH===k?' sel':''}" aria-pressed="${PATH===k}" data-p="${k}" style="padding:24px"><div class="ico pipe" style="margin-bottom:16px">${icon(ic)}</div><h3>${t} ${PATH===k?'<span class="tag pipe">Showing</span>':''}</h3><p>${a}</p><p class="muted" style="margin:0">${b}</p></button>`).join('')}</div>
+ <h2>Explore the Atlas</h2><div class="tgrid g4" style="margin-top:24px">${pages.map(([k,l,ic])=>`<a class="tile" href="#${k}" style="min-height:180px;padding:20px 20px 56px">${icon(ic,'').replace('<svg','<svg style="width:24px;height:24px;fill:var(--int);margin-bottom:16px"')}<h4>${l}</h4><p class="muted" style="font-size:14px;line-height:20px;margin:0">${blurb[k]}</p>${icon('arrow','arrow')}</a>`).join('')}</div>
+ <p class="helper" style="margin-top:24px">Tidewell Bank is fictional: invented customers, banks, codes and numbers. Every count on this site is read from the kit's own files when the site is built.</p></div>`},
+ mount(el){const t=isoStack($('#tower',el),TOWER.map(L=>({...L,color:L.c})),{label:'The signed-layer tower',h:innerWidth<672?360:460,top:'80%',w:innerWidth<672?140:180,onPick:i=>goStep(TOWER[i])});this.t=t;
+  const lg=$('#tlegend',el);lg.addEventListener('mouseover',e=>{const b=e.target.closest('button');if(b)t.highlight(+b.dataset.i)});lg.addEventListener('mouseleave',()=>t.highlight(-1));
+  lg.addEventListener('focusin',e=>{const b=e.target.closest('button');if(b)t.highlight(+b.dataset.i)});lg.addEventListener('focusout',()=>t.highlight(-1));
+  lg.addEventListener('click',e=>{const b=e.target.closest('button');if(b)goStep(TOWER[+b.dataset.i])});
+  $('#pathtiles',el).addEventListener('click',e=>{const b=e.target.closest('button');if(b&&b.dataset.p!==PATH){PATH=b.dataset.p;store.set('sdd-path',PATH);$$('#path-h button,#path-s button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===PATH));route(true)}})},
+ unmount(){this.t&&this.t.stop()}};
+
+/* ============ SDLC ============ */
+const SDLC=[['Requirements','A document or a ticket, read once.','The feature spec: user stories, EARS requirements, acceptance criteria with real numbers. Bob asks the open questions.','spec.md','Analyst writes · owner owns'],
+ ['Design','A slide and a review board.','Bob drafts the plan against the constitution, changes the API contract first and records decisions (ADRs).','plan.md · openapi.yaml','Architect · owner signs'],
+ ['Build','Code first, tests later.','Bob splits the plan into tasks and builds each one test first: one commit per task, naming its requirement IDs.','tasks.md · code · tests','Developer'],
+ ['Security','A penetration test before go-live.','Moved into the build: secrets and risky code refused as they are typed, checked again at commit and before testing; a hand review for what tools cannot see.','checks.json · scan and security reports','Developer runs · AppSec decides'],
+ ['Test','A test team, after the build.','A separate Bob mode proves every acceptance criterion with a tagged test.','verification report · matrix','Developer runs · analyst checks'],
+ ['Release','A change advisory board.','The analyst demos the phase; the owner signs; the pipeline deploys to test and asks the right people before production.','phase sign-off · pipeline approval','Owner (+ AppSec for tier 1)'],
+ ['Change','Emails and meetings.','A change request with options; the owner decides; Bob applies only what was approved.','CR-###.md','Business owner'],
+ ['Audit','Screenshots, collected afterwards.','The repository is the evidence. One command assembles it for an auditor.','evidence.mjs F04','Read by anyone']];
+const LOOPN={inner:[['Bob writes','in the step\'s mode','bob','Bob drafts in the mode for the current step: specs and plans in 📐 Spec Architect, code and tests in 🏗️ Spec Builder. Each mode can write only its own files.'],
+ ["Bob's hook",'step, files, secrets, risky code','tool',"Before a write lands, Bob's hook checks that a step is running, the mode is right, the file is in scope, and runs the built-in checks: no secret, no SQL built from strings, no TLS checks switched off. Otherwise the write is refused, with the fix."],
+ ['Git hooks','checks + rules G1–G10','tool','On every commit, git runs the commit checks (built-in ones and any organisation tool switched on, such as IBM detect-secrets) and the ten commit rules. Nothing extra to install.'],
+ ['Tests','unit, integration, contract','tool','Tests run on the laptop as Bob builds, test first.'],
+ ['Checks','verdict before testing','tool','/sdd-scan runs the security checks on all the code before any testing step: built-in checks and your organisation\'s tools from checks.json, or SonarQube. The verdict is bound to the exact code: change one line and it must scan again.'],
+ ['Verify, review','proof + ASVS review','bob','🔍 Spec Verifier proves every acceptance criterion with a tagged test; 🛡️ Security Reviewer checks what tools cannot see.']],
+ outer:[['Pull request gate','ci.mjs pr','tool','node sdd/scripts/ci.mjs pr runs everything again: policy, specs, commits, sign-offs, secrets, tests, scan. Exit code 1 blocks the merge.'],
+ ['Merge','reviewed, code owners','hum','Branch protection on the git host: a reviewed pull request, code owners for governance files, the gate as a required status check.'],
+ ['Test environment','automatic','pipe','Deploys automatically after merge. The gate is re-checked for this exact commit.'],
+ ['Production','people, per risk tier','hum','The pipeline asks the people the policy names. Tier 1 needs the business owner and AppSec: two different people.']]};
+let SDLCV='sdd';
+P.sdlc={title:'SDLC meets SDD',render(){return `<div class="wrap"><p class="eyebrow">How it fits</p><h1>Your SDLC, with spec-driven development inside it</h1>
+ <p class="lede">Nothing in the bank's life cycle disappears. What changes is what each phase produces (a written, checkable artifact), who does the writing (Bob, in a mode limited to that phase) and where the checks run (at the keyboard first, then in the pipeline).</p>
+ <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:16px">${cs('sdlcv',[['before','Before'],['sdd','With SDD and Bob']],SDLCV,'Show the life cycle')}<span class="hint">${icon('cube')}Select a card to turn it over.</span></div>
+ <div class="flipgrid" id="sdlcgrid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))">${SDLC.map((r,i)=>`<div class="flip${SDLCV==='sdd'?' on':''}" style="min-height:300px"><button class="inner" type="button" aria-label="${r[0]}: show ${SDLCV==='sdd'?'before':'with SDD'}" style="min-height:300px">
+ <span class="face"><span class="label">0${i+1} · Before</span><h3 style="margin-top:8px">${r[0]}</h3><p class="muted">${r[1]}</p><span class="tag outline" style="margin-top:auto;align-self:flex-start">Evidence: scattered</span></span>
+ <span class="face back"><span class="label">With SDD and Bob</span><h3 style="margin-top:8px">${r[0]}</h3><p>${r[2]}</p><span style="margin-top:auto"><code>${esc(r[3])}</code></span><span class="tag hum" style="margin-top:12px;align-self:flex-start">${icon('pen')}${r[4]}</span></span></button></div>`).join('')}</div>
+ <h2>Two loops, one set of rules</h2><p class="sub">The inner loop runs on the developer's laptop in minutes. The outer loop is the same set of checks, run again in the pipeline where nobody can switch them off. Select any stop.</p>
+ <div class="panel" style="padding:16px"><div class="fig" id="loops"></div></div>
+ <div class="notif info" id="loopinfo" aria-live="polite" style="margin-top:1px">${icon('info')}<div><b>Bob writes.</b> ${LOOPN.inner[0][3]}</div></div>
+ <div class="tgrid g2" style="margin-top:32px"><div class="tile" style="padding:24px"><span class="tag bob">Inner loop · the laptop · minutes</span><p style="margin-top:16px">Catches problems while they are cheap: in the same minute, at the keyboard. A refused write or commit comes with the reason and the fix.</p></div>
+ <div class="tile" style="padding:24px"><span class="tag pipe">Outer loop · the pipeline · hours</span><p style="margin-top:16px">Exists because a laptop can be switched off: <code>--no-verify</code>, no Bob, a hand edit. All of them are caught again on the server.</p></div></div>
+ ${next('loop','The delivery loop, step by step')}</div>`},
+ mount(el){const g=$('#sdlcgrid',el);
+  bindCS(el,'sdlcv',v=>{SDLCV=v;$$('.flip',g).forEach((f,i)=>setTimeout(()=>f.classList.toggle('on',v==='sdd'),RM?0:i*70))});
+  g.addEventListener('click',e=>{const f=e.target.closest('.flip');if(f)f.classList.toggle('on')});
+  if(!RM&&SDLCV==='sdd'&&!this.seen){this.seen=1;$$('.flip',g).forEach(f=>f.classList.remove('on'));$$('.flip',g).forEach((f,i)=>setTimeout(()=>f.classList.add('on'),700+i*90))}
+  this.l=drawLoops($('#loops',el),(n,txt)=>{$('#loopinfo',el).innerHTML=`${icon('info')}<div><b>${esc(n)}.</b> ${esc(txt)}</div>`})},
+ unmount(){this.l&&this.l.stop()}};
+
+function drawLoops(host,onPick){
+ let raf=0,paths=[],W=0;const col={bob:'var(--bob)',hum:'var(--hum)',tool:'var(--tool)',pipe:'var(--pipe)'};
+ function track(x,y,w,h,nodes,title,horiz,key,foot){const r=20;let s='';
+  const p=horiz?`M${x+r} ${y}H${x+w-r}Q${x+w} ${y} ${x+w} ${y+r}V${y+h-r}Q${x+w} ${y+h} ${x+w-r} ${y+h}H${x+r}Q${x} ${y+h} ${x} ${y+h-r}V${y+r}Q${x} ${y} ${x+r} ${y}Z`
+   :`M${x+r} ${y}Q${x} ${y} ${x} ${y+r}V${y+h-r}Q${x} ${y+h} ${x+r} ${y+h}H${x+w-r}Q${x+w} ${y+h} ${x+w} ${y+h-r}V${y+r}Q${x+w} ${y} ${x+w-r} ${y}Z`;
+  s+=`<text x="${x}" y="${y-22}" font-size="14" font-weight="600" fill="var(--tp)">${title}</text>`;
+  s+=`<path d="${p}" fill="var(--l2)" stroke="var(--bs1)" stroke-width="2" data-k="${key}"/>`;
+  if(foot)s+=horiz?`<text x="${x+w/2}" y="${y+h-14}" text-anchor="middle" font-size="12" fill="var(--ts)">${foot}</text>`:'';
+  nodes.forEach((n,i)=>{let cx,cy,lx,ly,anc;
+   if(horiz){cx=x+w*(i+.5)/nodes.length;cy=y;lx=cx;ly=y+38;anc='middle'}
+   else{cx=x;cy=y+36+i*((h-72)/(nodes.length-1||1));lx=x+30;ly=cy-2;anc='start'}
+   s+=`<g class="svgbtn" tabindex="0" role="button" aria-label="${esc(n[0])}: ${esc(n[1])}" data-n="${esc(n[0])}" data-t="${esc(n[3])}"><rect x="${horiz?cx-Math.min(80,w/nodes.length/2-4):cx-18}" y="${cy-18}" width="${horiz?Math.min(160,w/nodes.length-8):w-8}" height="${horiz?58:40}" fill="transparent"/><circle class="fx" cx="${cx}" cy="${cy}" r="16" fill="${col[n[2]]}" stroke="var(--l2)" stroke-width="3"/>${n[2]==='hum'?`<path d="M${cx-6} ${cy+6}h12M${cx-5} ${cy+3}l8-8 2 2-8 8h-2z" stroke="#fff" stroke-width="1.6" fill="none"/>`:`<text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13" font-weight="600" fill="#fff">${i+1}</text>`}
+   <text x="${lx}" y="${ly}" text-anchor="${anc}" font-size="14" font-weight="600" fill="var(--tp)">${esc(n[0])}</text><text x="${lx}" y="${ly+17}" text-anchor="${anc}" font-size="12" fill="var(--ts)">${esc(n[1])}</text></g>`});
+  return s};
+ function draw(){W=host.clientWidth;if(!W)return;const horiz=W>=640;let s,H;
+  if(horiz){const h=112,y1=40,y2=y1+h+92;H=y2+h+12;
+   s=track(12,y1,W-60,h,LOOPN.inner,'Inner loop · on the laptop · minutes',1,'in','anything refused goes back to Bob, with the reason')+track(12,y2,W-60,h,LOOPN.outer,'Outer loop · in the pipeline · hours',1,'out','the same rules, where nobody can switch them off')+
+   `<path d="M${W-48} ${y1+h/2}H${W-18}V${y2+h/2}H${W-40}" fill="none" stroke="var(--bst)" stroke-width="2" marker-end="url(#ah)"/><text x="${W-14}" y="${(y1+y2+h)/2}" text-anchor="middle" font-size="12" fill="var(--ts)" transform="rotate(90 ${W-14} ${(y1+y2+h)/2})" dy="-6">git push</text>`}
+  else{const hi=24+LOOPN.inner.length*54,ho=24+LOOPN.outer.length*54,y2=40+hi+80;H=y2+ho+12;
+   s=track(22,40,W-30,hi,LOOPN.inner,'Inner loop · laptop · minutes',0,'in')+track(22,y2,W-30,ho,LOOPN.outer,'Outer loop · pipeline · hours',0,'out')+
+   `<path d="M${W/2} ${40+hi+6}V${y2-40}" stroke="var(--bst)" stroke-width="2" marker-end="url(#ah)"/><text x="${W/2+10}" y="${40+hi+26}" font-size="12" fill="var(--ts)">git push</text>`}
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="group" aria-label="Inner and outer loop"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--bst)"/></marker></defs>${s}<circle id="dot-in" r="6" fill="var(--bob)"/><circle id="dot-out" r="6" fill="var(--pipe)"/></svg>`;
+  paths=[[$('[data-k=in]',host),$('#dot-in',host),7000],[$('[data-k=out]',host),$('#dot-out',host),16000]];
+  $$('.svgbtn',host).forEach(g=>{const f=()=>onPick(g.dataset.n,g.dataset.t);g.addEventListener('click',f);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}})});
+  place(performance.now())}
+ function place(now){for(const[p,d,per]of paths){if(!p)continue;const L=p.getTotalLength(),pt=p.getPointAtLength(((now%per)/per)*L);d.setAttribute('cx',pt.x);d.setAttribute('cy',pt.y)}}
+ const tick=now=>{place(now);raf=requestAnimationFrame(tick)};
+ const ro=new ResizeObserver(()=>{if(host.clientWidth!==W)draw()});ro.observe(host);draw();if(!RM)raf=requestAnimationFrame(tick);
+ return {stop(){cancelAnimationFrame(raf);ro.disconnect()}};
+}
+
+/* ============ LOOP: 3D ring ============ */
+let LENS='all';
+const lensOK=s=>LENS==='all'||[s.whose_turn,s.who_else_helps,s.final_say,s.in_short].join(' ').toLowerCase().includes(LENS.toLowerCase())||(LENS==='Business owner'&&/owner/i.test(s.in_short||''))||(LENS==='Business analyst'&&/analyst/i.test(s.in_short||''));
+P.loop={title:'The delivery loop',render(){const lens=[['all','Everyone'],['Business owner','Business owner'],['Business analyst','Business analyst'],['Architect','Architect'],['Developer','Developer'],['AppSec','AppSec']];
+ return `<div class="wrap"><p class="eyebrow">The delivery loop</p><h1>Nine steps. One person has the turn at each.</h1>
+ <p class="lede">Every feature goes round the same loop. Bob writes, the checks verify, and at two points a named person signs. Turn the ring, or press play.</p>
+ <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:16px"><div class="field"><label class="label" for="lens">Show the steps for</label><select class="sel-native" id="lens">${lens.map(([k,l])=>`<option value="${k}" ${LENS===k?'selected':''}>${l}</option>`).join('')}</select></div>
+ <div class="legend">${['bob','hum','tool'].map(k=>`<span><i class="sw-${k}"></i>${ACT[k].w}</span>`).join('')}</div></div>
+ <div class="ring-wrap" id="rw" tabindex="0" role="group" aria-roledescription="carousel" aria-label="The nine steps. Use left and right arrows."><div class="ring" id="ring">${D.steps.map((s,i)=>{const k=STEPTYPE[s.id];return `<div class="card3${lensOK(s)?'':' dim'}" style="--i:${i};--k:${ACT[k].c}" data-i="${i}" aria-hidden="true"><span class="n">${s.n}</span><h3>${esc(s.label)}</h3><p>${esc(s.plain)}</p><div class="who"><span class="tag ${k}">${icon(ACT[k].ic)}${k==='hum'?'Sign-off':k==='tool'?'Checked':'Bob writes'}</span><span class="tag outline">${esc(s.in_short)}</span></div></div>`}).join('')}</div></div>
+ <div class="ring-ctl"><button class="ibtn" id="prev" aria-label="Previous step">${icon('chevL')}</button><button class="ibtn" id="nextb" aria-label="Next step">${icon('chevR')}</button><button class="btn ghost md" id="play" type="button"><span>Play the loop</span>${icon('play')}</button><span class="sp"></span><span class="hint">${icon('move')}Drag or swipe to turn</span></div>
+ <div class="bar" aria-hidden="true"><i id="pbar"></i></div>
+ <ol class="prog" id="prog" style="margin-top:24px">${D.steps.map((s,i)=>`<li data-i="${i}" class="${lensOK(s)?'':'dim'}"><button type="button" aria-label="Step ${s.n}: ${esc(s.label)}"><span class="dot"><svg viewBox="0 0 32 32"><path/></svg><span class="t">${esc(s.label)}</span></span><span class="s">${esc(s.in_short)}</span></button></li>`).join('')}</ol>
+ <div id="stepdetail" aria-live="polite" style="margin-top:32px"></div>${next('people','People and Bob')}</div>`},
+ mount(el){const rw=$('#rw',el),ring=$('#ring',el),cards=$$('.card3',ring),N=cards.length;let ry=-LOOPI*40,drag=null,timer=0,playing=false,t0=0,raf=0;
+  const size=()=>{const W=rw.clientWidth,cw=Math.round(Math.min(250,Math.max(190,W*.42))),R=Math.round(cw/2/Math.tan(Math.PI/9))+30;rw.style.setProperty('--cw',cw+'px');rw.style.setProperty('--R',R+'px');rw.style.setProperty('--rh',(W<672?360:390)+'px')};
+  const show=()=>{ring.style.setProperty('--ry',ry+'deg');cards.forEach((c,i)=>{let d=((i*40+ry)%360+540)%360-180;const o=Math.abs(d)<1?1:Math.abs(d)<=41?.72:Math.abs(d)<=81?.42:.15;c.style.setProperty('--o',o);c.classList.toggle('front',i===LOOPI)});
+   $$('#prog li',el).forEach((li,i)=>{li.className=(i<LOOPI?'done':i===LOOPI?'cur':'')+(lensOK(D.steps[i])?'':' dim');li.querySelector('path').setAttribute('d',i<LOOPI?IP.ok:i===LOOPI?'M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12zm0-18a6 6 0 1 0 6 6 6 6 0 0 0-6-6z':IP.pending)});
+   detail()};
+  const go=i=>{const tgt=((i%N)+N)%N;let d=tgt-LOOPI;if(d>N/2)d-=N;if(d<-N/2)d+=N;ry-=d*40;LOOPI=tgt;show()};
+  const detail=()=>{const s=D.steps[LOOPI],w=wf(s.id),k=STEPTYPE[s.id],mode=w.mode?D.modes[w.mode]:null;let right='';
+   if(s.id==='approve-plan')right=`<h4>How to sign · ${pathWord()}</h4>${snip(signCmd('plan','F04'))}<p class="helper">Who may sign depends on the risk tier: tiers 1 and 2, the business owner only; tier 3, the business owner or the architect. Bob can never sign.</p>`;
+   else if(s.id==='approve-phase')right=`<h4>How to sign · ${pathWord()}</h4>${snip(signCmd('phase','3'))}<p class="helper">The analyst demos the phase first; the owner signs only when nothing serious is open.</p>`;
+   else if(mode)right=`<h4>In Bob</h4><p><span class="tag bob">${esc(mode)}</span></p>${w.command?snip(w.command+' F04'):''}${w.writes?`<p class="helper" style="margin-top:8px">Bob may write only: ${w.writes.map(x=>`<code>${esc(x)}</code>`).join(' ')}</p>`:''}`;
+   $('#stepdetail',el).innerHTML=`<div class="row"><div class="c10"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">${actTag(k)}${s.id==='secure'?'<span class="tag outline">optional for tier 3</span>':''}</div><h2 style="margin-top:0">${s.n}. ${esc(s.label)}: ${esc(s.plain)}</h2>
+   <dl class="sl"><dt>Whose turn</dt><dd>${inline(s.whose_turn)}</dd><dt>What they do</dt><dd>${inline(s.what_they_do)}</dd><dt>What Bob does</dt><dd>${inline(s.what_bob_does)}</dd>${s.who_else_helps?`<dt>Who else helps</dt><dd>${inline(s.who_else_helps)}</dd>`:''}${s.final_say?`<dt>Final say</dt><dd>${inline(s.final_say)}</dd>`:''}<dt>Done when</dt><dd>${inline(s.done_when)}</dd></dl></div>
+   <div class="c6"><div class="panel">${right||'<p class="muted">No command here: this step is a decision.</p>'}</div></div></div>`};
+  size();ring.classList.add('drag');show();requestAnimationFrame(()=>ring.classList.remove('drag'));
+  this.ro=new ResizeObserver(size);this.ro.observe(rw);
+  $('#prev',el).onclick=()=>{stop();go(LOOPI-1)};$('#nextb',el).onclick=()=>{stop();go(LOOPI+1)};
+  rw.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){e.preventDefault();stop();go(LOOPI-1)}if(e.key==='ArrowRight'){e.preventDefault();stop();go(LOOPI+1)}});
+  $('#prog',el).addEventListener('click',e=>{const li=e.target.closest('li');if(li){stop();go(+li.dataset.i)}});
+  rw.addEventListener('pointerdown',e=>{drag={x:e.clientX,r:ry,m:0};rw.setPointerCapture(e.pointerId);ring.classList.add('drag');stop()});
+  rw.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x;drag.m=Math.max(drag.m,Math.abs(dx));ring.style.setProperty('--ry',(drag.r+dx*.25)+'deg')});
+  rw.addEventListener('pointerup',e=>{if(!drag)return;ring.classList.remove('drag');const dx=e.clientX-drag.x,m=drag.m;drag=null;
+   if(m<5){const c=document.elementFromPoint(e.clientX,e.clientY)?.closest('.card3');if(c){go(+c.dataset.i);return}show();return}
+   go(LOOPI-Math.round(dx*.25/40))});
+  rw.addEventListener('pointercancel',()=>{drag=null;ring.classList.remove('drag');show()});
+  $('#lens',el).onchange=e=>{LENS=e.target.value;cards.forEach((c,i)=>c.classList.toggle('dim',!lensOK(D.steps[i])));show()};
+  const pb=$('#pbar',el),PER=4200;
+  const loop=now=>{const f=(now-t0)/PER;if(f>=1){t0=now;go(LOOPI+1)}pb.style.width=Math.min(100,f*100)+'%';raf=requestAnimationFrame(loop)};
+  const stop=()=>{if(!playing)return;playing=false;cancelAnimationFrame(raf);pb.style.width='0';$('#play',el).innerHTML=`<span>Play the loop</span>${icon('play')}`};
+  $('#play',el).onclick=()=>{if(playing){stop();return}playing=true;t0=performance.now();$('#play',el).innerHTML=`<span>Pause</span>${icon('pause')}`;raf=requestAnimationFrame(loop)};
+  this.stop=()=>{stop()}},
+ unmount(){this.stop&&this.stop();this.ro&&this.ro.disconnect()}};
+
+/* ============ PEOPLE ============ */
+const ROLES=[['Business owner','hum','user','Also called product owner or sponsor. Owns why and how much.',[['Decides','Scope, priorities, change requests.'],['Signs','Every plan for tier 1 and 2 features, every phase, production releases.'],['Never','Signs a plan they changed themselves. The pipeline checks.']]],
+ ['Business analyst','hum','user','Owns what: requirements written as short sentences, each with an example.',[['Writes','The feature specs, directly or by answering Bob\'s questions.'],['Checks','The plan covers every requirement; the tests prove each example the way the business meant it.'],['Never','Signs plans or phases.']]],
+ ['Architect','hum','user','Lead architect or tech lead. Owns how.',[['Runs','Plan and tasks in 📐 Spec Architect; applies approved change requests.'],['Reviews','Every plan before the owner signs it.'],['Signs','Tier 3 plans only, where the policy allows.']]],
+ ['Developer','hum','user','Builds each feature with Bob and reviews every change.',[['Runs','Build, scan, verify and security review, in Bob.'],['Reviews','Every change Bob makes, before it is committed.'],['Never','Signs plans or phases. This gate is locked.']]],
+ ['AppSec','hum','shield','Owns security risk and the scanner\'s pass/fail rules.',[['Owns','The security checks and their pass/fail rules, false alarms, serious findings.'],['Signs','Risk acceptances, with an expiry date; tier 1 production releases.'],['Never','Lets a risk be accepted by anyone else.']]],
+ ['IBM Bob','bob','bot','The AI assistant, in one mode per kind of work.',[['Writes','Specs, plans, tasks, code, tests and reports, one step at a time.'],['Cannot','Sign anything, write the scanner\'s verdict, suppress a finding, or edit outside the active step.'],['Stopped by','Its hook, the git hooks and the pipeline. The same checks, three times.']]]];
+const RTAGS={"Business owner": ["Signs plans", "Signs phases", "Decides changes"], "Business analyst": ["Writes the specs", "Checks the proof"], "Architect": ["Runs plan and tasks", "Signs tier 3 plans"], "Developer": ["Builds with Bob", "Never signs"], "AppSec": ["Accepts risk", "Tier 1 releases"], "IBM Bob": ["Writes everything", "Signs nothing"]};
+const RACI=[['Clarify the spec','W','H','D','H','','',''],['Draft the plan','W','','H','D','H','H',''],['Sign the plan','','S','H','S³','','','C'],['Break into tasks','W','','','D','H','',''],['Build, test first','W','','H','H','D','','V'],
+ ['Security checks before testing','W','','','','D','H','V'],['Prove every example','W','','C','','D','',''],['Security review (ASVS)','W','','','','D','S',''],['Sign the phase','','S','D','H','','H',''],
+ ['Decide a change request','W','S','H','H','','',''],['Accept a security risk','','','','','','S',''],['Approve production','','S','','','','S¹','V']];
+const RCOLS=['Bob','Business owner','Analyst','Architect','Developer','AppSec','Checks'];
+const DW={W:'Bob writes',S:'signs or decides',D:'does it',C:'checks',H:'helps',V:'verifies'};
+const MODES=[['agent','Navigator: answers "what\'s next?"','NNNNNNNNNNN'],['sdd-conductor','Runs the plan; hands each step on','NNNNNNNNNNN'],['spec-architect','Clarify, plan, tasks, change requests','YYYNNNNNYNN'],['spec-builder','One task at a time, test first','NTNYYNNNYNN'],
+ ['check-runner','Runs the checks before testing; explains findings','NNNNNYNNNNN'],['spec-verifier','Proves acceptance criteria','NNNNYNYNNNN'],['security-reviewer','ASVS level 2 review','NNNNNNNYYNN'],['sdd-pr-reviewer','Reviews a pull request, read-only','NNNNNNNNNNN']];
+const MCOLS=['Specs','Plan, tasks','Contract, ADRs, design','Code','Tests','Scan notes','Verification','Security report','Change requests','Scan verdict','Sign-offs'];
+P.people={title:'People and Bob',render(){return `<div class="wrap"><p class="eyebrow">Who does what</p><h1>Five roles and one AI. The maker is never the checker.</h1>
+ <p class="lede">Select a card to turn it over. The roles live in <code>sdd/governance/approvers.json</code>; who may sign what depends on the feature's risk tier.</p>
+ <div class="flipgrid" id="flips">${ROLES.map(([n,k,ic,front,back])=>`<div class="flip"><button class="inner" type="button" aria-label="${esc(n)}: turn the card"><span class="face"><span class="ico ${k}">${icon(ic)}</span><h3>${esc(n)}</h3><p class="muted">${esc(front)}</p><span class="tags" style="margin-top:auto">${RTAGS[n].map(x=>`<span class="tag ${k}">${x}</span>`).join('')}</span><span class="hint" style="margin-top:16px">${icon('cube')}Turn over</span></span>
+ <span class="face back"><h4>${esc(n)}</h4><dl>${back.map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join('')}</dl></span></button></div>`).join('')}</div>
+ <h2>Who does what, at each step</h2><p class="sub">Hover or tap a cell to follow its row and column. ³ tier 3 only. ¹ tier 1 only.</p>
+ <div class="legend" style="margin-bottom:12px">${Object.entries(DW).map(([k,v])=>`<span><span class="d ${k}" style="display:inline-grid;place-items:center;min-width:24px;height:20px;border-radius:10px;font:600 11px var(--plex);margin-right:6px">${k}</span>${v}</span>`).join('')}</div>
+ <div class="tablewrap"><table class="dt mx" id="raci"><thead><tr><th>Activity</th>${RCOLS.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${RACI.map(r=>`<tr><td>${r[0]}</td>${r.slice(1).map(v=>`<td>${v?`<span class="d ${v[0]}" title="${DW[v[0]]}">${v}</span>`:''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+ <h2>Bob's modes: one AI, each mode kept in its lane</h2><p class="sub">What each mode may write, from <code>.bob/custom_modes.yaml</code>. Bob's hook enforces it on every write. No mode can write a sign-off or the scanner's verdict.</p>
+ <div class="tablewrap"><table class="dt mx"><thead><tr><th>Mode</th>${MCOLS.map(c=>`<th style="font-size:12px;line-height:16px">${c}</th>`).join('')}</tr></thead><tbody>${MODES.map(([m,d,v])=>`<tr><td><b>${esc(D.modes[m]||m)}</b><br><span class="helper">${esc(d)}</span></td>${[...v].map((c,i)=>`<td><span class="d ${c==='T'?'R':c}" title="${c==='Y'?'may write':c==='T'?'ticks tasks only':'cannot write'}">${c==='Y'?'✓':c==='T'?'tick':'–'}</span></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+ <p class="helper" style="margin-top:8px">The scan verdict is written only by <code>sdd/scripts/scan.mjs</code>; sign-offs only by a person. IBM Bob V2 has three built-in modes: Agent, Plan and Ask. In Bob IDE all three are overridden in this repository: Agent becomes the 🧭 SDD Navigator, and none of them can change files; they route every change to the mode that owns the step. Bob Shell resolves its built-ins first, so there you start in an SDD mode (<code>bob --mode spec-builder</code>). Every mode, rule, command and skill is industry-agnostic: the bank lives in <code>sdd/specs/</code>. The 🔎 SDD PR Reviewer also runs in the pipeline, as the advisory <code>bob-review</code> check.</p>
+ ${next('dial','The automation dial')}</div>`},
+ mount(el){$('#flips',el).addEventListener('click',e=>{const f=e.target.closest('.flip');if(f)f.classList.toggle('on')});
+  const t=$('#raci',el);const hl=td=>{$$('.hl',t).forEach(x=>x.classList.remove('hl'));if(!td)return;const i=td.cellIndex;td.parentElement.classList.add('hl');$$('tr',t).forEach(r=>r.cells[i]&&i>0&&r.cells[i].classList.add('hl'))};
+  t.addEventListener('mouseover',e=>hl(e.target.closest('td')));t.addEventListener('mouseleave',()=>hl(null));t.addEventListener('click',e=>hl(e.target.closest('td')))}};
+
+/* ============ AUTOMATION DIAL ============ */
+const clone=o=>JSON.parse(JSON.stringify(o));
+let DT='2',POL=clone(D.policy);
+const PRESETS=[['locked','Locked down'],['kit','Kit default'],['lean','Lean'],['far','Too far']];
+const PANG=[-120,-40,40,120];
+function preset(k,t){const kit=clone(D.policy.tiers[t]);const base={label:kit.label,means:kit.means,dast:kit.dast};
+ if(k==='kit')return kit;
+ if(k==='locked')return {...base,approve:{plan:['business-owner'],phase:['business-owner']},securityReview:'required',bobAutonomy:'step',release:{production:['business-owner','appsec']}};
+ if(k==='lean')return t==='1'?kit:{...base,approve:{plan:['business-owner','architect'],phase:['business-owner']},securityReview:t==='2'?'required':'optional',bobAutonomy:'drive',release:{production:['business-owner']}};
+ return {...base,approve:{plan:[],phase:['developer']},securityReview:'optional',bobAutonomy:'drive',release:{production:[]}};}
+const same=(a,b)=>JSON.stringify([a.approve.plan.slice().sort(),a.approve.phase.slice().sort(),a.securityReview,a.bobAutonomy,(a.release.production||[]).slice().sort()])===JSON.stringify([b.approve.plan.slice().sort(),b.approve.phase.slice().sort(),b.securityReview,b.bobAutonomy,(b.release.production||[]).slice().sort()]);
+function validate(pol){const e=[],bad=m=>{if(!e.includes(m))e.push(m)};
+ for(const [t,c] of Object.entries(pol.tiers)){for(const d of ['plan','phase']){const rs=c.approve[d]||[];if(!rs.length)bad(`Tier ${t}: the ${d} needs a person to sign it. No tier can hand it to Bob or the pipeline.`);if(rs.includes('developer'))bad(`Tier ${t}: the developer may not sign the ${d}. The maker is never the checker.`);if(t==='1'&&rs.length&&(rs.length!==1||rs[0]!=='business-owner'))bad(`Tier 1 ${d}s are signed by the business owner only.`)}
+  if(['1','2'].includes(t)&&c.securityReview!=='required')bad(`Tier ${t} features always get a hand security review.`);if(t==='1'&&c.bobAutonomy!=='step')bad('Bob runs tier 1 features one step at a time.');
+  const rel=c.release.production||[];if(!rel.length)bad(`Tier ${t}: every release to production needs a person.`);if(t==='1'&&new Set(rel).size<2)bad('A tier 1 release needs two people with different roles.')}
+ return e}
+let SELP={};const presetOf=t=>{const c=POL.tiers[t];if(SELP[t]&&same(c,preset(SELP[t],t)))return SELP[t];for(const[k]of PRESETS)if(same(c,preset(k,t)))return k;return 'custom'};
+function knobSVG(){return `<svg viewBox="-70 -36 440 360" class="knob" id="knob" role="slider" tabindex="0" aria-label="Automation dial" aria-valuemin="0" aria-valuemax="3">
+ <defs><radialGradient id="kb" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#f4f4f4"/><stop offset=".55" stop-color="#c6c6c6"/><stop offset="1" stop-color="#6f6f6f"/></radialGradient>
+ <radialGradient id="kb2" cx="40%" cy="32%" r="70%"><stop offset="0" stop-color="#e0e0e0"/><stop offset="1" stop-color="#8d8d8d"/></radialGradient><filter id="ks" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-opacity=".35"/></filter></defs>
+ ${PANG.map((a,i)=>{const r=124,s=(a-32)*Math.PI/180,e=(a+32)*Math.PI/180,p=(x)=>[150+r*Math.sin(x),150-r*Math.cos(x)];const[a1,b1]=p(s),[a2,b2]=p(e);const col=['var(--hum)','var(--int)','var(--tool)','var(--err)'][i];
+  const lr=160,lx=150+lr*Math.sin(a*Math.PI/180),ly=150-lr*Math.cos(a*Math.PI/180)+5;
+  return `<path class="seg" data-i="${i}" d="M${a1.toFixed(1)} ${b1.toFixed(1)}A${r} ${r} 0 0 1 ${a2.toFixed(1)} ${b2.toFixed(1)}" stroke="${col}" stroke-width="10" fill="none" opacity=".35"/><text class="klab" data-i="${i}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${a<0?'end':'start'}" font-size="17" fill="var(--ts)" style="cursor:pointer">${PRESETS[i][1]}</text>`}).join('')}
+ <circle cx="150" cy="150" r="96" fill="url(#kb)" filter="url(#ks)"/><circle class="kring" cx="150" cy="150" r="96" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
+ <g id="kg" style="transition:transform .5s var(--ex);transform-origin:150px 150px">${Array.from({length:36},(_,i)=>`<line x1="150" y1="58" x2="150" y2="66" stroke="rgba(0,0,0,.28)" stroke-width="2" transform="rotate(${i*10} 150 150)"/>`).join('')}
+ <circle cx="150" cy="150" r="74" fill="url(#kb2)"/><rect x="146" y="80" width="8" height="40" rx="4" fill="#161616"/></g>
+ <text id="kname" x="150" y="156" text-anchor="middle" font-size="16" font-weight="600" fill="#161616"></text><text id="ktier" x="150" y="176" text-anchor="middle" font-size="12" fill="#393939"></text></svg>`}
+function automap(t){const c=POL.tiers[t],errs=validate(POL),drive=c.bobAutonomy==='drive';
+ const who=rs=>rs&&rs.length?rs.map(r=>ROLEW[r]).join(' or '):'';
+ const row=(k,label,chip,bad)=>`<li class="am ${k}${bad?' bad':''}"><i></i><span>${label}</span><span class="tag ${bad?'red':k}">${chip}</span></li>`;
+ const steps=[row('bob','Clarify the spec','Bob writes'),row('bob','Draft the plan','Bob writes'),
+  row('hum','Sign the plan',c.approve.plan.length?`${icon('pen')}${who(c.approve.plan)}`:'nobody signs',!c.approve.plan.length||c.approve.plan.includes('developer')||(t==='1'&&who(c.approve.plan)!=='business owner')),
+  `<li class="amchain${drive?' on':''}"><span class="chainlab">${drive?'Bob may run these back to back':'Bob stops after each step for a person'}</span><ul>`+row('bob','Break into tasks','Bob writes')+row('bob','Build, test first','Bob writes')+row('tool','Security checks before testing','checks verify')+row('bob','Prove every example','Bob writes')+'</ul></li>',
+  row(c.securityReview==='required'?'bob':'pipe','Security review (ASVS)',c.securityReview==='required'?'required · AppSec decides':'optional, may be skipped',['1','2'].includes(t)&&c.securityReview!=='required'),
+  row('hum','Sign the phase',c.approve.phase.length?`${icon('pen')}${who(c.approve.phase)}`:'nobody signs',!c.approve.phase.length||c.approve.phase.includes('developer')),
+  row('pipe','Release to test','automatic after merge'),
+  row('hum','Release to production',(c.release.production||[]).length?`${icon('pen')}${(c.release.production||[]).map(r=>ROLEW[r]).join(' + ')}`:'no one approves',!(c.release.production||[]).length||(t==='1'&&new Set(c.release.production).size<2))];
+ return `<ul class="amap">${steps.join('')}</ul>`}
+const amCSS=`<style>.amap,.amap ul{list-style:none;margin:0;padding:0}.amap{position:relative}.amap::before{content:"";position:absolute;left:11px;top:14px;bottom:14px;width:2px;background:var(--bs1)}
+.am{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:44px;font-size:14px}.am i{width:12px;height:12px;border-radius:50%;margin-left:6px;background:var(--c,var(--bst));box-shadow:0 0 0 3px var(--bg);z-index:1}
+.am.bob i{--c:var(--bob)}.am.hum i{--c:var(--hum)}.am.tool i{--c:var(--tool)}.am.pipe i{--c:var(--pipe)}.am.bad i{--c:var(--err)}.am.bad span:nth-child(2){color:var(--err);font-weight:600}
+.amchain{position:relative;margin:4px 0 4px 30px;padding:24px 8px 4px 0;border-left:2px dashed var(--bs1);padding-left:0}.amchain .am{margin-left:-30px}.amchain.on{border-left:3px solid var(--bob);background:rgba(138,63,252,.07);background:linear-gradient(90deg,color-mix(in srgb,var(--bob) 10%,transparent),transparent)}
+.chainlab{position:absolute;top:4px;left:10px;font-size:12px;letter-spacing:.32px;color:var(--ts)}.amchain.on .chainlab{color:var(--bobtx);font-weight:600}</style>`;
+P.dial={title:'Automation dial',render(){const t=DT,c=POL.tiers[t],errs=validate(POL),T=POL.tiers,auto=`<span class="tag tool">${icon('judge')}always automated</span>`;
+ const gate=(name,val,lock)=>`<tr><td>${name}</td>${['1','2','3'].map(x=>`<td>${val(x)}</td>`).join('')}<td>${lock?`<span class="tag red">${icon('lock')}locked</span>`:''}</td></tr>`;
+ return `${amCSS}<div class="wrap"><p class="eyebrow">Customise</p><h1>The automation dial: what runs by itself, and what a person must sign</h1>
+ <p class="lede">Every feature has a risk tier in <code>sdd/governance/policy.json</code>. The tier decides who signs, whether a hand security review is required and how far Bob may run on its own. Turn the dial to see what changes. Some gates are locked: the policy check, run in every pipeline, fails if a change would remove them.</p>
+ <div class="tabs" role="tablist" id="dtabs">${['1','2','3'].map(x=>`<button role="tab" aria-selected="${x===t}" data-t="${x}">Tier ${x} · ${esc(T[x].label)}</button>`).join('')}</div>
+ <div class="tabpanel" role="tabpanel" style="padding:24px"><div class="row">
+ <div class="c7"><p style="margin:0 0 8px">${tierTag(t)}</p><p class="muted" style="margin:0">${esc(D.policy.tiers[t].means)}</p><p class="helper" style="margin-top:4px">${D.features.filter(f=>String(f.tier)===t).map(f=>`${f.id} ${esc(f.title.split(/[,—(]/)[0].trim())}`).join(' · ')}</p>
+ <div class="fig" style="max-width:440px;margin:8px auto 0">${knobSVG()}</div>
+ ${t==='1'?'<p class="helper" style="text-align:center;margin:-8px 0 12px">For tier 1, locked down, kit default and lean are the same: the locked gates leave nothing to loosen.</p>':''}<div id="pcheck">${errs.length?notif('err','Policy check fails.',`<ul>${errs.map(x=>`<li>Locked: ${esc(x)}</li>`).join('')}</ul>`):notif('ok','Policy check passes.','Every locked human gate is in place.')}</div></div>
+ <div class="c9"><h4 style="margin-bottom:12px">What happens to a tier ${t} feature</h4>${automap(t)}</div></div></div>
+ <details class="acc" ${this.fine?'open':''} id="fine"><summary>Fine-tune tier ${t}${icon('chevD')}</summary><div class="in"><div class="row" style="row-gap:16px">
+ <div class="c4"><h4>Who may sign the plan</h4>${['business-owner','architect','developer'].map(r=>`<label class="chk"><input type="checkbox" data-k="plan" value="${r}" ${c.approve.plan.includes(r)?'checked':''}>${ROLEW[r]}</label>`).join('')}</div>
+ <div class="c4"><h4>Who may sign the phase</h4>${['business-owner','architect','developer'].map(r=>`<label class="chk"><input type="checkbox" data-k="phase" value="${r}" ${c.approve.phase.includes(r)?'checked':''}>${ROLEW[r]}</label>`).join('')}</div>
+ <div class="c4"><h4>Hand security review</h4>${['required','optional'].map(v=>`<label class="chk"><input type="radio" name="sr" data-k="sr" value="${v}" ${c.securityReview===v?'checked':''}>${v}</label>`).join('')}<h4 style="margin-top:12px">Bob</h4><label class="tog"><input type="checkbox" data-k="ba" ${c.bobAutonomy==='drive'?'checked':''}>may run several steps</label></div>
+ <div class="c4"><h4>Production approved by</h4>${['business-owner','appsec'].map(r=>`<label class="chk"><input type="checkbox" data-k="rel" value="${r}" ${(c.release.production||[]).includes(r)?'checked':''}>${ROLEW[r]}</label>`).join('')}</div></div>
+ <div style="margin-top:16px">${snip(JSON.stringify({[t]:{approve:c.approve,securityReview:c.securityReview,bobAutonomy:c.bobAutonomy,release:c.release}},null,2),{cap:'sdd/governance/policy.json → tiers'})}</div>
+ <button class="btn ghost md" id="dreset" type="button">Reset every tier to the kit's policy${icon('reset')}</button>
+ <p class="helper" style="margin-top:8px">To make it real, change the file in a <code>chore(SDD): …</code> commit that code owners review. Pipelines read the policy from the target branch, so a change cannot approve itself.</p></div></details>
+ <h2>Every gate, tier by tier</h2><p class="sub">This table follows your changes above.</p>
+ <div class="tablewrap"><table class="dt"><thead><tr><th>Gate</th><th>Tier 1 Critical</th><th>Tier 2 Sensitive</th><th>Tier 3 Standard</th><th></th></tr></thead><tbody>
+ ${gate('Commit rules G1–G10, checks in Bob and at commit, spec checks',()=>auto,0)}${gate('Tests; security checks before testing',()=>auto,0)}${gate('Every sign-off re-checked by the pipeline',()=>auto,0)}
+ ${gate('<b>Plan sign-off</b>',x=>T[x].approve.plan.length?`<span class="tag hum">${icon('pen')}${roles(T[x].approve.plan)}</span>`:'<span class="tag red">nobody</span>',1)}
+ ${gate('Hand security review (ASVS L2)',x=>T[x].securityReview==='required'?'<span class="tag hum">required · AppSec decides</span>':'<span class="tag outline">optional</span>',1)}
+ ${gate('How far Bob may run',x=>`<span class="tag bob">${T[x].bobAutonomy==='step'?'one step at a time':'several steps'}</span>`,1)}
+ ${gate('<b>Phase sign-off</b>',x=>T[x].approve.phase.length?`<span class="tag hum">${icon('pen')}${roles(T[x].approve.phase)}</span>`:'<span class="tag red">nobody</span>',1)}
+ ${gate('Change request decision',()=>`<span class="tag hum">${roles(D.decisions.cr)}</span>`,1)}${gate('Accepting a security risk',()=>`<span class="tag hum">${roles(D.decisions.waiver)}</span>`,1)}
+ ${gate('Release to test',()=>'<span class="tag pipe">automatic after merge</span>',0)}${gate('<b>Release to production</b>',x=>(T[x].release.production||[]).length?`<span class="tag hum">${icon('pen')}${(T[x].release.production||[]).map(r=>ROLEW[r]).join(' + ')}</span>`:'<span class="tag red">nobody</span>',1)}</tbody></table></div>
+ <h2>Bob's autonomy has three layers</h2><p class="sub">The dial is the top layer. Underneath, each mode's approval settings decide which actions Bob may take without asking, and an organisation policy makes sure nobody switches the hooks off.</p>
+ <div class="row" style="align-items:center"><div class="c8" id="layers3"></div><div class="c8"><ul class="stack-legend" id="l3legend">
+ <li><button data-i="2" type="button"><i style="--c:#007d79"></i><span><b>3 · The dial</b><small><code>bobAutonomy</code> per tier tells the 🎼 Conductor whether it may chain steps. Tier 1 is always one step at a time.</small></span><span class="tag tool">policy.json</span></button></li>
+ <li><button data-i="1" type="button"><i style="--c:#6929c4"></i><span><b>2 · Bob's approval settings</b><small>Per mode, which writes and commands Bob may run without asking. Keep them on "ask" for tier 1 work.</small></span><span class="tag bob">per mode</span></button></li>
+ <li><button data-i="0" type="button"><i style="--c:#002d9c"></i><span><b>1 · The organisation's lock</b><small>A Bob enterprise policy (sample in <code>sdd/docs/enterprise-policy.sample.json</code>) enforces the hooks for everyone.</small></span><span class="tag pipe">enterprise</span></button></li></ul></div></div>
+ ${next('security','Security, shifted left')}</div>`},
+ mount(el){const t=DT;
+  $('#dtabs',el).addEventListener('click',e=>{const b=e.target.closest('button');if(b){DT=b.dataset.t;route(true)}});
+  $('#dtabs',el).addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){DT=String((+DT+(e.key==='ArrowRight'?0:-2)+3)%3+1);route(true);$(`#dtabs [data-t="${DT}"]`).focus()}});
+  const k=$('#knob',el),kg=$('#kg',el);let cur=presetOf(t);
+  const paint=(animate)=>{const i=PRESETS.findIndex(p=>p[0]===cur),errs=validate(POL);let a=i>=0?PANG[i]:0;
+   if(i<0){const c=POL.tiers[t],sc=(c.approve.plan.length>1)+(c.securityReview==='optional')+(c.bobAutonomy==='drive')+((c.release.production||[]).length<2);a=errs.length?120:-120+sc*50}
+   kg.style.transform=`rotate(${a}deg)`;$('#kname',el).textContent=i>=0?PRESETS[i][1]:'Custom';$('#ktier',el).textContent=`tier ${t}`;
+   $$('.seg',k).forEach((s,j)=>s.setAttribute('opacity',j===i?1:.3));$$('.klab',k).forEach((s,j)=>{s.setAttribute('fill',j===i?'var(--tp)':'var(--ts)');s.setAttribute('font-weight',j===i?600:400)});
+   k.setAttribute('aria-valuenow',Math.max(0,i));k.setAttribute('aria-valuetext',(i>=0?PRESETS[i][1]:'Custom')+(errs.length?', policy check fails':', policy check passes'))};
+  const set=i=>{i=Math.max(0,Math.min(3,i));SELP[t]=PRESETS[i][0];POL.tiers[t]=preset(PRESETS[i][0],t);this.fine=$('#fine',el).open;route(true);$('#knob').focus({preventScroll:true})};
+  paint();
+  k.addEventListener('keydown',e=>{const i=Math.max(0,PRESETS.findIndex(p=>p[0]===cur));if(['ArrowRight','ArrowUp'].includes(e.key)){e.preventDefault();set(i+1)}if(['ArrowLeft','ArrowDown'].includes(e.key)){e.preventDefault();set(i-1)}});
+  k.addEventListener('click',e=>{const l=e.target.closest('.klab,.seg');if(l){set(+l.dataset.i);return}});
+  let dragging=false;const ang=e=>{const r=k.getBoundingClientRect(),sx=r.width/440,cx=r.left+(150+70)*sx,cy=r.top+(150+36)*sx;return Math.atan2(e.clientX-cx,-(e.clientY-cy))*180/Math.PI};
+  k.addEventListener('pointerdown',e=>{if(e.target.closest('.klab,.seg'))return;dragging=true;k.setPointerCapture(e.pointerId)});
+  k.addEventListener('pointermove',e=>{if(!dragging)return;const a=Math.max(-150,Math.min(150,ang(e)));kg.style.transition='none';kg.style.transform=`rotate(${a}deg)`});
+  k.addEventListener('pointerup',e=>{if(!dragging)return;dragging=false;kg.style.transition='';const a=ang(e);let bi=0;PANG.forEach((p,i)=>{if(Math.abs(p-a)<Math.abs(PANG[bi]-a))bi=i});set(bi)});
+  $$('#fine input',el).forEach(inp=>inp.onchange=()=>{const c=POL.tiers[t],get=k2=>$$(`#fine input[data-k=${k2}]:checked`,el).map(x=>x.value);
+   const kk=inp.dataset.k;if(kk==='plan')c.approve.plan=get('plan');if(kk==='phase')c.approve.phase=get('phase');if(kk==='rel')c.release.production=get('rel');if(kk==='sr')c.securityReview=inp.value;if(kk==='ba')c.bobAutonomy=inp.checked?'drive':'step';
+   this.fine=true;route(true)});
+  $('#fine',el).addEventListener('toggle',e=>{this.fine=e.target.open});
+  $('#dreset',el).onclick=()=>{POL=clone(D.policy);SELP={};route(true);toast('Every tier is back to the kit\'s policy')};
+  const st=isoStack($('#layers3',el),[{color:'#002d9c',icon:'lock'},{color:'#6929c4',icon:'bot'},{color:'#007d79',icon:'meter'}],{label:'Three layers of Bob autonomy',h:300,w:170,t:34,gap:22,top:'66%'});this.st=st;
+  const lg=$('#l3legend',el);lg.addEventListener('mouseover',e=>{const b=e.target.closest('button');if(b)st.highlight(+b.dataset.i)});lg.addEventListener('mouseleave',()=>st.highlight(-1));lg.addEventListener('focusin',e=>{const b=e.target.closest('button');if(b)st.highlight(+b.dataset.i)})},
+ unmount(){this.st&&this.st.stop()}};
+
+/* ============ SECURITY: defence layers ============ */
+const LAYERS=[['While Bob writes',"Bob's hook: built-in checks",'seconds: the write never lands'],['At commit','pre-commit checks, rules G1–G10','minutes, on the laptop'],['Before any testing','/sdd-scan: built-in + your tools','minutes, before anyone tests'],['Proof','a tagged test per acceptance criterion','an hour, still in the feature'],
+ ['Hand review','🛡️ Security Reviewer, OWASP ASVS L2','hours, before the phase demo'],['Pipeline','ci.mjs pr: everything again','hours, the merge is blocked'],['Test environment','DAST, e.g. an OWASP ZAP baseline','a day, after a deployment'],['Before production','gate for this exact commit; people approve','days: a release is stopped']];
+const THREATS=[{id:'key',l:'Hard-coded API key',d:'A developer, or Bob, pastes a cloud key into a config file.',c:[0,1,2,5],m:{2:'The secrets check runs again over all the code before testing.',0:'That write contains what looks like an AWS access key (aws-access-key). Secrets never go in the repository: read it from the environment instead.',1:'G10 no secrets in commits: apps/api/src/rail.ts:12 looks like an AWS access key (aws-access-key)…',5:'✖ secrets  apps/api/src/rail.ts:12 looks like an AWS access key (aws-access-key)'}},
+ {id:'sqli',l:'SQL built from user input',d:'A statement search builds its query by joining strings.',c:[0,1,2,4,5],m:{0:'That write builds SQL from strings (sql-string). Fix: pass values as parameters (the query builder, or $1 placeholders).',1:'pre-commit: risky-code — builds SQL from strings (sql-string).',2:'The scan fails on the risky-code check; with SonarQube as the scanner, its quality gate fails too.',4:'ASVS V5: the review lists it as a High finding; AppSec decides.',5:'✖ scan  risky-code: 1 blocking finding(s)'}},
+ {id:'cve',l:'Compromised library version',d:'Someone adds event-stream 3.3.6 to package.json.',c:[1,2,5],m:{1:'apps/api/package.json: event-stream@3.3.6 is on the bank\'s deny-list — compromised release (2018) that pulled in a dependency stealing cryptocurrency wallets.',2:'The dependencies check runs again before testing; a CVE scanner you plug in (OSV-Scanner, SonarQube) adds known vulnerabilities.',5:'✖ scan  dependencies: 1 blocking finding(s)'}},
+ {id:'idor',l:'Customer sees another customer\'s account',d:'An account ID in the URL is trusted without checking the owner.',c:[3,4],m:{3:'The spec says a customer sees only their own accounts. The tagged test for that acceptance criterion fails.',4:'ASVS V4 access control: the reviewer checks every endpoint that takes an ID.'}},
+ {id:'hdr',l:'Missing security headers',d:'Responses lack a content security policy and secure cookie flags.',c:[4,6],m:{4:'ASVS V14 configuration: the review flags the missing headers and cookie flags.',6:'The DAST baseline scan of the running app reports them again.'}},
+ {id:'nosonar',l:'Silence a finding with // NOSONAR',d:'Someone tries to make the scanner look away.',c:[0,1,5],m:{0:'Suppressing SonarQube findings in code (NOSONAR / sonar.issue.ignore) is not allowed.',1:'G8 no suppression of SonarQube findings in code.',5:'✖ commits  G8 on commit 7d2e1fa'}},
+ {id:'scope',l:'Quietly change a signed spec',d:'The daily limit is edited in the spec during the build.',c:[0,1,5],m:{0:'Implementation cannot change specs, contracts, ADRs or design. If they are wrong, raise /sdd-change-request.',1:'G9 approved scope is locked: cite an approved change request whose "affects" lists the file.',5:'✖ commits  G9 on commit 0b44c19'}}];
+let THR='key',NOBOB=false,NOHOOK=false;
+const PCOLS=[['bob','While Bob writes'],['commit','At commit'],['scan','Before testing'],['pipeline','In the pipeline'],['release','Release and risk']];
+const PLUGS=[{id:'bob-ide',n:'IBM Bob: its own findings',ibm:1,st:['bob'],kind:'ide',what:'Bob reviews code as you work (/review, Bob tips), and IBM describes secrets detection built in; findings land in Bob Findings. The DevSecOps premium package adds real-time SAST, supply-chain scanning and blocking of unsafe dependencies.',how:'In the editor, next to the kit\'s hook: Bob advises and offers a fix; the hook\'s built-in checks block, the same way for everyone.'},
+ {id:'concert-secure-coder',n:'IBM Concert Secure Coder',note:'tech preview',ibm:1,st:['bob'],kind:'ide',what:'Pre-commit risk visibility in the IDE: vulnerabilities, secrets, misconfigurations and risky open-source packages.',how:'An IDE tool for developers; connected to IBM Concert, it reports into your application risk view.'},
+ {id:'ibm-detect-secrets',n:'IBM detect-secrets',note:'open source',ibm:1,kind:'cmd',what:'Open-source secret scanner IBM maintains, a fork of Yelp\'s detect-secrets with extra detectors. An audited baseline lives in git; any new secret is blocked.',how:'The ibm-detect-secrets entry in checks.json: one switch puts it in the commit hook, the scan and every pipeline. It complements Bob\'s own detection: Bob advises in one editor; detect-secrets blocks every commit, whoever wrote it.'},
+ {id:'vault-radar',n:'HashiCorp Vault Radar',note:'IBM company',ibm:1,kind:'cmd',what:'Finds unmanaged secrets and ties them to your HashiCorp Vault, where secrets belong.',how:'The vault-radar entry; HCP credentials come from the environment, never a file.'},
+ {id:'bob-review',n:'IBM Bob Shell review',note:'advisory',ibm:1,kind:'cmd',what:'Bob Shell 2.x runs non-interactively in CI (bob run --mode sdd-pr-reviewer) and reviews the change in the read-only reviewer mode.',how:'The bob-review entry, set to warn: Bob flags, the checks and people decide. Needs BOB_API_KEY from the pipeline\'s secret store.'},
+ {id:'cra',n:'IBM Cloud Code Risk Analyzer',ibm:1,st:['pipeline'],kind:'ext',what:'DevSecOps toolchain tasks on IBM Cloud: vulnerabilities, licences, CIS checks and a bill of materials.',how:'For teams on IBM Cloud toolchains: run ci.mjs pr as a Tekton task alongside it.'},
+ {id:'concert-protect',n:'IBM Concert Protect',ibm:1,st:['release'],kind:'ext',what:'Risk-based vulnerability prioritisation using severity, exploitability and the application\'s business context.',how:'Helps AppSec decide which findings block and which are waived (approve.mjs waiver, with an expiry).'},
+ {id:'devops-deploy',n:'IBM DevOps Deploy',ibm:1,st:['release'],kind:'ext',what:'Quality gates and approvals before each environment.',how:'Call ci.mjs release --phase N --env production as a gate; the approvers are the people policy.json names.'},
+ {id:'osv-scanner',n:'OSV-Scanner',kind:'cmd',what:'Known vulnerabilities in dependencies.',how:'The osv-scanner entry in checks.json.'},
+ {id:'sonarqube',n:'SonarQube',kind:'scanner',st:['scan','pipeline'],what:'Static analysis with a quality gate; can also judge dependencies.',how:'Set "scanner": "sonarqube" and its gate gives the verdict before testing; the checks keep running alongside.'}];
+const ckOf=id=>(D.checks.checks||[]).find(c=>c.id===id);
+const plugStages=p=>p.st||(ckOf(p.id)?.stages)||[];
+let PON={},PSEL='ibm-detect-secrets',PIBM=true;
+function plugSnippet(){const out={};const changed=PLUGS.filter(p=>PON[p.id]);if(PON.sonarqube)out.scanner='sonarqube';
+ const ch=changed.filter(p=>p.kind==='cmd').map(p=>({...ckOf(p.id),enabled:true}));if(ch.length)out.checks=ch.map(c=>{const{install,docs,...r}=c;return r});
+ return Object.keys(out).length?'// sdd/governance/checks.json — a chore(SDD) change that code owners review\n'+JSON.stringify(out,null,2):'// Nothing switched on: the built-in checks run on their own (secrets, risky code, dependencies).\n// Switch a tool on in the table to see the change to sdd/governance/checks.json.'}
+
+P.security={title:'Security, shifted left',render(){return `<div class="wrap"><p class="eyebrow">Security, shifted left</p><h1>Developers find security problems before anything ships</h1>
+ <p class="lede">Each kind of problem has a place where it is cheapest to catch. The kit puts a check there, and again later where nobody can switch it off. Pick a threat and send it through the layers; then plug in your organisation's own tools below.</p>
+ <div class="row"><div class="c9"><div class="panel" style="padding:16px"><div class="fig" id="plates"></div></div></div>
+ <div class="c7"><h4>Pick a threat</h4><ul class="optlist" id="thr">${THREATS.map(x=>`<li><button type="button" data-id="${x.id}" aria-pressed="${x.id===THR}">${icon('warn')}<span><b>${esc(x.l)}</b><br><span class="muted">${esc(x.d)}</span></span></button></li>`).join('')}</ul>
+ <div style="margin:16px 0;display:grid;gap:4px"><label class="tog"><input type="checkbox" id="nobob" ${NOBOB?'checked':''}>Hand edit, without Bob</label><label class="tog"><input type="checkbox" id="nohook" ${NOHOOK?'checked':''}>Skip the git hook (<code>--no-verify</code>)</label></div>
+ <button class="btn pri" id="send" type="button">Send it through${icon('play')}</button>
+ <div id="verdict" aria-live="polite" style="margin-top:16px"></div></div></div>
+
+ <h2>Plug in your organisation's tools</h2><p class="sub">The same tool can run at several stages. Built-in checks need only Node; your own tools plug in through <code>sdd/governance/checks.json</code>. IBM examples are shown first; any tool with a command line fits. Switch one on to see the change.</p>
+ <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:12px">${cs('pibm',[['ibm','IBM portfolio'],['all','All examples']],PIBM?'ibm':'all','Which tools',true)}<span class="legend"><span><span class="d V" style="display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:10px;margin-right:6px">●</span>runs here</span><span><span class="d R" style="display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:10px;margin-right:6px">●</span>switched on by you</span></span></div>
+ <div class="tablewrap"><table class="dt mx" id="plugs"><thead><tr><th>Tool</th>${PCOLS.map(c=>`<th>${c[1]}</th>`).join('')}<th>Switch on</th></tr></thead><tbody></tbody></table></div>
+ <div class="row" style="margin-top:1px"><div class="c7"><div class="panel" id="pdet" aria-live="polite"></div></div><div class="c9"><div id="psnip"></div></div></div>
+ <p class="helper" style="margin-top:8px">Examples, not requirements: the kit runs with no licence. Concert Secure Coder is a tech preview; check each product's current documentation before you rely on it. Full map: <code>sdd/docs/CHECKS.md</code>.</p>
+ <h2>The ten commit rules</h2><p class="sub">They run in Bob's hook, in the git hook and in the pipeline: three times, the same code.</p>
+ <div class="tgrid g2">${GR.map(([g,t])=>`<div class="tile" style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:8px;padding:16px 16px 16px 0"><span style="font:300 28px/1 var(--plex);color:var(--int);text-align:center">${g}</span><span style="font-size:14px;line-height:20px">${inline(t)}</span></div>`).join('')}</div>
+ <div class="notif info" style="margin-top:24px">${icon('info')}<div><b>No ignore comments for secrets.</b> A value that only looks like a secret, such as a published demo password, goes in <code>sdd/governance/secrets-allowlist.json</code>: a reviewed governance change.</div></div>
+ ${next('pipeline','The CI/CD pipeline')}</div>`},
+ mount(el){const host=$('#plates',el);let raf=0,W=0;
+  const catches=th=>th.c.filter(i=>!(i===0&&NOBOB)&&!(i===1&&NOHOOK));
+  function draw(prog){W=host.clientWidth;if(!W)return;const th=THREATS.find(x=>x.id===THR),cs2=catches(th),first=cs2[0],narrow=W<520;
+   const a=narrow?Math.min(84,W*.2):Math.min(150,W*.25),b=a*.36,t=9,gap=narrow?62:66,top=34,cx=a+10,lx=cx+a+(narrow?14:24),H=top+LAYERS.length*gap+b+30;
+   let s='';for(let i=LAYERS.length-1;i>=0;i--){const y=top+i*gap+b,hit=i===first&&prog>=1,back=cs2.includes(i)&&i!==first,hole=!cs2.includes(i);
+    const fill=hit?'var(--n-err)':'var(--l2)',st=hit?'var(--err)':back?'var(--ts)':'var(--bs1)';
+    s+=`<g><path d="M${cx-a} ${y}L${cx} ${y+b}L${cx} ${y+b+t}L${cx-a} ${y+t}Z" fill="${hit?'var(--err)':'var(--la)'}" opacity="${hit?.5:1}"/><path d="M${cx} ${y+b}L${cx+a} ${y}L${cx+a} ${y+t}L${cx} ${y+b+t}Z" fill="${hit?'var(--err)':'var(--bs1)'}" opacity="${hit?.7:1}"/>
+    <path d="M${cx-a} ${y}L${cx} ${y-b}L${cx+a} ${y}L${cx} ${y+b}Z" fill="${fill}" stroke="${st}" stroke-width="${hit||back?2:1}" ${back?'stroke-dasharray="6 4"':''}/>
+    ${hole?`<ellipse cx="${cx}" cy="${y}" rx="${a*.2}" ry="${b*.32}" fill="var(--l1)" stroke="var(--bs1)"/><ellipse cx="${cx}" cy="${y+2}" rx="${a*.17}" ry="${b*.22}" fill="var(--bst)" opacity=".35"/>`:''}
+    <text x="${lx}" y="${y-2}" font-size="${narrow?13:14}" font-weight="600" fill="${hit?'var(--err)':'var(--tp)'}">${esc(LAYERS[i][0])}</text>
+    <text x="${lx}" y="${y+15}" font-size="12" fill="var(--ts)">${hit?'caught here':back?'would catch it again':narrow?'':esc(LAYERS[i][1])}</text></g>`}
+   const yEnd=first==null?H-10:top+first*gap+b-6,py=8+(yEnd-8)*Math.min(1,prog);
+   s+=`<circle cx="${cx}" cy="${py}" r="9" fill="var(--err)" stroke="var(--l2)" stroke-width="3"/>`;
+   if(prog>=1&&first!=null)s+=`<circle cx="${cx}" cy="${yEnd}" r="${14+Math.min(1,prog-1)*30}" fill="none" stroke="var(--err)" stroke-width="2" opacity="${Math.max(0,1-(prog-1))}"/>`;
+   host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Eight defence layers; ${esc(th.l)} is caught at ${esc(LAYERS[first]?.[0]||'none')}">${s}</svg>`}
+  const verdict=()=>{const th=THREATS.find(x=>x.id===THR),c2=catches(th),f=c2[0];
+   $('#verdict',el).innerHTML=`${notif('err',`Caught at: ${esc(LAYERS[f][0])}.`,`<p style="margin-top:4px"><code style="white-space:normal">${esc(th.m[f])}</code></p>`)}
+   <p class="label" style="margin:16px 0 0">Time to fix when found here: <b>${esc(LAYERS[f][2])}</b></p><div class="meter">${LAYERS.map((_,i)=>`<i class="${i<=f?'on':''}" style="--c:${i<=1?'var(--ok)':i<=4?'var(--warn)':'var(--err)'}"></i>`).join('')}</div>
+   ${c2.length>1?`<p class="helper">Backstops that would catch it again: ${c2.slice(1).map(i=>esc(LAYERS[i][0])).join(', ')}.</p>`:'<p class="helper">No later layer catches this one, which is why the earlier check matters.</p>'}`};
+  const run=()=>{cancelAnimationFrame(raf);if(!$('#verdict',el))return;if(RM){draw(1);verdict();return}const t0=performance.now(),th=THREATS.find(x=>x.id===THR),f=catches(th)[0],dur=500+f*260;
+   $('#verdict',el).innerHTML='';const step=now=>{const p=(now-t0)/dur;draw(p);if(p<2){raf=requestAnimationFrame(step)}else{draw(2)}if(p>=1&&!$('#verdict .notif',el))verdict()};raf=requestAnimationFrame(step)};
+  $('#thr',el).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;THR=b.dataset.id;$$('#thr button',el).forEach(x=>x.setAttribute('aria-pressed',x===b));run()});
+  $('#nobob',el).onchange=e=>{NOBOB=e.target.checked;run()};$('#nohook',el).onchange=e=>{NOHOOK=e.target.checked;run()};$('#send',el).onclick=run;
+
+  const drawPlugs=()=>{const list=PLUGS.filter(p=>!PIBM||p.ibm);if(!list.some(p=>p.id===PSEL))PSEL=list[0].id;
+   $('#plugs tbody',el).innerHTML=list.map(p=>{const st=plugStages(p),on=!!PON[p.id],can=p.kind==='cmd'||p.kind==='scanner';
+    return `<tr data-id="${p.id}" class="${p.id===PSEL?'hl':''}" style="cursor:pointer"><td><b>${esc(p.n)}</b>${p.note?` <span class="tag outline">${esc(p.note)}</span>`:''}</td>${PCOLS.map(([k])=>`<td>${st.includes(k)?`<span class="d ${can&&on?'R':can?'N':'V'}" title="${can&&!on?'available, switched off':'runs here'}">●</span>`:''}</td>`).join('')}<td>${can?`<label class="tog" style="min-height:24px"><input type="checkbox" data-p="${p.id}" ${on?'checked':''} aria-label="Switch on ${esc(p.n)}"></label>`:`<span class="helper">${p.kind==='ide'?'in the IDE':'alongside'}</span>`}</td></tr>`}).join('');
+   const p=PLUGS.find(x=>x.id===PSEL),st=plugStages(p);
+   $('#pdet',el).innerHTML=`<h4>${esc(p.n)}</h4><p style="font-size:14px;line-height:20px">${esc(p.what)}</p><p class="muted" style="font-size:14px;line-height:20px">${esc(p.how)}</p><p class="helper" style="margin:0">Runs: ${st.map(k=>PCOLS.find(c=>c[0]===k)[1].toLowerCase()).join(', ')}.</p>`;
+   $('#psnip',el).innerHTML=snip(plugSnippet(),{long:1,wrap:1});};
+  bindCS(el,'pibm',v=>{PIBM=v==='ibm';drawPlugs()});
+  $('#plugs',el).addEventListener('click',e=>{const t=e.target.closest('input[data-p]');if(t){PON[t.dataset.p]=t.checked;PSEL=t.dataset.p;drawPlugs();return}const tr=e.target.closest('tr[data-id]');if(tr&&!e.target.closest('label')){PSEL=tr.dataset.id;drawPlugs()}});
+  drawPlugs();
+  this.ro=new ResizeObserver(()=>{if(host.clientWidth!==W){draw(2);}});this.ro.observe(host);draw(0);const tm=setTimeout(run,RM?0:500);this.stop=()=>{clearTimeout(tm);cancelAnimationFrame(raf);this.ro.disconnect()}},
+ unmount(){this.stop&&this.stop();this.ro&&this.ro.disconnect()}};
+const GR=[['G1','Conventional commit header: `type(scope): …`, scope F##, CR-###, SDD or a plain word.'],['G2','Code commits name a feature and at least one requirement ID: `feat(F04): … [XFER-021]`.'],['G3','Code only after that feature\'s plan is signed, bound to its hash, and `tasks.md` exists.'],['G4','Code and specs never in the same commit (task ticks and change requests excepted).'],['G5','The constitution changes only through an approved change request.'],
+ ['G6','Sign-offs are committed alone, as `chore(SDD)`; the pipeline checks each one is real.'],['G7','Governance files (Bob\'s set-up, scripts, policy, workflows) need scope SDD and code-owner review.'],['G8','No suppressing SonarQube findings in code (`NOSONAR`, `sonar.issue.ignore`).'],['G9','Signed scope is locked: changing it needs an approved change request that lists the file.'],['G10','No secrets in commits: private keys, tokens, hard-coded passwords.']];
+
+/* ============ PIPELINE simulator ============ */
+const STAGES=[['policy','Automation dial, locked human gates and the checks configuration'],['specs','Specs, contract and traceability'],['commits','Commit rules G1–G10 (the same rules as the local hook)'],['signoffs','Every sign-off was made by a listed person with the right role'],['secrets','Secret scan of everything this change adds'],['tests','Unit, integration and contract tests'],['scan','Security checks before testing: built-in and your organisation\'s tools']];
+const SHORT={policy:'dial, locked gates, checks.json',specs:'specs, contract, traceability',commits:'G1–G10 on every commit',signoffs:'right person, right role',secrets:'everything the change adds',tests:'unit, integration, contract',scan:'checks + your tools'};
+const SCEN=[{id:'clean',l:'A clean pull request',d:'Phase 3 work on F04 transfers, signed by the owner.',f:{}},
+ {id:'secret',l:'Leaked key, hook skipped',d:'A developer committed a key with --no-verify.',f:{commits:['a41f9c2 G10 no secrets in commits: apps/api/src/rail.ts:12 looks like an AWS access key (aws-access-key)…'],secrets:['apps/api/src/rail.ts:12 looks like an AWS access key (aws-access-key)','Secrets never go in the repository: read it from the environment instead.']}},
+ {id:'forged',l:'Hand-written sign-off',d:'Someone typed the owner\'s approval into approvals.json.',f:{signoffs:['plan F04: the record says it was signed by bea@tidewell.example, but ali@tidewell.example committed it']}},
+ {id:'four',l:'Owner signs their own change',d:'The owner edited the plan, then signed it.',f:{signoffs:['plan F04: Bea Owner also made changes in this pull request, so they cannot sign it (four-eyes).']}},
+ {id:'test',l:'An example is not met',d:'The daily limit check lets an AED 3,000 transfer through.',f:{tests:['✖ [XFER-021-AC1] refuses an AED 3,000.00 transfer with AED 48,000.00 already sent today','    expected LIMIT_EXCEEDED_DAILY, got 201 Created']}},
+ {id:'policy',l:'Weakened policy',d:'policy.json lets the developer sign tier 1 plans.',f:{policy:['Locked: tier 1 lets the developer sign the plan. The maker is never the checker.']}},
+ {id:'scan',l:'Risky code, hook skipped',d:'SQL joined from strings, committed with --no-verify.',f:{scan:['risky-code: 1 blocking finding(s)','apps/api/src/statements/search.ts:48 builds SQL from strings (sql-string). Fix: pass values as parameters.']}}];
+let SC='clean',CI='jenkins';
+P.pipeline={title:'CI/CD pipeline',render(){const opts=[['none','No CI yet'],['jenkins','Jenkins'],['azure','Azure DevOps'],['gitlab','GitLab'],['github','GitHub Actions']];
+ const notes={none:'The git hooks are the only automatic check, and a hook can be skipped. Until a pipeline exists, the reviewer runs <code>node sdd/scripts/ci.mjs pr</code> before merging, or any CI runs <code>sdd/ci/sdd-gate.sh</code>.',
+  jenkins:'For GitHub Enterprise without Actions, Bitbucket or any git server. Jenkins posts the result as a commit status that branch protection requires. For production, Jenkins asks the people <code>policy.json</code> names: for tier 1, the business owner, then AppSec, two different people.',
+  azure:'Build validation makes the gate required on <code>main</code>. Approvals live on the <code>tidewell-production</code> environment: add the business owner and AppSec groups.',
+  gitlab:'"Pipelines must succeed" makes the gate required. Protect the <code>production</code> environment with the business owner and AppSec groups as approvers.',
+  github:'The public GitHub path: <code>.github/workflows/sdd-gates.yml</code> runs the same checks on every push and pull request; sign-offs are comments recorded by <code>sdd-signoff.yml</code>; Bob reviews pull requests. Set <code>"approvalChannel": "github"</code>.'};
+ const file={none:D.ci.shell,jenkins:D.ci.jenkins,azure:D.ci.azure,gitlab:D.ci.gitlab,github:'# .github/workflows/sdd-gates.yml (excerpt)\n#   sdd-policy: policy.mjs check · validate-specs · git-check --ci (G1–G10)\n#   signoffs:   verify-signoffs.mjs (every sign-off against its comment or commit)\n#   sonarqube:  scan.mjs --ci (quality gate + dependency CVEs)\n# promote-to-test.yml: scan.mjs --gate-only --revision <sha>, then deploy-test waits for its reviewer'};
+ return `<div class="wrap"><p class="eyebrow">CI/CD</p><h1>Any pipeline. One command.</h1>
+ <p class="lede">The checks Bob and the git hook run on the laptop are plain Node scripts, so any CI can run them again: <code>node sdd/scripts/ci.mjs pr</code>. Exit 0 passes; exit 1 blocks the merge. Pick a pull request and run the gate.</p>
+ <div class="row"><div class="c5"><h4>Pick a pull request</h4><ul class="optlist" id="scen">${SCEN.map(x=>`<li><button type="button" data-id="${x.id}" aria-pressed="${x.id===SC}">${icon(x.id==='clean'?'ok':'branch')}<span><b>${esc(x.l)}</b><br><span class="muted">${esc(x.d)}</span></span></button></li>`).join('')}</ul>
+ <button class="btn pri" id="rungate" type="button" style="margin-top:16px">Run the gate${icon('play')}</button></div>
+ <div class="c11"><div class="sflow" id="sflow" style="--n:7">${STAGES.map(([k])=>`<div class="st" data-k="${k}">${icon('pending')}<b>${k}</b><small>${SHORT[k]}</small></div>`).join('')}</div>
+ <div class="term" id="term" aria-live="polite" tabindex="0"><span class="m">$ node sdd/scripts/ci.mjs pr</span></div>
+ <div class="sflow" id="promo" style="--n:3;margin-top:24px">${[['pr','Pull request','the gate passes or the merge is blocked','branch'],['test','Test environment','automatic after merge; checks re-run for this exact commit','rocket'],['prod','Production','people approve, per risk tier','pen']].map(([k,l,d,ic])=>`<div class="st" data-k="${k}">${icon(ic)}<b>${l}</b><small id="pm-${k}">${d}</small></div>`).join('')}</div></div></div>
+ <h2>Your CI</h2><p class="sub">Pipeline files for each system are in <code>sdd/ci/</code>. They all run the same command; only the wrapper differs.</p>
+ <div class="tabs" role="tablist" id="citabs">${opts.map(([k,l])=>`<button role="tab" aria-selected="${CI===k}" data-c="${k}">${l}</button>`).join('')}</div>
+ <div class="tabpanel"><p style="max-width:56em">${notes[CI]}</p>${snip(file[CI],{long:1})}</div>
+ <h2>Protect the main branch</h2><p class="sub">These are features of the git host, not of GitHub Actions, so they work everywhere.</p>
+ <div class="tgrid g4">${[['branch','Reviewed pull requests','At least one approving review; code owners for governance files, scripts and Bob\'s set-up.'],['ok','Required status','The SDD gate must pass before merge.'],['lock','No force pushes','No force pushes and no deleting the main branch.'],['pen','Signed sign-offs','Optional: sign-off commits signed with SSH keys in sdd/governance/allowed_signers; the pipeline runs git verify-commit.']].map(([ic,h,t])=>`<div class="tile" style="padding:20px">${icon(ic).replace('<svg','<svg style="width:24px;height:24px;fill:var(--int);margin-bottom:16px"')}<h4>${h}</h4><p class="muted" style="font-size:14px;line-height:20px;margin:0">${esc(t)}</p></div>`).join('')}</div>
+ ${next('guardrails','Guardrails: try a shortcut')}</div>`},
+ mount(el){let timers=[];const clear=()=>{timers.forEach(clearTimeout);timers=[]};const later=(ms,f)=>timers.push(setTimeout(f,RM?0:ms));
+  const term=$('#term',el),add=(h)=>{term.insertAdjacentHTML('beforeend','\n'+h);term.scrollTop=term.scrollHeight};
+  const setSt=(k,st)=>{const b=$(`#sflow [data-k="${k}"]`,el);b.className='st '+st;b.querySelector('svg').outerHTML=icon(st==='run'?'spin':st==='pass'?'ok':st==='fail'?'err':st==='skip'?'skip':'pending',st==='run'?'spin':'');b.querySelector('svg').style.fill=st==='pass'?'var(--ok)':st==='fail'?'var(--err)':st==='run'?'var(--int)':'var(--ts)'};
+  const promo=(k,st,txt)=>{const b=$(`#promo [data-k="${k}"]`,el);b.className='st '+st;if(txt)$('#pm-'+k,el).textContent=txt};
+  const run=()=>{clear();const sc=SCEN.find(x=>x.id===SC);term.innerHTML='<span class="m">$ node sdd/scripts/ci.mjs pr</span>';STAGES.forEach(([k])=>setSt(k,''));['pr','test','prod'].forEach(k=>promo(k,''));
+   $('#pm-pr',el).textContent='the gate passes or the merge is blocked';$('#pm-test',el).textContent='automatic after merge; checks re-run for this exact commit';$('#pm-prod',el).textContent='people approve, per risk tier';
+   add('SDD gate · policy, specs, commits, signoffs, secrets, tests, scan · range origin/main..HEAD\n');promo('pr','run');let t=300;
+   STAGES.forEach(([k,title])=>{later(t,()=>setSt(k,'run'));t+=520;later(t,()=>{const f=sc.f[k];setSt(k,f?'fail':'pass');add(`${f?'<span class="r">✖</span>':'<span class="g">✔</span>'} ${k.padEnd(9)} ${esc(title)}`+(f?f.map(x=>`\n    <span class="r">${esc(x)}</span>`).join(''):''))});t+=80});
+   later(t+200,()=>{const failed=STAGES.filter(([k])=>sc.f[k]).map(([k])=>k);
+    if(failed.length){add(`\n<span class="r">✖ SDD gate failed: ${failed.join(', ')}</span>\n<span class="m">exit 1 · the merge is blocked; fix it in Bob and push again</span>`);promo('pr','fail','merge blocked');promo('test','skip','not deployed');promo('prod','skip','not reached')}
+    else{add('\n<span class="g">✔ SDD gate passed</span>');promo('pr','pass','merged');promo('test','run','deploying 9c1e0b7…');
+     later(900,()=>{promo('test','pass','deployed: checks re-run for 9c1e0b7');add('\n<span class="m">$ node sdd/scripts/ci.mjs release --phase 3 --env production</span>\nRelease to production needs a manual approval in the pipeline by: <span class="p">business owner AND AppSec</span> (strictest tier in this release: 1; sdd/governance/policy.json).');promo('prod','run','waiting for the business owner and AppSec');
+      later(1100,()=>add('<span class="m">Jenkins · input: approved by bea@tidewell.example (business owner) · approved by sara@tidewell.example (AppSec) · two different people ✔</span>\n<span class="g">✔ deployed to production</span>'));later(1100,()=>promo('prod','pass','approved by two people; deployed'))})}
+    add('<span class="cur"></span>')})};
+  $('#scen',el).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;SC=b.dataset.id;$$('#scen button',el).forEach(x=>x.setAttribute('aria-pressed',x===b));run()});
+  $('#rungate',el).onclick=run;$('#citabs',el).addEventListener('click',e=>{const b=e.target.closest('button');if(b){CI=b.dataset.c;route(true)}});
+  later(400,run);this.clear=clear},
+ unmount(){this.clear&&this.clear()}};
+
+/* ============ GUARDRAILS ============ */
+const GL=["Bob's hook",'Git hooks','approve.mjs','Policy check','Pipeline'];
+const GUARD=[['Ask Bob to edit code with no step running','Bob, change the transfer screen','No SDD step is active, so writes are blocked.',0],
+ ['Run /sdd-implement in the wrong mode','/sdd-implement F04      (in 📐 Spec Architect)','Step "implement" must run in 🏗️ Spec Builder (spec-builder), but this mode is 📐 Spec Architect.',0],
+ ['During the build, ask Bob to edit the spec','Bob, the limit is wrong: set it to AED 60,000 in spec.md','Implementation cannot change specs, contracts, ADRs or design. If they are wrong, raise /sdd-change-request.',0],
+ ['Ask Bob to sign the plan','Bob, run node sdd/scripts/approve.mjs plan F04','Approvals are human decisions. Bob must not run approve.mjs — ask the human to sign off.',0],
+ ['Ask Bob to write PASS into the scan evidence','Bob, write "PASS" into sdd/reports/scan/F01.json','sdd/reports/scan/F01.json is external scan evidence. Only sdd/scripts/scan.mjs writes it.',0],
+ ['Ask Bob to add // NOSONAR','Bob, add // NOSONAR to that line','Suppressing SonarQube findings in code (NOSONAR / sonar.issue.ignore) is not allowed.',0],
+ ['Ask Bob to build SQL by joining strings','Bob, search statements with "SELECT … WHERE ref = \'" + q + "\'"','That write builds SQL from strings (sql-string). Fix: pass values as parameters (the query builder, or $1 placeholders). This is the "risky-code" check in sdd/governance/checks.json; it runs again at commit and before any testing.',0],
+ ['Ask Bob to put an API key in a config file','Bob, put the payment API key in config/rail.json','That write contains what looks like an AWS access key (aws-access-key). Secrets never go in the repository: read it from the environment instead.',0],
+ ['Commit a key yourself','$ git commit -m "feat(F04): connect the payment rail [XFER-030]"','G10 no secrets in commits: apps/api/src/aws.ts looks like an AWS access key …',1],
+ ['Commit a compromised library version','$ git commit -m "feat(F04): add streams [XFER-030]"      # package.json: event-stream 3.3.6','apps/api/package.json: event-stream@3.3.6 is on the bank\'s deny-list — compromised release (2018) that pulled in a dependency stealing cryptocurrency wallets. Use another version.',1],
+ ['Switch off the secrets check in checks.json','$ node sdd/scripts/checks.mjs --validate      # after editing checks.json','Locked: the built-in secrets check stays enabled, blocking, in Bob\'s hook and in the scan.',3],
+ ['Commit code without a requirement ID','$ git commit -m "fix: tidy transfers"','G2 code changes need a feature scope like feat(F04): … · G2 add the requirement IDs this commit satisfies, e.g. [XFER-021]',1],
+ ['Sign a plan as the developer','$ node sdd/scripts/approve.mjs plan F04      # git email: ali@tidewell.example','Ali Dev (developer, architect, business-analyst) cannot give this sign-off. F04 is risk tier 1 (Critical). It needs: business owner.',2],
+ ['Let the developer sign tier 1 plans','$ node sdd/scripts/policy.mjs check      # after editing policy.json','Locked: tier 1 lets the developer sign the plan. The maker is never the checker.',3],
+ ['Hand-write a sign-off into approvals.json','$ git push      # approvals.json edited by hand','plan F00: the record says it was signed by bea@tidewell.example, but ali@tidewell.example committed it',4],
+ ['Change the plan, then sign it yourself','$ git push      # Bea edited plan.md, then signed it','plan F00: Bea Owner also made changes in this pull request, so they cannot sign it (four-eyes).',4],
+ ['Skip the hook with --no-verify','$ git commit --no-verify -m "wip" && git push','The local hook was skipped. The pipeline runs the same rules: ✖ commits  G1 on commit 5e0c2aa · the merge is blocked.',4]];
+let GI=0;
+P.guardrails={title:'Guardrails',render(){return `<div class="wrap"><p class="eyebrow">Guardrails</p><h1>Try a shortcut. Something stops it.</h1>
+ <p class="lede">Every refusal below is real output from the kit's scripts; the lab guide's drills reproduce them. Pick a shortcut and watch which layer stops it.</p>
+ <div class="row"><div class="c6"><ul class="optlist" id="gl">${GUARD.map((g,i)=>`<li><button type="button" data-i="${i}" aria-pressed="${i===GI}">${icon(g[3]===0?'bot':g[3]===4?'rocket':g[3]===3?'meter':g[3]===2?'pen':'term')}<span>${esc(g[0])}</span></button></li>`).join('')}</ul></div>
+ <div class="c10"><div class="tags" id="glayers" style="margin-bottom:12px">${GL.map((l,i)=>`<span class="tag outline" data-i="${i}">${l}</span>`).join('')}</div><div class="term" id="gterm" style="min-height:220px" aria-live="polite"></div>
+ <p class="helper" style="margin-top:12px" id="gnote"></p></div></div>
+ <details class="acc" style="margin-top:48px"><summary>All ${GUARD.length} shortcuts in one table${icon('chevD')}</summary><div class="in"><div class="tablewrap"><table class="dt"><thead><tr><th>Try this</th><th>What stops it</th><th>Layer</th></tr></thead><tbody>${GUARD.map(g=>`<tr><td>${esc(g[0])}</td><td><code style="white-space:normal">${esc(g[2])}</code></td><td><span class="tag outline">${GL[g[3]]}</span></td></tr>`).join('')}</tbody></table></div></div></details>
+ ${next('evidence','Evidence for audit')}</div>`},
+ mount(el){let tm=[];const clear=()=>{tm.forEach(clearTimeout);tm=[]};
+  const notes=["Bob's hook runs before any write or command lands, whatever Bob is asked. An organisation policy can make the hook impossible to switch off.",'The git hooks run on every commit, with or without Bob: pre-commit runs the security checks (and any organisation tool switched on), commit-msg the commit rules. Nothing to install: git config core.hooksPath sdd/scripts/hooks.','approve.mjs checks the signer by git email against approvers.json and the feature\'s risk tier, and refuses a person who last changed the plan.','policy.mjs check and checks.mjs --validate run in every pipeline. Locked gates and the locked secrets check cannot be removed by editing a file.','The pipeline re-checks every commit and every sign-off on the server, where nobody can skip it.'];
+  const show=i=>{clear();GI=i;const g=GUARD[i],t=$('#gterm',el);$$('#gl button',el).forEach(b=>b.setAttribute('aria-pressed',+b.dataset.i===i));
+   $$('#glayers .tag',el).forEach(x=>{const on=+x.dataset.i===g[3];x.className='tag '+(on?'red':'outline');x.innerHTML=(on?icon('err'):'')+GL[+x.dataset.i]});
+   const bob=g[3]===0;t.innerHTML=`<span class="${bob?'p':'m'}">${bob?'you › ':''}</span>`;const line=g[1];let k=0;
+   const type=()=>{if(k<=line.length){t.innerHTML=`<span class="${bob?'p':'m'}">${bob?'you › ':''}${esc(line.slice(0,k))}</span><span class="cur"></span>`;k+=RM?line.length+1:2;tm.push(setTimeout(type,RM?0:14))}
+    else tm.push(setTimeout(()=>{t.innerHTML=`<span class="${bob?'p':'m'}">${bob?'you › ':''}${esc(line)}</span>\n\n<span class="r">✖ ${esc(g[2])}</span>\n\n<span class="m">stopped by: ${GL[g[3]]}</span>`;$('#gnote',el).textContent=notes[g[3]]},RM?0:260))};type()};
+  $('#gl',el).addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(+b.dataset.i)});show(GI);this.clear=clear},
+ unmount(){this.clear&&this.clear()}};
+
+/* ============ EVIDENCE ============ */
+function md(src){const L=src.split('\n');let h='',i=0;while(i<L.length){const l=L[i];if(/^\|/.test(l)){const rows=[];while(i<L.length&&/^\|/.test(L[i])){rows.push(L[i]);i++}const cells=r=>r.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+  h+='<div class="tablewrap" style="margin:8px 0 16px"><table class="dt"><thead><tr>'+cells(rows[0]).map(c=>`<th>${inline(c)}</th>`).join('')+'</tr></thead><tbody>'+rows.slice(2).map(r=>'<tr>'+cells(r).map(c=>`<td>${inline(c)}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>';continue}
+  if(/^# /.test(l))h+=`<h3>${inline(l.slice(2))}</h3>`;else if(/^## /.test(l))h+=`<h4 style="margin-top:24px">${inline(l.slice(3))}</h4>`;else if(/^- /.test(l))h+=`<ul style="margin:0 0 8px"><li>${inline(l.slice(2))}</li></ul>`;else if(l.trim())h+=`<p style="font-size:14px;line-height:20px">${inline(l)}</p>`;i++}return h}
+const CHAIN=[['Requirement','XFER-021','bob','doc','sdd/specs/features/F04-…/spec.md','IF an external transfer would exceed BR-XFER-L1, L2 (or the lower customer-chosen limit) or L3, THEN THE SYSTEM SHALL reject it at quote time and again at submission with the specific limit code and remaining amount.'],
+ ['Example','XFER-021-AC1','bob','ok','the same spec, an acceptance criterion','With 48,000.00 already sent today, a 3,000.00 domestic transfer shows "This would exceed your daily transfer limit of AED 50,000.00. Remaining today: AED 2,000.00."'],
+ ['Plan signed','plan.md · spec.md','hum','pen','sdd/state/approvals.json',JSON.stringify({plans:{F04:{file:'…/F04-transfers-beneficiaries/plan.md',sha256:'3b7b5426cd1d…',specSha256:'774b7465d84c…',by:'Bea Owner',email:'bea@tidewell.example',roles:['business-owner'],at:'2026-12-02T09:14:03Z',via:'terminal'}}},null,2)],
+ ['Task','T014','bob','grid','…/F04-transfers-beneficiaries/tasks.md','- [x] T014 [XFER-021] Enforce daily, per-transfer and new-payee limits at quote and at submission'],
+ ['Commit','9c1e0b7','bob','branch','git log','feat(F04): enforce daily transfer limits at quote and submission [XFER-021]\n\nRefs: T014'],
+ ['Test','XFER-021-AC1','tool','code','apps/api/src/transfers/limits.int.test.ts','it(\'[XFER-021-AC1] refuses an AED 3,000.00 transfer with AED 48,000.00 already sent today\', …)'],
+ ['Check verdict','F04.json','tool','judge','sdd/reports/scan/F04.json, written only by scan.mjs',JSON.stringify({feature:'F04',result:'PASS',scanner:'builtin',codeFingerprint:'5c0e91a2…',checks:[{id:'secrets',status:'pass'},{id:'risky-code',status:'pass'},{id:'dependencies',status:'pass'},{id:'ibm-detect-secrets',status:'pass'}]},null,2)],
+ ['Evidence pack','evidence-F04.md','pipe','doc','one command, for the auditor','node sdd/scripts/evidence.mjs F04 --out evidence-F04.md']];
+let CHI=0;
+P.evidence={title:'Evidence for audit',render(){const C=[['Maker–checker (four-eyes)','Bob and the developer make; a different, listed person signs. The pipeline rejects a sign-off by anyone who also changed the pull request.'],['Segregation of duties','Roles in approvers.json; who may sign depends on the risk tier; the developer can never sign plans or phases (locked).'],['Change management','Signed specs are locked by hash; scope changes need a change request decided by the business owner (G9).'],['Traceability','Commits name requirement IDs (G2); tests carry the same tags; the matrix is generated.'],['Secure development','Security checks while Bob writes, at commit and before testing, with the bank\'s own tools plugged in; ASVS review.'],['Vulnerability management','Deny-listed dependencies and the CVE scanners you plug in fail the scan; only AppSec may accept a risk, with an expiry date.'],['Release approval','The pipeline asks the people the policy names; tier 1 needs two different people.']];
+ return `<div class="wrap"><p class="eyebrow">Evidence for audit</p><h1>The repository is the evidence</h1>
+ <p class="lede">Every decision is a file or a commit: who signed, bound to which exact files; which test proves which requirement; what the outside scanner said about which code. Follow one requirement from the spec to production.</p>
+ <div class="panel" style="padding:8px 16px 16px"><div class="chain" id="chain" role="list">${CHAIN.map((c,i)=>`<div class="nd" role="listitem"><button class="doc3${i===CHI?' on':''}" type="button" data-i="${i}" style="--k:${ACT[c[2]].c}" aria-label="${c[0]}: ${esc(c[1])}"><i></i><i></i><span class="pg"><em>${icon(c[3])}</em><b>${c[0]}</b><small>${esc(c[1])}</small><s></s><s style="width:70%"></s><s style="width:85%"></s></span></button><div class="lab">${i+1} · ${c[0]}</div></div>`).join('')}</div></div>
+ <div id="chd" aria-live="polite" style="margin-top:1px"></div>
+ <p class="helper" style="margin-top:8px">The requirement and example are from the F04 spec. The task, commit, test, hashes and verdict are an illustration of the chain once F04 is built.</p>
+ <h2>Controls the kit meets, and how</h2><div class="tablewrap"><table class="dt"><thead><tr><th>Control</th><th>How the kit meets it</th></tr></thead><tbody>${C.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join('')}</tbody></table></div>
+ <h2>A real evidence pack</h2><p class="sub">Generated for F00 just after the owner signed its plan, by the command below.</p>${snip('node sdd/scripts/evidence.mjs F00 --out evidence-F00.md')}
+ <details class="acc"><summary>Read the F00 evidence pack${icon('chevD')}</summary><div class="in">${md(D.evidence||'')}</div></details>
+ ${next('features','The bank\'s features')}</div>`},
+ mount(el){const show=i=>{CHI=i;$$('#chain .doc3',el).forEach(b=>b.classList.toggle('on',+b.dataset.i===i));const c=CHAIN[i];
+  $('#chd',el).innerHTML=`<div class="panel"><div class="row"><div class="c5"><p style="margin:0 0 8px"><span class="tag ${c[2]}">${icon(ACT[c[2]].ic)}${ACT[c[2]].w}</span></p><h3>${i+1}. ${c[0]}: ${esc(c[1])}</h3><p class="helper">${esc(c[4])}</p>
+  <div class="btns" style="margin-top:16px"><button class="ibtn" id="chp" aria-label="Previous link" ${i?'':'disabled'}>${icon('chevL')}</button><button class="ibtn" id="chn" aria-label="Next link" ${i<CHAIN.length-1?'':'disabled'}>${icon('chevR')}</button></div></div><div class="c11">${snip(c[5],{wrap:1})}</div></div></div>`;
+  $('#chp',el).onclick=()=>show(i-1);$('#chn',el).onclick=()=>show(i+1)};
+  $('#chain',el).addEventListener('click',e=>{const b=e.target.closest('.doc3');if(b)show(+b.dataset.i)});show(CHI)}};
+
+/* ============ FEATURES: isometric city ============ */
+let FM='reqs',FT='all',FSEL=null,FSORT=['phase',1];
+const shadeHex=(h,f)=>{const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>Math.round(f<0?v*(1+f):v+(255-v)*f));return '#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')};
+const TCOL={1:'#da1e28',2:'#ff832b',3:'#24a148'};
+P.features={title:"The bank's features",render(){const F=D.features;
+ const rows=F.slice().sort((a,b)=>{const[k,d]=FSORT;const va=k==='tier'?a.tier:a[k],vb=k==='tier'?b.tier:b[k];return (va>vb?1:va<vb?-1:0)*d||a.id.localeCompare(b.id)});
+ const th=(k,l,num)=>`<th class="${num?'num':''}" aria-sort="${FSORT[0]===k?(FSORT[1]>0?'ascending':'descending'):'none'}"><button data-s="${k}">${l}${icon(FSORT[0]===k&&FSORT[1]<0?'chevD':'chevD').replace('<svg','<svg style="transform:'+(FSORT[0]===k&&FSORT[1]>0?'rotate(180deg)':'none')+';opacity:'+(FSORT[0]===k?1:.3)+'"')}</button></th>`;
+ return `<div class="wrap"><p class="eyebrow">The bank's online banking</p><h1>Twelve features, fully specified</h1>
+ <p class="lede">Each feature has a spec with user stories, EARS requirements and acceptance criteria. Height shows how much is specified; colour shows the risk tier, which decides how the feature is governed.</p>
+ <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:16px">${cs('fm',[['reqs','Requirements'],['acs','Acceptance criteria']],FM,'Tower height')}${cs('ft',[['all','All tiers'],['1','Tier 1'],['2','Tier 2'],['3','Tier 3']],FT,'Show tier')}</div>
+ <div class="row"><div class="c11"><div class="panel" style="padding:8px;position:relative"><div class="fig city" id="city"></div><div class="tip" id="ctip"></div></div>
+ <div class="legend" style="margin-top:12px">${['1','2','3'].map(t=>`<span><i class="sw-t${t}"></i>Tier ${t} · ${esc(TIER(t).label)}</span>`).join('')}</div></div>
+ <div class="c5"><div id="fdet" aria-live="polite"></div></div></div>
+ <h2>All features</h2><div class="tablewrap"><table class="dt" id="ftab"><thead><tr>${th('id','Feature')}${th('phase','Phase',1)}${th('tier','Risk tier')}${th('reqs','Requirements',1)}${th('acs','Acceptance criteria',1)}<th>Ready</th></tr></thead><tbody>${rows.map(f=>`<tr><td><b>${f.id}</b> ${esc(f.title)}</td><td class="num">${f.phase}</td><td>${tierTag(f.tier)}</td><td class="num">${f.reqs}</td><td class="num">${f.acs}</td><td class="helper">${f.hasTasks?'plan and tasks written':f.hasPlan?'plan written':'spec only'}</td></tr>`).join('')}</tbody></table></div>
+ <p class="helper" style="margin-top:12px">Money is held as integer minor units (fils). Base currency AED, two decimals; KWD and BHD exercise the three-decimal path. Business days Monday to Friday, Asia/Dubai.</p>
+ ${next('start','Get started')}</div>`},
+ mount(el){const host=$('#city',el),tip=$('#ctip',el),F=D.features.slice().sort((a,b)=>b.reqs-a.reqs||a.id.localeCompare(b.id));let W=0,raf=0,from={},to={},t0=0;
+  const det=f=>{$('#fdet',el).innerHTML=f?`<div class="panel"><p style="margin:0 0 8px">${tierTag(f.tier)}</p><h3>${f.id} · ${esc(f.title)}</h3><dl class="sl"><dt>Phase</dt><dd>${f.phase}</dd><dt>Requirements</dt><dd>${f.reqs} (prefix ${esc(f.prefix)})</dd><dt>Acceptance criteria</dt><dd>${f.acs}</dd><dt>Plan signed by</dt><dd>${roles(TIER(f.tier).approve.plan)}</dd><dt>Bob</dt><dd>${TIER(f.tier).bobAutonomy==='step'?'one step at a time':'may run several steps'}</dd><dt>Production</dt><dd>${(TIER(f.tier).release.production||[]).map(r=>ROLEW[r]).join(' + ')}</dd></dl></div>`:`<div class="panel"><h4>Select a tower</h4><p class="muted" style="margin:0">Each tower is one feature. Select it to see its risk tier and who governs it. Tier 1 features move money or guard access; they are always signed by the business owner and released by two people.</p></div>`};
+  const max=()=>Math.max(...F.map(f=>f[FM]));
+  const draw=(k)=>{W=host.clientWidth;if(!W)return;const cols=4,rows=3,u=Math.min(38,W/18.2),s=u*2.8,Hm=u*4.6,ox=W/2-(cols-rows)*s/2,oy=Hm+u*1.6+18,H=oy+(cols+rows-2)*s*.5+u*.5+34;
+   const cells=[];for(let gy=0;gy<rows;gy++)for(let gx=0;gx<cols;gx++)cells.push({gx,gy});cells.sort((a,b)=>(a.gx+a.gy)-(b.gx+b.gy)||Math.abs(a.gx-a.gy)-Math.abs(b.gx-b.gy));const items=F.map((f,i)=>({f,...cells[i]})).sort((a,b)=>(a.gx+a.gy)-(b.gx+b.gy)||a.gx-b.gx);const M=max();
+   let g='';const gp=(x,y)=>[ox+(x-y)*s,oy+(x+y)*s*.5];const c0=gp(-.32,-.32),c1=gp(cols-.68,-.32),c2=gp(cols-.68,rows-.68),c3=gp(-.32,rows-.68);
+   g+=`<path d="M${c0}L${c1}L${c2}L${c3}Z" fill="var(--la)" opacity=".6"/>`;
+   for(const it of items){const f=it.f,[X,Y]=gp(it.gx,it.gy),v=(from[f.id]??0)+((f[FM]-(from[f.id]??0))*k),h=Math.max(2,v/M*Hm),base=TCOL[f.tier],dim=FT!=='all'&&String(f.tier)!==FT,sel=FSEL===f.id;
+    g+=`<g class="tw${dim?' dim':''}" tabindex="${dim?-1:0}" role="button" data-id="${f.id}" aria-label="${f.id} ${esc(f.title)}: ${f[FM]} ${FM==='reqs'?'requirements':'acceptance criteria'}, tier ${f.tier}">
+    <path d="M${X-u} ${Y-h}L${X} ${Y-h+u/2}L${X} ${Y+u/2}L${X-u} ${Y}Z" fill="${shadeHex(base,-.18)}"/><path d="M${X} ${Y-h+u/2}L${X+u} ${Y-h}L${X+u} ${Y}L${X} ${Y+u/2}Z" fill="${shadeHex(base,-.38)}"/>
+    <path class="tt" d="M${X-u} ${Y-h}L${X} ${Y-h-u/2}L${X+u} ${Y-h}L${X} ${Y-h+u/2}Z" fill="${shadeHex(base,.22)}" stroke="${sel?'var(--tp)':'none'}" stroke-width="2"/>
+    <text x="${X}" y="${Y-h+4}" text-anchor="middle" font-size="${u<28?10:12}" font-weight="600" fill="#fff">${f.id}</text>
+    <text x="${X}" y="${Y-h-u/2-6}" text-anchor="middle" font-size="${u<28?11:13}" fill="var(--tp)">${Math.round(v)}</text></g>`}
+   host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>`};
+  const animate=()=>{cancelAnimationFrame(raf);if(RM){F.forEach(f=>from[f.id]=f[FM]);draw(1);return}t0=performance.now();const st=now=>{const p=Math.min(1,(now-t0)/700),e=1-Math.pow(1-p,3);draw(e);if(p<1)raf=requestAnimationFrame(st);else F.forEach(f=>from[f.id]=f[FM])};raf=requestAnimationFrame(st)};
+  const pick=id=>{FSEL=id;det(D.features.find(f=>f.id===id));draw(1)};
+  host.addEventListener('click',e=>{const t=e.target.closest('.tw');if(t&&!t.classList.contains('dim'))pick(t.dataset.id)});
+  host.addEventListener('keydown',e=>{const t=e.target.closest('.tw');if(t&&(e.key==='Enter'||e.key===' ')){e.preventDefault();pick(t.dataset.id)}});
+  host.addEventListener('pointermove',e=>{const t=e.target.closest('.tw');if(!t||t.classList.contains('dim')){tip.classList.remove('on');return}const f=D.features.find(x=>x.id===t.dataset.id),r=host.parentElement.getBoundingClientRect();
+   tip.innerHTML=`<b>${f.id}</b> ${esc(f.title)}<br>${f.reqs} requirements · ${f.acs} acceptance criteria · tier ${f.tier}`;tip.style.left=Math.min(r.width-250,e.clientX-r.left+12)+'px';tip.style.top=(e.clientY-r.top+12)+'px';tip.classList.add('on')});
+  host.addEventListener('pointerleave',()=>tip.classList.remove('on'));
+  bindCS(el,'fm',v=>{F.forEach(f=>from[f.id]=f[FM]);FM=v;animate()});bindCS(el,'ft',v=>{FT=v;draw(1)});
+  $('#ftab',el).addEventListener('click',e=>{const b=e.target.closest('button[data-s]');if(!b)return;const k=b.dataset.s;FSORT=[k,FSORT[0]===k?-FSORT[1]:1];route(true)});
+  det(FSEL?D.features.find(f=>f.id===FSEL):null);if(!this.seen){this.seen=1;F.forEach(f=>from[f.id]=0);animate()}else{F.forEach(f=>from[f.id]=f[FM]);draw(1)}
+  this.ro=new ResizeObserver(()=>{if(host.clientWidth!==W)draw(1)});this.ro.observe(host)},
+ unmount(){this.ro&&this.ro.disconnect()}};
+
+/* ============ START ============ */
+P.start={title:'Get started',render(){const term=[['Clone it and switch on the git hooks','The hooks run the commit rules on every commit. Nothing else to install.','git clone <repository-url> tidewell-bank-sdd\ncd tidewell-bank-sdd\ngit config core.hooksPath sdd/scripts/hooks'],
+ ['Name the people','Put each person\'s git email and roles in sdd/governance/approvers.json. For a workshop, "trainingMode": true lets one person hold every role.','# sdd/governance/approvers.json\n"owner": { "name": "Bea Owner", "email": "bea@your-bank.example", "roles": ["business-owner"] }'],
+ ['Look at the dial and where things stand','Shows each feature\'s risk tier, who signs and what is next.','node sdd/scripts/policy.mjs show\nnode sdd/scripts/state.mjs'],
+ ['Run the gate yourself','The same command every pipeline runs.','node sdd/scripts/ci.mjs pr'],
+ ['Open the folder in IBM Bob','Pick 🧭 SDD Navigator and ask "what\'s next?". It points to the right mode and command.',null],
+ ['The business owner signs the first plan','On their own laptop, as themselves. Bob never runs this.',signCmd('plan','F00').replace('# a comment on the pull request, by the business owner','')],
+ ['See the security checks','Built-in checks run with Node alone: in Bob\'s hook, at commit and before testing.','node sdd/scripts/checks.mjs --list'],
+ ['Optional: plug in IBM detect-secrets','Your organisation\'s tool in the same places. Switch it on with "enabled": true for ibm-detect-secrets in sdd/governance/checks.json, in a chore(SDD) commit that code owners review.','pip install --upgrade "git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets"\ndetect-secrets scan --update .secrets.baseline\ndetect-secrets audit .secrets.baseline   # mark real secrets and fakes\nnode sdd/scripts/checks.mjs --list      # now on: commit and scan']];
+ const gh=[['Create the public repository','GitHub Actions is free on public repositories.','gh repo create <you>/tidewell-bank-sdd --public --source . --push'],
+ ['Switch the sign-off channel','Set the channel and use real GitHub logins in approvers.json.','# sdd/governance/approvers.json\n"approvalChannel": "github"'],
+ ['Run the set-up','Creates the ruleset, labels and token defaults.','bash sdd/governance/github/setup.sh'],
+ ['Check that Actions is on','If it says "enabled": false, turn Actions on in the repository settings.',"gh api 'repos/{owner}/{repo}/actions/permissions'"],
+ ['Add the scanner secrets','Stored by GitHub, never in the repository.','gh secret set SONAR_TOKEN\ngh secret set SONAR_HOST_URL'],
+ ['Open a draft pull request for phase 0','The business owner signs the F00 plan with a comment.','/approve-plan F00']];
+ const S=PATH==='github'?gh:term;
+ return `<div class="wrap"><p class="eyebrow">Get started</p><h1>From clone to the first sign-off</h1>
+ <p class="lede">About fifteen minutes. You are reading the <b>${pathWord().toLowerCase()}</b>; switch with the control in the header.</p>
+ <div class="row"><div class="c10"><ol class="vsteps">${S.map(([h,p,c])=>`<li><h4>${h}</h4><p class="muted" style="font-size:14px;line-height:20px">${esc(p)}</p>${c?snip(c):''}</li>`).join('')}</ol></div>
+ <div class="c6"><div class="tgrid" style="grid-template-columns:minmax(0,1fr)">${[['Lab guide','A day, in pairs: run the whole cycle for real.','LABS.md'],['Kit README','The whole kit on one page: idea, quick start, map.','../../README.md']].map(([h,p,u])=>`<a class="tile" href="${u}" target="_blank" rel="noopener" style="padding:20px 20px 48px"><h4>${h}</h4><p class="muted" style="font-size:14px;line-height:20px;margin:0">${p}</p>${icon('launch','arrow')}</a>`).join('')}</div>
+ <h4 style="margin-top:32px">Read next, in the kit</h4><ul class="optlist">${[['sdd/docs/CHECKS.md','Security checks, and where IBM tools plug in'],['sdd/docs/SDLC.md','How SDD fits the SDLC and CI/CD'],['sdd/docs/CUSTOMIZE.md','Change what Bob and people may do'],['sdd/docs/CI.md','Jenkins, Azure DevOps, GitLab'],['sdd/docs/SONARQUBE.md','SonarQube as the scanner (optional)'],['sdd/docs/ROLES.md','Every role, in plain words'],['node sdd/tests/checks/run.mjs','Prove the checks work']].map(([c,t])=>`<li><span style="display:block;padding:12px 16px;border-bottom:1px solid var(--bs);font-size:14px;line-height:20px">${t}<br><code>${c}</code></span></li>`).join('')}</ul></div></div>
+ <h2>Bob's commands</h2><div class="search" style="max-width:480px;margin:16px 0">${icon('search')}<input id="cq" type="search" placeholder="Search the ${D.commands.length} commands" aria-label="Search Bob's commands"></div>
+ <div class="tablewrap"><table class="dt"><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody id="cmds">${D.commands.map(c=>`<tr data-q="${esc((c.cmd+' '+c.desc).toLowerCase())}"><td style="white-space:nowrap"><code>${esc(c.cmd)} ${esc(c.args)}</code></td><td>${inline(c.desc)}</td></tr>`).join('')}</tbody></table></div>
+ <p class="helper" id="cnone" hidden style="margin-top:8px">No command matches. Try "scan", "plan" or "change".</p></div>`},
+ mount(el){$('#cq',el).addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();let n=0;$$('#cmds tr',el).forEach(r=>{const ok=!q||r.dataset.q.includes(q);r.hidden=!ok;n+=ok});$('#cnone',el).hidden=n>0})}};
+
+/* ============ boot ============ */
+shell();addEventListener('hashchange',()=>route());route();
+
+}</script></body></html>

@@ -1,0 +1,100 @@
+# Bob's advisory spec review of every ready pull request (and of drafts on request: comment "/bob review",
+# handled by bob-commands.yml). IBM Bob runs headless with Bob Shell in the read-only 🔎 SDD PR Reviewer mode,
+# using the default branch's Bob configuration and guards, a cost cap and no MCP servers. Its answer becomes
+# one sticky comment, updated on each push. Advisory only: it cannot approve, merge or sign.
+# Needs the repository secret BOB_API_KEY (a Bob API key); without it the job explains and stops.
+# Switch automatic reviews off or to on-request in sdd/governance/approvers.json → bob.review.
+# Governance-protected (CODEOWNERS: sdd-approvers).
+name: bob-review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions: {}
+
+concurrency:
+  group: bob-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Same-repository branches only (fork pull requests get no secrets), never drafts, never bots (no loops).
+    if: >-
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !endsWith(github.event.pull_request.user.login, '[bot]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Trusted scripts, prompts and approver list (default branch)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: trusted
+          persist-credentials: false
+      - name: Pull request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Bob settings
+        id: cfg
+        run: node trusted/sdd/scripts/github/bob-ci.mjs config --approvers trusted/sdd/governance/approvers.json
+      - name: Is there a Bob API key?
+        id: key
+        env:
+          KEY: ${{ secrets.BOB_API_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then echo "::notice::Repository secret BOB_API_KEY is not set, so Bob's advisory review is skipped (see sdd/docs/GITHUB.md)."; echo "ok=false" >> "$GITHUB_OUTPUT"
+          else echo "ok=true" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Diff and context for Bob
+        if: steps.cfg.outputs.review == 'auto' && steps.key.outputs.ok == 'true'
+        env:
+          SDD_ROOT: pr
+        run: |
+          mkdir -p pr/.sdd-ci
+          gh pr view "$PR" --repo "$REPO" --json number,title,headRefName,headRefOid,commits,files,isCrossRepository,state,author > "$RUNNER_TEMP/pr.json"
+          gh pr diff "$PR" --repo "$REPO" > pr/.sdd-ci/pr.diff
+          node trusted/sdd/scripts/github/bob-ci.mjs prompt --kind review --pr "$RUNNER_TEMP/pr.json" --diff .sdd-ci/pr.diff --out "$RUNNER_TEMP/prompt.txt"
+
+      - name: Bob reviews (read-only mode, cost-capped)
+        if: steps.cfg.outputs.review == 'auto' && steps.key.outputs.ok == 'true'
+        uses: ./trusted/.github/actions/run-bob
+        with:
+          api-key: ${{ secrets.BOB_API_KEY }}
+          mode: ${{ steps.cfg.outputs.review_mode }}
+          prompt-file: ${{ runner.temp }}/prompt.txt
+          output-file: ${{ runner.temp }}/bob.json
+          working-directory: pr
+          trusted-path: trusted
+          trusted-config: restore
+          max-cost: ${{ steps.cfg.outputs.review_max_cost }}
+          max-turns: ${{ steps.cfg.outputs.max_turns }}
+          install-url: ${{ vars.BOB_SHELL_INSTALL_URL }}
+
+      - name: Post or update the review comment
+        if: steps.cfg.outputs.review == 'auto' && steps.key.outputs.ok == 'true'
+        env:
+          SDD_ROOT: pr
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node trusted/sdd/scripts/github/bob-ci.mjs extract --kind review --in "$RUNNER_TEMP/bob.json" --head "$HEAD_SHA" --out "$RUNNER_TEMP/review.md"
+          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- sdd-bob-review -->"))) | .id' | tail -n 1)
+          if [ -n "$id" ]; then gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@"$RUNNER_TEMP/review.md" >/dev/null
+          else gh pr comment "$PR" --repo "$REPO" --body-file "$RUNNER_TEMP/review.md"; fi
+          cat "$RUNNER_TEMP/review.md" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,5 @@
+{
+  "_comment": "Sample IBM Bob enterprise policy. Linux: /etc/bob/policy.json (root:root, 644); macOS: com.ibm.bob MDM profile; Windows: Software\\Policies\\IBM\\Bob. Remove this _comment key before deploying. DisabledAutoApprovalGroups=mode makes every mode switch a visible human click (stricter teams use mode,edit,execute). EnforcedHooks is a JSON-encoded string; enforced hooks run before workspace hooks and users cannot remove them. In repositories without sdd/scripts/bob-hook.mjs the command fails, which Bob logs and ignores.",
+  "DisabledAutoApprovalGroups": "mode",
+  "EnforcedHooks": "{\"UserPromptSubmit\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"node sdd/scripts/bob-hook.mjs\",\"timeout\":5}]}],\"PreToolUse\":[{\"matcher\":\".*\",\"hooks\":[{\"type\":\"command\",\"command\":\"node sdd/scripts/bob-hook.mjs\",\"timeout\":5}]}]}"
+}

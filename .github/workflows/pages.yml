@@ -1,0 +1,83 @@
+# Builds the project website (site/build.py) and publishes it with GitHub Pages: the landing page, the interactive
+# Atlas (sdd/docs/atlas.html), the lab guide (sdd/docs/LABS.md), the article, the presentation and the video.
+# Settings → Pages → Source must be "GitHub Actions"; until it is, the run explains and skips (no red X).
+# Governance-protected (CODEOWNERS: .github/).
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'sdd/docs/**'
+      - 'sdd/specs/**'
+      - '.bob/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    outputs:
+      enabled: ${{ steps.enabled.outputs.on }}
+    steps:
+      - name: Is GitHub Pages switched on?
+        id: enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+            echo "on=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "on=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages is not switched on yet: Settings → Pages → Source: GitHub Actions. Nothing is published; run this workflow again once it is."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.enabled.outputs.on == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.enabled.outputs.on == 'true'
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        if: steps.enabled.outputs.on == 'true'
+        with:
+          python-version: '3.12'
+      - name: Install the Markdown renderer
+        if: steps.enabled.outputs.on == 'true'
+        run: pip install 'markdown>=3.5,<4'
+      - id: pages
+        if: steps.enabled.outputs.on == 'true'
+        uses: actions/configure-pages@v5
+      - name: Build the site (counts are read from the kit)
+        if: steps.enabled.outputs.on == 'true'
+        env:
+          SITE_URL: ${{ steps.pages.outputs.base_url }}/
+        run: python3 site/build.py
+      - uses: actions/upload-pages-artifact@v4
+        if: steps.enabled.outputs.on == 'true'
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

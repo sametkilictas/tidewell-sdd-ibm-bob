@@ -1,0 +1,85 @@
+{
+  "schema": "sdd-approvers/1",
+  "_comment": [
+    "Who may sign what. Governance-protected: change it only in a chore(SDD) commit reviewed by the code owners.",
+    "approvalChannel: terminal = sign-offs are made with node sdd/scripts/approve.mjs and committed alone (works with any git host and any CI; the default);",
+    "                 github   = sign-offs are pull-request comments (/approve-plan F04) recorded by GitHub Actions (public GitHub, or GitHub Enterprise with Actions);",
+    "                 both     = either, for a short migration only.",
+    "people: the key is the person's GitHub login (used on the github channel); email is their git user.email (used on the terminal channel and by the pipeline check).",
+    "Replace every REPLACE_ME_ entry. Pipelines read this file from the target branch, so a change cannot approve itself.",
+    "Who signs plans and phases depends on each feature's risk tier: see sdd/governance/policy.json. decisions below cover the rest.",
+    "rules.trainingMode: true lets one person hold every role, for a solo training repository only. Never in a real repository."
+  ],
+  "approvalChannel": "terminal",
+  "people": {
+    "REPLACE_ME_owner": {
+      "name": "Business owner",
+      "email": "owner@tidewell.example",
+      "roles": [
+        "business-owner"
+      ]
+    },
+    "REPLACE_ME_analyst": {
+      "name": "Business analyst",
+      "email": "analyst@tidewell.example",
+      "roles": [
+        "business-analyst"
+      ]
+    },
+    "REPLACE_ME_architect": {
+      "name": "Architect",
+      "email": "architect@tidewell.example",
+      "roles": [
+        "architect"
+      ]
+    },
+    "REPLACE_ME_developer": {
+      "name": "Developer",
+      "email": "developer@tidewell.example",
+      "roles": [
+        "developer"
+      ]
+    },
+    "REPLACE_ME_appsec": {
+      "name": "AppSec lead",
+      "email": "appsec@tidewell.example",
+      "roles": [
+        "appsec"
+      ]
+    }
+  },
+  "decisions": {
+    "cr": [
+      "business-owner"
+    ],
+    "waiver": [
+      "appsec"
+    ],
+    "revoke": [
+      "business-owner",
+      "appsec"
+    ]
+  },
+  "rules": {
+    "forbidSelfApproval": true,
+    "trainingMode": false,
+    "requireSignedApprovals": false,
+    "allowedAssociations": [
+      "OWNER",
+      "MEMBER",
+      "COLLABORATOR"
+    ]
+  },
+  "bob": {
+    "review": "auto",
+    "reviewMode": "sdd-pr-reviewer",
+    "fixMode": "spec-builder",
+    "fixRoles": [
+      "developer",
+      "architect"
+    ],
+    "reviewMaxCost": 3,
+    "fixMaxCost": 8,
+    "maxTurns": 60
+  }
+}

@@ -1,0 +1,7 @@
+[
+  { "name": "sdd/phase", "color": "0f62fe", "description": "Phase pull request: the work and sign-offs of one delivery phase" },
+  { "name": "sdd/change-request", "color": "8a3ffc", "description": "Change to approved scope (change-request workflow)" },
+  { "name": "sdd/feature-request", "color": "009d9a", "description": "New behaviour to be specified" },
+  { "name": "sdd/needs-signoff", "color": "f1c21b", "description": "Waiting for a person's sign-off" },
+  { "name": "bob/fix", "color": "6f6f6f", "description": "Bob pushed fixes on request (/bob fix)" }
+]

@@ -1,0 +1,15 @@
+Tidewell SDD kit — spec-driven delivery with IBM Bob
+Copyright 2026 sametkilictas and contributors (https://github.com/sametkilictas/tidewell-sdd-ibm-bob)
+
+Code (scripts, hooks, Bob configuration, workflows, CI templates and tests) is licensed under the
+Apache License, Version 2.0 — see LICENSE.
+
+Documentation and media (specs, docs, lab guide, article, presentation, video and website content)
+are licensed under the Creative Commons Attribution 4.0 International License — see LICENSE-docs.
+Attribution: "Tidewell SDD kit by sametkilictas, CC BY 4.0", with a link to the repository.
+
+Tidewell Bank is fictional; all data is synthetic. This is an independent, community example. It is
+not an IBM product and is not endorsed by IBM. IBM, IBM Bob, IBM Concert, IBM Cloud, Carbon and other
+IBM marks, HashiCorp Vault and Vault Radar, SonarQube and other products named in this repository are
+trademarks of their respective owners. The website loads the IBM Plex typefaces (SIL Open Font
+License 1.1) from Google Fonts.

@@ -1,0 +1,14 @@
+{
+  "schema": "sdd-dependency-denylist/1",
+  "_comment": [
+    "Package versions your organisation does not allow, with the reason. Used by the built-in 'dependencies' check (sdd/governance/checks.json) at commit and before any testing.",
+    "These four are real, publicly documented supply-chain incidents, kept as examples. Replace or extend them with your organisation's own list, or switch on a CVE scanner as well.",
+    "Governance file: change it in a chore(SDD) commit that code owners review."
+  ],
+  "packages": [
+    { "name": "event-stream", "versions": ["3.3.6"], "reason": "compromised release (2018) that pulled in a dependency stealing cryptocurrency wallets" },
+    { "name": "ua-parser-js", "versions": ["0.7.29", "0.8.0", "1.0.0"], "reason": "hijacked releases (2021) that installed a crypto-miner and a password stealer" },
+    { "name": "node-ipc", "versions": ["10.1.1", "10.1.2"], "reason": "sabotaged releases (2022) that overwrote files on some machines" },
+    { "name": "colors", "versions": ["1.4.44-liberty-2"], "reason": "sabotaged release (2022) that printed garbage in an endless loop" }
+  ]
+}
