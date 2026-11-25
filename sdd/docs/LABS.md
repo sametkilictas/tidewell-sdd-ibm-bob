@@ -16,7 +16,7 @@ The bank is only the example. Bob's modes, rules, commands and skills, the scrip
                                                      └──── anything that fails goes back to Build
 ```
 
-Blue: Bob writes. Amber: a person decides. Green: the checks verify. A failed scan, a failed verification or a serious security finding sends the feature back to Build as a fix task. Everything in the picture runs on the laptop (the *inner loop*); the pipeline then runs the same checks again (the *outer loop*), and people approve the release.
+Blue: Bob writes. Amber: a person decides. Green: the checks verify. A failed scan, a failed verification or a serious security finding sends the feature back to Build as a fix task. Everything in the picture happens before the push, wherever the team works with Bob (the *inner loop*); after the push, the pipeline runs the same checks again (the *outer loop*), and people approve the release.
 
 **What you will see**
 

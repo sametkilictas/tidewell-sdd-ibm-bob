@@ -98,7 +98,8 @@ footer .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr
 footer h4{color:#fff;font-size:14px;font-weight:600;margin:0 0 12px}
 footer ul{list-style:none;padding:0;margin:0}
 footer li{margin:6px 0}
-footer .fine{border-top:1px solid #393939;margin-top:40px;padding-top:20px;font-size:12px;line-height:1.6}
+footer .made{border-top:1px solid #393939;margin:40px 0 0;padding-top:20px;color:#fff;font-size:14px}
+footer .fine{margin-top:12px;font-size:12px;line-height:1.6}
 
 /* document pages (lab guide, article) */
 .doc-hero{background:var(--dark);color:var(--dark-text);padding:56px 0 48px}
@@ -128,5 +129,5 @@ footer .fine{border-top:1px solid #393939;margin-top:40px;padding-top:20px;font-
 .prose hr{border:0;border-top:1px solid var(--layer2);margin:40px 0}
 .docnav{display:flex;flex-wrap:wrap;gap:16px;margin-top:56px;padding-top:24px;border-top:1px solid var(--layer2)}
 @media (max-width:640px){.brand b{display:none}.hdr .in{gap:12px}.nav a{padding:0 10px}}
-@media (max-width:960px){.doc{grid-template-columns:1fr}.toc{position:static;max-height:none;border-left:0}.toc p{margin-left:0}}
+@media (max-width:960px){.doc{grid-template-columns:minmax(0,1fr)}.toc{position:static;max-height:none;border-left:0}.toc p{margin-left:0}}
 @media print{.hdr,.toc,footer,.docnav{display:none}.doc{display:block}.doc-hero{background:#fff;color:#000}}

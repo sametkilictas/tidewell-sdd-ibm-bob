@@ -64,8 +64,11 @@ def head(title, desc, path, depth):
 def header(current, depth):
     up = '../' * depth
     def href(h):
+        if h == '':
+            return up or './'
         return (up if depth else '') + h if h.startswith('#') else up + h
-    links = ''.join(f'<a href="{href(h)}"{" aria-current=page" if h == current else ""}>{label}</a>' for h, label in NAV[1:])
+    # Home first, on every page, so the way back is always in the same place (the logo links there too)
+    links = ''.join(f'<a href="{href(h)}"{" aria-current=page" if h == current else ""}>{label}</a>' for h, label in NAV)
     return f"""<header class="hdr"><div class="in"><a class="brand" href="{up or './'}">{logo()}Tidewell SDD <b>· IBM Bob</b></a>
 <nav class="nav" aria-label="Site">{links}<a class="gh" href="{REPO}">GitHub ↗</a></nav></div></header>"""
 
@@ -84,7 +87,7 @@ def footer(depth):
 <div><h4>Kit</h4><ul><li><a href="{REPO}">Repository</a></li><li><a href="{REPO}/releases">Releases</a></li>
 <li><a href="{REPO}/blob/main/CONTRIBUTING.md">Contributing</a></li><li><a href="{REPO}/blob/main/SECURITY.md">Security policy</a></li></ul></div>
 <div><h4>Licence</h4><ul><li>Code: <a href="{REPO}/blob/main/LICENSE">Apache-2.0</a></li><li>Docs and media: <a href="{REPO}/blob/main/LICENSE-docs">CC BY 4.0</a></li></ul></div>
-</div><p class="fine">Tidewell Bank is fictional; all data is synthetic. This is an independent, community example, not an IBM product and
+</div><p class="made">Made with <a href="https://bob.ibm.com">IBM Bob</a></p><p class="fine">Tidewell Bank is fictional; all data is synthetic. This is an independent, community example, not an IBM product and
 not endorsed by IBM. IBM, IBM Bob, IBM Concert, Carbon and other IBM marks, HashiCorp Vault and Vault Radar, SonarQube and other
 products named here are trademarks of their respective owners. Typefaces: IBM Plex (SIL OFL 1.1).</p></div></footer>"""
 
@@ -141,7 +144,7 @@ def build():
 
     # 404
     nf = (SRC / '404.html').read_text().replace('{{HEAD}}', head('Page not found · Tidewell SDD', DESC, '404.html', 0).replace(
-        'href="assets/', f'href="{SITE}assets/')).replace('{{HEADER}}', header('', 0).replace('href="', f'href="{SITE}').replace(
+        'href="assets/', f'href="{SITE}assets/')).replace('{{HEADER}}', header(None, 0).replace('href="./"', 'href=""').replace('href="', f'href="{SITE}').replace(
         f'href="{SITE}https', 'href="https')).replace('{{FOOTER}}', '')
     (OUT / '404.html').write_text(nf)
 
@@ -166,6 +169,9 @@ def build():
     # the Atlas: self-contained; point its links at the site and the repository, add link previews
     atlas = (ROOT / 'sdd/docs/atlas.html').read_text()
     atlas = atlas.replace("'LABS.md']", "'../labs/']").replace("'../../README.md']", f"'{REPO}#readme']")
+    # the Atlas's top bar gets a link back to the website's home page
+    assert "const HOME='';" in atlas, 'the Atlas no longer has the HOME setting'
+    atlas = atlas.replace("const HOME='';", "const HOME='../';", 1)
     atlas_meta = (f'<meta name="description" content="{html.escape(DESC)}"><link rel="canonical" href="{SITE}atlas/">'
                   f'<meta property="og:title" content="Tidewell SDD Atlas — spec-driven delivery with IBM Bob">'
                   f'<meta property="og:description" content="The whole spec-driven cycle, interactive: the loop, the people, the automation dial, shift-left security and the pipeline.">'

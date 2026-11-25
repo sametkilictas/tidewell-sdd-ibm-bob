@@ -21,7 +21,7 @@ checkable artifact instead of a conversation), **who does the writing** (Bob, in
 ## 2. Two loops
 
 ```
- INNER LOOP — one developer, one laptop, minutes                     OUTER LOOP — the pipeline, any CI, hours
+ INNER LOOP — the team with Bob, before the push, minutes            OUTER LOOP — after the push, the pipeline, hours
  ┌────────────────────────────────────────────────────────────┐     ┌──────────────────────────────────────────────┐
  │ Bob writes ─► Bob's hook checks the write (step, mode,      │     │ pull request ─► ci.mjs pr: policy, specs,    │
  │ files, secrets, risky code) ─► git hooks check the commit   │ ──► │ commits G1–G10, sign-offs, secrets, tests,   │
@@ -30,9 +30,10 @@ checkable artifact instead of a conversation), **who does the writing** (Bob, in
  └────────────────────────────────────────────────────────────┘     └──────────────────────────────────────────────┘
 ```
 
-The inner loop catches problems while they are cheap — at the keyboard, in the same minute. The outer loop exists
-because the inner loop runs on a laptop someone controls: a skipped hook (`--no-verify`), a laptop without Bob or a
-hand-edited file is caught again on the server, with the same rules. **Nothing in the outer loop is new; it is the
+The inner loop catches problems while they are cheap, in the same minute they are made, wherever the team works
+with Bob (the Bob IDE or Bob Shell): analysts, architects, developers and testers alike. The outer loop starts with the
+push and exists because anything before the push can be skipped: a skipped hook (`--no-verify`), a change made without
+Bob or a hand-edited file is caught again on the server, with the same rules. **Nothing in the outer loop is new; it is the
 inner loop, repeated where nobody can switch it off.**
 
 ## 3. Security, shifted left

@@ -20,7 +20,7 @@ keyboard, at commit and in the pipeline.**
 ## The idea
 
 ```
-   ┌──────────────── inner loop: on the laptop, minutes ────────────────┐   ┌──── outer loop: the pipeline, any CI ────┐
+   ┌────────── inner loop: the team with Bob, before the push ──────────┐   ┌──── outer loop: the pipeline, any CI ────┐
    Spec ─► Clarify ─► Plan ─► ✍ Owner signs ─► Tasks ─► Build (test first) ─► Scan ─► Verify ─► Secure ─► ✍ Phase ─► Test env ─► ✍ Production
    (people)   Bob       Bob       person          Bob        Bob + developer     checks     Bob      Bob     person     automatic     people
                                                      every write: Bob's hook · every commit: git hook (G1–G10) · every PR: ci.mjs
@@ -32,8 +32,8 @@ keyboard, at commit and in the pipeline.**
 - **Bob is the maker, never the checker.** Bob drafts specs, plans, tasks, code and tests in role-specific modes,
   each limited to its own files. It cannot sign anything, cannot write the scanner's verdict and cannot skip a step.
 - **Checks run where the work happens, then again on the server.** A secret, risky code, a commit without a
-  requirement ID or a suppressed finding is refused at the keyboard, at commit and again in the pipeline — so a laptop
-  without Bob or a skipped hook changes nothing. Built-in checks need only Node; your organisation's own tools
+  requirement ID or a suppressed finding is refused as it is written, at commit and again in the pipeline — so a change
+  made without Bob or a skipped hook changes nothing. Built-in checks need only Node; your organisation's own tools
   (IBM detect-secrets, HashiCorp Vault Radar, SonarQube, …) plug into the same places through
   [`sdd/governance/checks.json`](sdd/governance/checks.json) — see [sdd/docs/CHECKS.md](sdd/docs/CHECKS.md).
 - **People decide, and the decisions are evidence.** Every sign-off is bound to the exact files it approved and to
