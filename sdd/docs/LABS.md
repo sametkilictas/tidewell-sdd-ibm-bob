@@ -84,7 +84,7 @@ export SONARQUBE_READONLY_TOKEN="…"    # a Browse-only user: Bob's SonarQube M
 
 ### 0a. Both paths: get the kit
 
-1. Clone the repository (git clone https://github.com/sametkilictas/tidewell-sdd-ibm-bob.git), or unzip the kit and run `git init -b main` in it. Then `cd tidewell-sdd-ibm-bob`.
+1. Clone the repository (`git clone https://github.com/sametkilictas/tidewell-sdd-ibm-bob.git`), or unzip the kit and run `git init -b main` in it. Then `cd tidewell-sdd-ibm-bob`.
 2. If your room uses SonarQube as the scanner and several pairs share one server, give yours its own key now: `sonar.projectKey=tidewell-bank-pair07` in `sonar-project.properties`.
 
 ### 0b. Both paths: write down who may sign
@@ -387,7 +387,7 @@ Deployment to the test environment is automatic once the gate passes (the pipeli
 
 The bank wants the domestic transfer cut-off moved from 14:00 to 15:00. That changes F00's signed spec (FND-011).
 
-4. A edits the cut-off in `sdd/specs/features/F00-foundation/spec.md` directly and commits `spec(F00): later cut-off`. Refused: *G9 sdd/specs/features/F00-foundation/spec.md is approved scope. Change it through an approved change request …* Undo: `git checkout -- .`.
+4. A edits the cut-off in `sdd/specs/features/F00-foundation/spec.md` directly and commits `spec(F00): later cut-off`. Refused: *G9 `sdd/specs/features/F00-foundation/spec.md` is approved scope. Change it through an approved change request …* Undo: `git checkout -- .`.
 5. A, as the analyst, in **📐 Spec Architect**: `/sdd-change-request later-domestic-cut-off`. Bob writes `CR-001` with the problem, two options, the impact (FND-011, XFER-022, NFR-I18N-005) and a recommendation; A commits it as `docs(CR-001): raise later domestic cut-off`.
 6. B decides. Terminal path: `node sdd/scripts/approve.mjs cr CR-001 --decision approved --option A`. GitHub path: `/approve-cr CR-001 option A` (or `/reject-cr CR-001 <reason>`).
 7. A applies it: `/sdd-apply-cr CR-001`. Bob changes only what the CR lists, and its commit cites CR-001, so G9 lets it through.
@@ -423,14 +423,14 @@ git commit -am "chore(SDD): F00 is tier 3 for the dial lab"
 | 1 | Ask Bob for a code edit with no step running | “No SDD step is active, so writes are blocked.” | Bob's hook |
 | 2 | Run `/sdd-implement F00` in 📐 Spec Architect | “Step "implement" must run in 🏗️ Spec Builder …” | Bob's hook |
 | 3 | During implement, ask Bob to edit F00's `spec.md` | “Implementation cannot change specs, contracts, ADRs or design.” | Bob's hook |
-| 4 | Ask Bob to run `node sdd/scripts/approve.mjs plan F01` | “Approvals are human decisions. Bob must not run approve.mjs …” | Bob's hook |
-| 5 | Ask Bob to write PASS into `sdd/reports/scan/F00.json` | “… is external scan evidence. Only sdd/scripts/scan.mjs writes it” | Bob's hook |
+| 4 | Ask Bob to run `node sdd/scripts/approve.mjs plan F01` | “Approvals are human decisions. Bob must not run `approve.mjs` …” | Bob's hook |
+| 5 | Ask Bob to write PASS into `sdd/reports/scan/F00.json` | “… is external scan evidence. Only `sdd/scripts/scan.mjs` writes it” | Bob's hook |
 | 6 | Ask Bob to put an API key in a file | “That write contains what looks like … Secrets never go in the repository” | Bob's hook |
 | 7 | Commit a secret yourself | “G10 no secrets in commits: …” | git hook |
 | 8 | Commit code without a requirement ID | “G2 code changes need a feature scope …” | git hook |
 | 9 | Ask Bob to run `git config core.hooksPath /dev/null` | “History rewrites and hook reconfiguration are not allowed from Bob.” | Bob's hook |
 | 10 | Skip a hook with `--no-verify` | the same rule, in `ci.mjs commits` / `secrets` | pipeline |
-| 11 | A signs a plan in a terminal | “… cannot give this sign-off. … It needs: business owner” | approve.mjs |
+| 11 | A signs a plan in a terminal | “… cannot give this sign-off. … It needs: business owner” | `approve.mjs` |
 | 12 | Hand-write a sign-off into `approvals.json` | “… the record says it was signed by …, but … committed it” | pipeline |
 | 13 | B changes a file in the pull request, then signs it | “… also made changes in this pull request, so they cannot sign it (four-eyes)” | pipeline |
 | 14 | Let the developer sign tier 1 plans in `policy.json` | “Locked: tier 1 lets the developer sign the plan. The maker is never the checker.” | policy check |
@@ -493,7 +493,7 @@ IBM Bob V2 has three built-in modes: Agent, Plan and Ask. In Bob IDE all three a
 | `approve.mjs`: “Your git email … is not listed” | you are not in `approvers.json`, or your `git config user.email` differs | fix the email in `approvers.json` (a `chore(SDD)` commit), or sign with `--as` |
 | `approve.mjs`: “cannot give this sign-off … It needs: …” | wrong role for this feature's risk tier | the person with that role signs |
 | `approve.mjs`: “no TTY detected” | it was run from a script or from Bob | run it yourself in a terminal |
-| `approve.mjs`: “You … made the last change to … plan.md” | four-eyes | someone else with the role signs; alone: `"trainingMode": true` |
+| `approve.mjs`: “You … made the last change to … `plan.md`” | four-eyes | someone else with the role signs; alone: `"trainingMode": true` |
 | `approve.mjs`: “Sign-offs in this repository are GitHub pull-request comments” | `approvalChannel` is `github` | sign on the pull request, or switch the channel in a `chore(SDD)` commit |
 | `ci.mjs` exits 2: “The range start origin/main is not in this checkout” | a shallow clone | fetch full history (`git fetch --unshallow`) and the target branch |
 | Bob: “That write builds SQL from strings (sql-string)” (or tls-off, eval, weak-hash, weak-random) | a built-in check in Bob's hook | do what the message says; the same check runs again at commit and before testing |

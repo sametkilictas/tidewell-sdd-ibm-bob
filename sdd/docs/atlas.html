@@ -18,7 +18,7 @@
 --bob:#8a3ffc;--bobbg:#e8daff;--bobtx:#6929c4;--hum:#d02670;--humbg:#ffd6e8;--humtx:#9f1853;
 --tool:#007d79;--toolbg:#9ef0f0;--tooltx:#005d5d;--pipe:#0f62fe;--pipebg:#d0e2ff;--pipetx:#0043ce;
 --t1:#da1e28;--t1bg:#ffd7d9;--t1tx:#a2191f;--t2:#ff832b;--t2bg:#ffd9be;--t2tx:#8a3800;--t3:#24a148;--t3bg:#a7f0ba;--t3tx:#0e6027;
---graybg:#e0e0e0;--graytx:#161616;--code:#f4f4f4;--term:#161616;--termtx:#f4f4f4;
+--graybg:#e0e0e0;--graytx:#161616;--code:#f4f4f4;--icbg:#f2f4f8;--icfg:#121619;--icbd:#c1c7cd;--term:#161616;--termtx:#f4f4f4;
 --hdr:#161616;--hdrtx:#f4f4f4;--hdrh:#2c2c2c;--hdrb:#393939;--scrim:rgba(22,22,22,.5);--shadow:0 2px 6px rgba(0,0,0,.3);
 --ease:cubic-bezier(.2,0,.38,.9);--ex:cubic-bezier(.4,.14,.3,1);--plex:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',Menlo,'DejaVu Sans Mono',Consolas,monospace}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#161616;--l1:#262626;--l2:#393939;--l1h:#333333;--l2h:#474747;--la:#393939;--sel:#525252;--bs:#393939;--bs1:#525252;--bst:#6f6f6f;
@@ -27,21 +27,21 @@
 --n-err:#3a1d20;--n-ok:#183223;--n-warn:#3a3317;--n-info:#1c2a43;
 --bob:#a56eff;--bobbg:#6929c4;--bobtx:#e8daff;--hum:#ff7eb6;--humbg:#9f1853;--humtx:#ffd6e8;--tool:#08bdba;--toolbg:#005d5d;--tooltx:#9ef0f0;--pipe:#4589ff;--pipebg:#0043ce;--pipetx:#d0e2ff;
 --t1:#fa4d56;--t1bg:#a2191f;--t1tx:#ffd7d9;--t2:#ff832b;--t2bg:#8a3800;--t2tx:#ffd9be;--t3:#42be65;--t3bg:#0e6027;--t3tx:#a7f0ba;
---graybg:#525252;--graytx:#e0e0e0;--code:#262626;--term:#0b0b0b;--hdrb:#393939;--scrim:rgba(0,0,0,.6);--shadow:0 2px 6px rgba(0,0,0,.8)}}
+--graybg:#525252;--graytx:#e0e0e0;--code:#262626;--icbg:#21272a;--icfg:#f2f4f8;--icbd:#4d5358;--term:#0b0b0b;--hdrb:#393939;--scrim:rgba(0,0,0,.6);--shadow:0 2px 6px rgba(0,0,0,.8)}}
 :root[data-theme=dark]{color-scheme:dark;--bg:#161616;--l1:#262626;--l2:#393939;--l1h:#333333;--l2h:#474747;--la:#393939;--sel:#525252;--bs:#393939;--bs1:#525252;--bst:#6f6f6f;
 --tp:#f4f4f4;--ts:#c6c6c6;--th:#a8a8a8;--tph:#6f6f6f;--inv:#f4f4f4;--tinv:#161616;--sinv:#f4f4f4;--tsinv:#161616;
 --link:#78a9ff;--int:#4589ff;--focus:#fff;--err:#fa4d56;--ok:#42be65;--warn:#f1c21b;--info:#4589ff;
 --n-err:#3a1d20;--n-ok:#183223;--n-warn:#3a3317;--n-info:#1c2a43;
 --bob:#a56eff;--bobbg:#6929c4;--bobtx:#e8daff;--hum:#ff7eb6;--humbg:#9f1853;--humtx:#ffd6e8;--tool:#08bdba;--toolbg:#005d5d;--tooltx:#9ef0f0;--pipe:#4589ff;--pipebg:#0043ce;--pipetx:#d0e2ff;
 --t1:#fa4d56;--t1bg:#a2191f;--t1tx:#ffd7d9;--t2:#ff832b;--t2bg:#8a3800;--t2tx:#ffd9be;--t3:#42be65;--t3bg:#0e6027;--t3tx:#a7f0ba;
---graybg:#525252;--graytx:#e0e0e0;--code:#262626;--term:#0b0b0b;--hdrb:#393939;--scrim:rgba(0,0,0,.6);--shadow:0 2px 6px rgba(0,0,0,.8)}
+--graybg:#525252;--graytx:#e0e0e0;--code:#262626;--icbg:#21272a;--icfg:#f2f4f8;--icbd:#4d5358;--term:#0b0b0b;--hdrb:#393939;--scrim:rgba(0,0,0,.6);--shadow:0 2px 6px rgba(0,0,0,.8)}
 *{box-sizing:border-box;min-width:0}
 html{scroll-padding-top:64px;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--tp);font:400 16px/1.5 var(--plex);overflow-x:clip;-webkit-font-smoothing:antialiased}
 a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 :focus{outline:none}:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}[tabindex="-1"]:focus-visible{outline:none}
 button{font:inherit;color:inherit}
-code,.mono{font-family:var(--mono);font-size:.875em}code{background:var(--l1);padding:0 4px;overflow-wrap:anywhere}
+code,.mono{font-family:var(--mono);font-size:.875em}code{overflow-wrap:anywhere}code.nw{white-space:nowrap}:not(pre)>code{background:var(--icbg);color:var(--icfg);border:1px solid var(--icbd);padding:0 4px}
 .skip{position:absolute;left:-9999px;top:0;z-index:99;background:var(--bp);color:#fff;padding:14px 16px}.skip:focus{left:0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
@@ -428,11 +428,25 @@ function shell(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('nav-open')){close();$('#hamb').innerHTML=icon('menu');$('#hamb').focus()}});
  for(const id of ['path-h','path-s'])bindCS(document,id,v=>{PATH=v;store.set('sdd-path',v);$$('#path-h button,#path-s button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));route(true);toast(v==='github'?'Showing the public GitHub path: sign-offs are pull-request comments':'Showing the terminal path: sign-offs are commands, committed by the signer')});
 }
+// Code named in running text (a command, a file, a flag, a slash command) is set as inline code, so it stands out.
+// Runs on every page and on whatever a page adds later; text already in code, terminals, tags and drawings is left alone.
+const CODE_RE=/node\s+sdd\/[\w./-]+(?:\s+(?:pr|show|plan|list|status|next|--[\w-]+|F\d\d))*|\bsdd\/[\w./…#-]*[\w/]|\.bob\/[\w./-]*|\b[\w-]+\.(?:mjs|json|ya?ml|md|sh|sarif|properties)\b|--[a-z][a-z-]*[a-z]|\bgit (?:push|commit|clone|config)\b|\bbob run\b|\b(?:BOB_API_KEY|SONAR_[A-Z_]+)\b|\/(?:sdd-[a-z-]*[a-z]|approve-[a-z]+|accept-risk|revoke|bob [a-z]+)(?: F\d\d)?/g;
+const CODE_SKIP='code,pre,kbd,samp,svg,script,style,textarea,input,select,.tag,.term,.mono,.nocode';
+function codify(root){
+ const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),todo=[];let n;
+ while((n=w.nextNode())){const p=n.parentElement;if(!p||p.closest(CODE_SKIP))continue;CODE_RE.lastIndex=0;if(CODE_RE.test(n.data))todo.push(n)}
+ for(const t of todo){const s=t.data,f=document.createDocumentFragment();let last=0,m;CODE_RE.lastIndex=0;
+  while((m=CODE_RE.exec(s))){const pre=s[m.index-1]||' ';if(/[\w/@.-]/.test(pre)&&!/^(sdd|node)/.test(m[0]))continue;
+   if(m.index>last)f.append(s.slice(last,m.index));const c=document.createElement('code');c.textContent=m[0];if(m[0].length<=28)c.className='nw';f.append(c);last=m.index+m[0].length}
+  if(last){if(last<s.length)f.append(s.slice(last));t.replaceWith(f)}}
+}
+let codeRaf=0;const codeObs=new MutationObserver(()=>{if(!codeRaf)codeRaf=requestAnimationFrame(()=>{codeRaf=0;codify($('#page'))})});
 function route(keep){
  let id=location.hash.slice(1);if(!P[id])id='overview';
  if(CUR&&CUR.unmount)CUR.unmount();CUR=P[id];const changed=id!==CURID;CURID=id;
  const el=$('#page');el.innerHTML=`<div class="page" ${keep?'style="animation:none"':''}>${CUR.render()}</div>`;
  if(CUR.mount)CUR.mount(el);
+ codify(el);codeObs.disconnect();codeObs.observe(el,{childList:true,subtree:true});
  $$('#side a[data-k]').forEach(a=>{if(a.dataset.k===id)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
  document.title=`${CUR.title} · Tidewell SDD Atlas`;
  if(changed&&!keep){window.scrollTo(0,0);const h=$('h1,.display',el);if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true})}}
@@ -835,7 +849,7 @@ P.pipeline={title:'CI/CD pipeline',render(){const opts=[['none','No CI yet'],['j
   github:'The public GitHub path: <code>.github/workflows/sdd-gates.yml</code> runs the same checks on every push and pull request; sign-offs are comments recorded by <code>sdd-signoff.yml</code>; Bob reviews pull requests. Set <code>"approvalChannel": "github"</code>.'};
  const file={none:D.ci.shell,jenkins:D.ci.jenkins,azure:D.ci.azure,gitlab:D.ci.gitlab,github:'# .github/workflows/sdd-gates.yml (excerpt)\n#   sdd-policy: policy.mjs check · validate-specs · git-check --ci (G1–G10)\n#   signoffs:   verify-signoffs.mjs (every sign-off against its comment or commit)\n#   sonarqube:  scan.mjs --ci (quality gate + dependency CVEs)\n# promote-to-test.yml: scan.mjs --gate-only --revision <sha>, then deploy-test waits for its reviewer'};
  return `<div class="wrap"><p class="eyebrow">CI/CD</p><h1>Any pipeline. One command.</h1>
- <p class="lede">The checks Bob and the git hook run on the laptop are plain Node scripts, so any CI can run them again: <code>node sdd/scripts/ci.mjs pr</code>. Exit 0 passes; exit 1 blocks the merge. Pick a pull request and run the gate.</p>
+ <p class="lede">The checks Bob and the git hook run before the push are plain Node scripts, so any CI can run them again: <code>node sdd/scripts/ci.mjs pr</code>. Exit 0 passes; exit 1 blocks the merge. Pick a pull request and run the gate.</p>
  <div class="row"><div class="c5"><h4>Pick a pull request</h4><ul class="optlist" id="scen">${SCEN.map(x=>`<li><button type="button" data-id="${x.id}" aria-pressed="${x.id===SC}">${icon(x.id==='clean'?'ok':'branch')}<span><b>${esc(x.l)}</b><br><span class="muted">${esc(x.d)}</span></span></button></li>`).join('')}</ul>
  <button class="btn pri" id="rungate" type="button" style="margin-top:16px">Run the gate${icon('play')}</button></div>
  <div class="c11"><div class="sflow" id="sflow" style="--n:7">${STAGES.map(([k])=>`<div class="st" data-k="${k}">${icon('pending')}<b>${k}</b><small>${SHORT[k]}</small></div>`).join('')}</div>
