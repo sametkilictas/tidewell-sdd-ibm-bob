@@ -184,13 +184,6 @@ def build():
     # crawlers and Pages
     today = date.today().isoformat()
     urls = ['', 'atlas/', 'labs/', 'article/', 'deck/tidewell-sdd-ibm-bob-deck.pdf']
-    # the peeking checker (assets/peek.js) on every page: relative paths, except the 404 page, which can show at any depth
-    for doc in OUT.rglob('*.html'):
-        rel = doc.relative_to(OUT)
-        src = f'{SITE}assets/peek.js' if rel.name == '404.html' else '../' * (len(rel.parts) - 1) + 'assets/peek.js'
-        text = doc.read_text()
-        assert text.count('</body>') == 1, f'{rel}: expected one </body>'
-        doc.write_text(text.replace('</body>', f'<script src="{src}" defer></script></body>'))
     (OUT / 'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                                      + ''.join(f'<url><loc>{SITE}{u}</loc><lastmod>{today}</lastmod></url>' for u in urls) + '</urlset>\n')
     (OUT / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nSitemap: {SITE}sitemap.xml\n')
