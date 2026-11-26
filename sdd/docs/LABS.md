@@ -4,19 +4,19 @@ Nov 23, 2026 · @Samet
 
 ## Overview
 
-Tidewell Bank is a fictional UAE retail bank (AED, English and Arabic). Its online banking is fully specified — 12 features, 212 requirements, 287 acceptance criteria — and IBM Bob builds it, one step at a time. In this lab a pair of people runs the bank's delivery cycle for real: a written spec, a signed plan, test-first code, security checks while Bob writes, at commit and before testing, proof that every example works, a pipeline that repeats every check, and a release decision. **Bob builds. People approve. Checks verify.**
+Tidewell Bank is a fictional UAE retail bank (AED, English and Arabic). Its online banking is fully specified — 12 features, 212 requirements, 287 acceptance criteria — and IBM Bob builds it, one step at a time.
+
+In this lab a pair of people runs the bank's delivery cycle for real: a written spec, a signed plan, test-first code, security checks while Bob writes, at commit and before testing, proof that every example works, a pipeline that repeats every check, and a release decision.
+
+**Bob builds. People approve. Checks verify.**
 
 The bank is only the example. Bob's modes, rules, commands and skills, the scripts and the governance files are industry-agnostic: everything about the bank lives in the specs, with the rules Bob must never break in `sdd/specs/domain/`. The lab is written for IBM Bob V2 — Bob IDE 2.x, whose built-in modes are Agent, Plan and Ask, and Bob Shell 2.x.
 
-```
- Clarify ─► Plan ─► ✍ Approve plan ─► Tasks ─► Implement ─► Scan ─► Verify ─► Secure ─► ✍ Approve phase
- analyst    architect  business owner   architect  developer   checks    developer developer  analyst demo, owner signs
-   Bob        Bob                         Bob     Bob, test-first (verify)  Bob      Bob
-                                                     ▲                         │
-                                                     └──── anything that fails goes back to Build
-```
+![The delivery loop for one feature: clarify, plan, the business owner approves the plan, tasks, implement test-first, scan, verify, secure, the business owner approves the phase. Anything that fails goes back to implement. After the push the pipeline runs the same checks again and people approve the release.](img/lab-loop.svg)
 
-Blue: Bob writes. Amber: a person decides. Green: the checks verify. A failed scan, a failed verification or a serious security finding sends the feature back to Build as a fix task. Everything in the picture happens before the push, wherever the team works with Bob (the *inner loop*); after the push, the pipeline runs the same checks again (the *outer loop*), and people approve the release.
+Blue: Bob writes. Amber: a person decides. Green: the checks verify. A failed scan, a failed verification or a serious security finding sends the feature back to Implement as a fix task.
+
+Everything in the picture happens before the push, wherever the team works with Bob (the *inner loop*). After the push, the pipeline runs the same checks again (the *outer loop*), and people approve the release.
 
 **What you will see**
 
@@ -28,6 +28,8 @@ Blue: Bob writes. Amber: a person decides. Green: the checks verify. A failed sc
 - Evidence: an auditor's view of a feature, generated from the repository.
 
 **Format.** Pairs, one laptop each. **Partner A** plays the developer, the architect and the business analyst, and drives Bob. **Partner B** plays the business owner and AppSec, and signs. Working alone? Lab 0 shows the training setting that lets one person hold every role.
+
+![Who does what: Bob builds, driven by partner A; people approve, partner B signs; the checks verify, run by scripts Bob cannot change.](img/lab-roles.svg)
 
 | Lab | What you do | Whose turn | Time |
 | --- | --- | --- | --- |
@@ -48,6 +50,8 @@ Allow a full day with breaks. Lab 4 is the long one: F00 has 31 tasks, so you bu
 ## Choose your path
 
 One setting decides how people sign: `"approvalChannel"` in `sdd/governance/approvers.json`. Everything else — the specs, Bob's modes, the guardrails, the gate — is the same on both paths.
+
+![Two paths, one kit: on the terminal path people sign with approve.mjs and the gate runs in any CI; on the GitHub path people sign with a pull-request comment and the gate runs in GitHub Actions.](img/lab-paths.svg)
 
 |  | **Terminal path** (default) | **Public GitHub path** |
 | --- | --- | --- |
@@ -80,7 +84,10 @@ export SONARQUBE_READONLY_TOKEN="…"    # a Browse-only user: Bob's SonarQube M
 
 ## Lab 0 — Set up
 
-**Goal:** a repository with real people in it, the local checks switched on and Bob loaded. **Whose turn:** partner A at the keyboard, B alongside.
+> - **Goal:** A repository with real people in it, the local checks switched on and Bob loaded.
+> - **Whose turn:** Partner A at the keyboard, B alongside.
+> - **Path:** Both; step 0d is for the terminal path, 0e for the GitHub path.
+> - **Time:** 30 min (+15 on the GitHub path).
 
 ### 0a. Both paths: get the kit
 
@@ -133,11 +140,14 @@ gh api -X PUT 'repos/{owner}/{repo}/collaborators/<B-login>' -f permission=push
 9. Run `node sdd/scripts/checks.mjs --list`: the built-in checks (secrets, risky code, dependencies) run in Bob's hook, at commit and before testing, with nothing to install. Using SonarQube as the scanner? Set it up now (`sdd/docs/SONARQUBE.md`) and export the variables above **in the shell you start Bob from**.
 10. Open the folder in IBM Bob (V2) and reload the window. When Bob asks, **trust the folder**: Bob V2 loads a workspace's modes, rules and hooks only in trusted folders. Check: **Settings → Modes** shows 🧭 SDD Navigator and the SDD modes; **Settings → Hooks** shows the SDD hooks.
 
-**Checkpoint:** spec check and policy check green; `/sdd-scan` appears when you type `/` in Bob; on the terminal path B has a clone (or a seat at A's laptop); on the GitHub path the ruleset is listed under **Settings → Rules** and `gh run list --limit 3` shows **sdd-gates** runs for the push.
+> **Checkpoint:** spec check and policy check green; `/sdd-scan` appears when you type `/` in Bob; on the terminal path B has a clone (or a seat at A's laptop); on the GitHub path the ruleset is listed under **Settings → Rules** and `gh run list --limit 3` shows **sdd-gates** runs for the push.
 
 ## Lab 1 — Read the map
 
-**Goal:** know, at any moment, where the project is, whose turn it is and what comes next. **Whose turn:** both. **Path:** both.
+> - **Goal:** Know, at any moment, where the project is, whose turn it is and what comes next.
+> - **Whose turn:** Both.
+> - **Path:** Both.
+> - **Time:** 15 min.
 
 ```bash
 node sdd/scripts/state.mjs                # ▶ F00  0  awaiting-plan-approval  HUMAN → business owner runs: node sdd/scripts/approve.mjs plan F00
@@ -149,11 +159,16 @@ node sdd/scripts/policy.mjs show          # the automation dial: three risk tier
 2. Open the **Tidewell SDD Atlas** and walk *The loop*: for each step, read *Whose turn*, *What Bob does* and *Final say*. Use *Show your part* to highlight your role's steps.
 3. In the Atlas, open *SDLC + SDD* and find where your bank's current requirements, design, test and security phases sit in the loop.
 
-**Checkpoint:** each partner can answer, for F04 Transfers: what is its risk tier, who signs its plan, and may Bob drive it on its own? (Tier 1; the business owner only; no — one step at a time.)
+> **Checkpoint:** each partner can answer, for F04 Transfers: what is its risk tier, who signs its plan, and may Bob drive it on its own? (Tier 1; the business owner only; no — one step at a time.)
 
 ## Lab 2 — The automation dial
 
-**Goal:** see which decisions the bank keeps for people, which run by themselves, and what cannot be configured away. **Whose turn:** B, as AppSec, owns the dial; A tries to change it. **Path:** both.
+> - **Goal:** See which decisions the bank keeps for people, which run by themselves, and what cannot be configured away.
+> - **Whose turn:** B, as AppSec, owns the dial; A tries to change it.
+> - **Path:** Both.
+> - **Time:** 20 min.
+
+![The automation dial: tier 1 Critical, tier 2 Sensitive and tier 3 Standard, with who signs the plan, whether a hand security review is required, how far Bob may run and who approves production. Locked settings are marked.](img/lab-dial.svg)
 
 1. Compare a critical feature with a standard one:
 
@@ -173,11 +188,16 @@ node sdd/scripts/policy.mjs check
 4. Try to commit it anyway: `git commit -am "chore: let architects sign"` is refused with *G7 governance files changed … use scope SDD and get CODEOWNERS review*. Even as `chore(SDD): …` the pipeline's `policy` stage would fail, and the code owners would have to approve it. Put it back: `git checkout -- sdd/governance/policy.json`.
 5. Open the Atlas page *Automation dial* → *Try changing it*: flip settings and watch the same locked rules appear.
 
-**Checkpoint:** you can name the three kinds of control — an **automated check** (the same every time, never skipped), a **human review** (advice), a **human approval** (a decision on the record) — and give one locked gate.
+> **Checkpoint:** you can name the three kinds of control — an **automated check** (the same every time, never skipped), a **human review** (advice), a **human approval** (a decision on the record) — and give one locked gate.
 
 ## Lab 3 — The first sign-off: maker and checker
 
-**Goal:** see that the person who builds is never the person who approves, and that the pipeline can tell. **Whose turn:** B, the business owner, signs; A tries first. **Path:** both, each its own way.
+> - **Goal:** See that the person who builds is never the person who approves, and that the pipeline can tell.
+> - **Whose turn:** B, the business owner, signs; A tries first.
+> - **Path:** Both, each its own way.
+> - **Time:** 20 min.
+
+![Maker and checker: partner A tries to sign and is refused; partner B reads the spec and plan, signs and commits the sign-off on its own; the pipeline's sign-off check passes, and fails on a forged record.](img/lab-signoff.svg)
 
 ### 3a. Terminal path
 
@@ -201,7 +221,7 @@ git add sdd/state/approvals.json && git commit -m "chore(SDD): approve plan F00"
 
 On A's laptop instead: `node sdd/scripts/approve.mjs plan F00 --as bea@bank.example`, then the commit command it prints, which commits as B.
 
-4. A pulls and runs the pipeline's sign-off check on the laptop: `node sdd/scripts/ci.mjs signoffs` → ✔.
+4. A pulls and runs the pipeline's sign-off check locally: `node sdd/scripts/ci.mjs signoffs` → ✔.
 5. **Forgery drill.** A writes a sign-off into `sdd/state/approvals.json` by hand (copy B's record to `F01`), commits it alone and runs `node sdd/scripts/ci.mjs signoffs`:
 
 ```text
@@ -216,13 +236,18 @@ Undo it: `git reset --hard HEAD~1`.
 2. A comments `/approve-plan F00` in the **Conversation** tab. Within about 20 seconds a 👀 reaction appears; a minute later the workflow refuses: A is not the business owner, and nobody signs their own pull request.
 3. B reads the spec and plan, then comments `/approve-plan F00`. The workflow checks B against `approvers.json` on `main`, commits the sign-off on its own and answers **✔ Signed by Bea (@bea-login)**. A runs `git pull`.
 
-**Checkpoint:** `node sdd/scripts/state.mjs` shows F00 as **implementing (0/31)** with Bob's next step; `git log -1` shows the sign-off commit by B, and nothing else in it.
+> **Checkpoint:** `node sdd/scripts/state.mjs` shows F00 as **implementing (0/31)** with Bob's next step; `git log -1` shows the sign-off commit by B, and nothing else in it.
 
 ## Lab 4 — Build F00 test-first
 
-**Goal:** watch Bob build in small, traceable steps: a failing test, the code that passes it, one commit per task naming its requirement. **Whose turn:** the developer (A) with 🏗️ Spec Builder; the developer reviews every write. **Path:** both.
+> - **Goal:** Watch Bob build in small, traceable steps: a failing test, the code that passes it, one commit per task naming its requirement.
+> - **Whose turn:** The developer (A) with 🏗️ Spec Builder; the developer reviews every write.
+> - **Path:** Both.
+> - **Time:** 45 min live, the rest unattended.
 
 F00 Foundation has 31 tasks in seven groups: A workspace · B domain (money in fils, AE IBANs, the Saturday–Sunday business calendar) · C infrastructure · D API platform · E contracts and web shell · F quality gates · G close-out.
+
+![Test-first: for every task, a test that fails, the smallest code that passes it, one commit naming the task and its requirement. Groups A and B are built live; Bob finishes the rest.](img/lab-tdd.svg)
 
 1. In Bob, switch to **🏗️ Spec Builder** and run `/sdd-implement F00 A`. Bob starts the step, then for each task writes a test that fails, the smallest code that passes it, and commits it as `feat(F00): T001 … [FND-001]`.
 2. Approve or reject each write as Bob asks. Ask Bob *why* a test looks the way it does: the answer should point at an acceptance criterion.
@@ -230,11 +255,16 @@ F00 Foundation has 31 tasks in seven groups: A workspace · B domain (money in f
 4. Let Bob finish the remaining groups while you carry on: `/sdd-implement F00` (all open tasks).
 5. **Drill:** change a file under `apps/` yourself and commit it as `git commit -am "feat: quick fix"`. The hook refuses: *G2 code changes need a feature scope like feat(F04): … · G2 add the requirement IDs this commit satisfies, e.g. \[XFER-021\]*. Undo with `git checkout -- .`.
 
-**Checkpoint:** `git log --oneline` shows one `feat(F00): T0NN … [FND-…]` commit per task; `node sdd/scripts/state.mjs` shows **implementing (n/31)**, then **needs-scan** — testing cannot start until the security checks have passed the code.
+> **Checkpoint:** `git log --oneline` shows one `feat(F00): T0NN … [FND-…]` commit per task; `node sdd/scripts/state.mjs` shows **implementing (n/31)**, then **needs-scan** — testing cannot start until the security checks have passed the code.
 
 ## Lab 5 — Security at the keyboard
 
-**Goal:** find security problems where they are cheapest — while Bob writes and at commit — see each one caught again later, and plug in your organisation's own tool. **Whose turn:** the developer (A); B decides as AppSec. **Path:** both.
+> - **Goal:** Find security problems where they are cheapest — while Bob writes and at commit — see each one caught again later, and plug in your organisation's own tool.
+> - **Whose turn:** The developer (A); B decides as AppSec.
+> - **Path:** Both.
+> - **Time:** 50 min.
+
+![Where each problem is caught: a secret, risky code, a compromised library and your own tool, against Bob's hook, the git hook, the scan before testing and the pipeline.](img/lab-layers.svg)
 
 ### 5a. A secret, three times
 
@@ -303,30 +333,38 @@ detect-secrets audit .secrets.baseline           # mark each: a real secret (rem
 12. B, as AppSec, switches it on: in `sdd/governance/checks.json` set `"enabled": true` for `ibm-detect-secrets`, then commit `.secrets.baseline` and that change together as `chore(SDD): switch on IBM detect-secrets`. `node sdd/scripts/checks.mjs --list` now shows it at commit and before testing — and every pipeline reads the same file.
 13. Try the commit from 5a again: detect-secrets now runs at pre-commit, before rule G10. On a laptop without the tool, the commit is refused with the install command: a tool the organisation switched on is not optional. In the editor, Bob's own findings (Bob Findings) and tools such as IBM Concert Secure Coder work alongside the hook; `sdd/docs/CHECKS.md` shows where each IBM tool fits. No package installs allowed in the room? Skip this exercise: the built-in checks do the same job for the lab.
 
-**Why both, when Bob already finds secrets?** IBM detect-secrets is an open-source scanner IBM maintains — a fork of Yelp's detect-secrets with extra detectors. Bob also flags secrets while you work, in Bob Findings. They serve the same control at different stages: Bob advises in one developer's editor and understands context; detect-secrets gives the same answer for everyone, covers people's own commits as well as Bob's, and its baseline in git is the audit record. A documented fake is allowed in both places a person controls: `sdd/governance/secrets-allowlist.json` for the kit's check, and marked a false positive in `.secrets.baseline`.
+> **Why both, when Bob already finds secrets?** IBM detect-secrets is an open-source scanner IBM maintains — a fork of Yelp's detect-secrets with extra detectors. Bob also flags secrets while you work, in Bob Findings. They serve the same control at different stages: Bob advises in one developer's editor and understands context; detect-secrets gives the same answer for everyone, covers people's own commits as well as Bob's, and its baseline in git is the audit record. A documented fake is allowed in both places a person controls: `sdd/governance/secrets-allowlist.json` for the kit's check, and marked a false positive in `.secrets.baseline`.
 
 ### 5g. Accepting a risk is AppSec's decision
 
 14. If a finding ever blocks the scan and cannot be fixed yet, only AppSec may accept it, for a limited time: a dependency CVE with `node sdd/scripts/approve.mjs waiver <CVE> --feature F00 --reason "…" --expires YYYY-MM-DD` (GitHub path: `/accept-risk <CVE> F00 until YYYY-MM-DD because …`); anything else as a reviewed change to `checks.json` or an allowlist. A trying it is refused.
 
-**Checkpoint:** `sdd/reports/scan/F00.md` says PASS and is committed; `state.mjs` shows F00 **needs-verify**. Each partner can say where a secret is caught (Bob, the commit hooks, the scan, the pipeline), where risky code is caught (as Bob writes it), and how the bank's own tool was plugged in (one line in `checks.json`).
+> **Checkpoint:** `sdd/reports/scan/F00.md` says PASS and is committed; `state.mjs` shows F00 **needs-verify**. Each partner can say where a secret is caught (Bob, the commit hooks, the scan, the pipeline), where risky code is caught (as Bob writes it), and how the bank's own tool was plugged in (one line in `checks.json`).
 
 ## Lab 6 — Prove it
 
-**Goal:** a separate Bob mode proves every acceptance criterion; a hand review covers what tools cannot see; and an auditor can see all of it in one page. **Whose turn:** the developer runs; the business analyst checks the proof; AppSec has the final say on security. **Path:** both.
+> - **Goal:** A separate Bob mode proves every acceptance criterion; a hand review covers what tools cannot see; and an auditor can see all of it in one page.
+> - **Whose turn:** The developer runs; the business analyst checks the proof; AppSec has the final say on security.
+> - **Path:** Both.
+> - **Time:** 30 min.
 
 1. **🔍 Spec Verifier:** `/sdd-verify F00`. It refuses to start unless the scan is a fresh PASS. It writes a tagged test for every acceptance criterion, walks the app, and writes `sdd/reports/verification/F00.md`. A, as the business analyst, checks each criterion is proven as the business meant (in a real team, someone who did not build it).
 2. **🛡️ Security Reviewer:** `/sdd-secure F00`. F00 is tier 2, so this review is required. It reviews against OWASP ASVS level 2 — access control, sessions, data exposure — and writes `sdd/reports/security/F00.md`. B, as AppSec, decides any serious finding.
 3. Commit both reports (`docs(F00): verification and security reports`); `node sdd/scripts/state.mjs` shows F00 **done**.
 4. **The auditor's view.** B runs `node sdd/scripts/evidence.mjs F00 --out evidence-F00.md` and reads it as an auditor would: who signed the plan, bound to which file hashes, and whether those files are unchanged; the four-eyes line; requirements → tasks → commits → tests; the scan and review verdicts; open items.
 
-**Checkpoint:** F00 is **done**, and B can answer from the evidence pack alone: who approved F00, which requirement has no test yet, and whether the scan matched the final code.
+> **Checkpoint:** F00 is **done**, and B can answer from the evidence pack alone: who approved F00, which requirement has no test yet, and whether the scan matched the final code.
 
 ## Lab 7 — The pipeline
 
-**Goal:** see that every check from the laptop runs again on the server, in whatever CI the bank has, and that the release decision belongs to the people the policy names. **Whose turn:** both. **Path:** both.
+> - **Goal:** See that every check from before the push runs again on the server, in whatever CI the bank has, and that the release decision belongs to the people the policy names.
+> - **Whose turn:** Both.
+> - **Path:** Both.
+> - **Time:** 30 min.
 
-### 7a. Both paths: the gate on your laptop
+![The pipeline: a pull request runs the gate, ci.mjs pr, with seven stages; after the merge the test environment deploys automatically; production waits for the people the risk tier names.](img/lab-pipeline.svg)
+
+### 7a. Both paths: run the gate yourself
 
 ```bash
 node sdd/scripts/ci.mjs pr --summary sdd-gate.md --junit sdd-gate.xml
@@ -353,7 +391,7 @@ node sdd/scripts/ci.mjs pr --summary sdd-gate.md --junit sdd-gate.xml
 | Tekton (e.g. IBM Cloud Continuous Delivery toolchains) | a task that runs `sdd/ci/sdd-gate.sh` | your pipeline's required check |
 | Anything else | `sdd/ci/sdd-gate.sh` | your tool's required check |
 
-No CI in the workshop? The laptop run in 7a is the same command a server would run. `sdd/docs/CI.md` explains each setup.
+No CI in the workshop? The run in 7a is the same command a server would run. `sdd/docs/CI.md` explains each setup.
 
 ### 7c. Both paths: the release decision
 
@@ -371,11 +409,14 @@ Deployment to the test environment is automatic once the gate passes (the pipeli
 
 `bash sdd/tests/terminal/run.sh` runs ten checks in a throwaway copy — roles, four-eyes, forged sign-offs, secrets, locked gates — and ends `✔ 10 passed, 0 failed`. On the GitHub path, `python3 sdd/tests/github-e2e/e2e.py` plays the GitHub workflows on a local stand-in for GitHub.
 
-**Checkpoint:** the gate passes on your branch, fails when you skip a hook, and `ci.mjs release` names the right people for phase 0 and for phase 3.
+> **Checkpoint:** the gate passes on your branch, fails when you skip a hook, and `ci.mjs release` names the right people for phase 0 and for phase 3.
 
 ## Lab 8 — Close the phase; change a signed spec
 
-**Goal:** a phase ends with a demo and a signature; a signed spec changes only through a change request the business owner decides. **Whose turn:** the analyst (A) demos and writes the change request; the business owner (B) decides; the architect (A) applies it with Bob. **Path:** both.
+> - **Goal:** A phase ends with a demo and a signature; a signed spec changes only through a change request the business owner decides.
+> - **Whose turn:** The analyst (A) demos and writes the change request; the business owner (B) decides; the architect (A) applies it with Bob.
+> - **Path:** Both.
+> - **Time:** 30 min.
 
 ### 8a. The phase sign-off
 
@@ -387,17 +428,22 @@ Deployment to the test environment is automatic once the gate passes (the pipeli
 
 The bank wants the domestic transfer cut-off moved from 14:00 to 15:00. That changes F00's signed spec (FND-011).
 
+![A signed spec changes only through a change request: raise it, the business owner decides, Bob applies only what it lists, the plan sign-off goes stale, and the business owner signs again. A direct edit is refused by rule G9.](img/lab-cr.svg)
+
 4. A edits the cut-off in `sdd/specs/features/F00-foundation/spec.md` directly and commits `spec(F00): later cut-off`. Refused: *G9 `sdd/specs/features/F00-foundation/spec.md` is approved scope. Change it through an approved change request …* Undo: `git checkout -- .`.
 5. A, as the analyst, in **📐 Spec Architect**: `/sdd-change-request later-domestic-cut-off`. Bob writes `CR-001` with the problem, two options, the impact (FND-011, XFER-022, NFR-I18N-005) and a recommendation; A commits it as `docs(CR-001): raise later domestic cut-off`.
 6. B decides. Terminal path: `node sdd/scripts/approve.mjs cr CR-001 --decision approved --option A`. GitHub path: `/approve-cr CR-001 option A` (or `/reject-cr CR-001 <reason>`).
 7. A applies it: `/sdd-apply-cr CR-001`. Bob changes only what the CR lists, and its commit cites CR-001, so G9 lets it through.
 8. F00's plan sign-off is now stale (`state.mjs`: **spec-changed-after-approval**). B signs the plan again; the sign-off says *Spec changes since the last approval are covered by: CR-001*.
 
-**Checkpoint:** the CR is on record with B's decision; F00's spec says 15:00; the plan is signed again; nobody edited a signed spec without a decision.
+> **Checkpoint:** the CR is on record with B's decision; F00's spec says 15:00; the plan is signed again; nobody edited a signed spec without a decision.
 
 ## Lab 9 — Turn the dial
 
-**Goal:** see how one governance setting changes how far Bob may go — and who must agree to that change. **Whose turn:** A proposes; B, as AppSec, approves the change (in a real repository, the code owners). **Path:** both.
+> - **Goal:** See how one governance setting changes how far Bob may go — and who must agree to that change.
+> - **Whose turn:** A proposes; B, as AppSec, approves the change (in a real repository, the code owners).
+> - **Path:** Both.
+> - **Time:** 20 min.
 
 1. On a throwaway branch, reclassify F00 as tier 3:
 
@@ -412,11 +458,16 @@ git commit -am "chore(SDD): F00 is tier 3 for the dial lab"
 3. Now try to loosen tier 1 itself: set tier 1's `"bobAutonomy"` to `"drive"` and run `node sdd/scripts/policy.mjs check` → *Locked: Bob runs tier 1 features one step at a time.* Moving a feature between tiers is allowed but is a governance change the code owners review; loosening what tier 1 means is not allowed at all.
 4. Discuss: who in your bank should own risk classification? Then clean up: `git switch - && git branch -D lab/dial`.
 
-**Checkpoint:** each partner can say what the dial controls (who signs, the hand security review, how far Bob runs, who approves production) and what it can never remove.
+> **Checkpoint:** each partner can say what the dial controls (who signs, the hand security review, how far Bob runs, who approves production) and what it can never remove.
 
 ## Lab 10 — Guardrail drills
 
-**Goal:** try every shortcut and name the layer that stops it. Do at least six; one partner predicts the layer first. **Path:** both, unless marked.
+> - **Goal:** Try every shortcut and name the layer that stops it.
+> - **Whose turn:** Both. Do at least six; one partner predicts the layer first.
+> - **Path:** Both, unless marked.
+> - **Time:** 20 min.
+
+![Five guardrail layers, each with the drills it stops: Bob's hook, the git hook, approve.mjs, the policy check and the pipeline.](img/lab-guardrails.svg)
 
 | # | Try this | What stops it (start of the message) | Layer |
 | --- | --- | --- | --- |
@@ -438,7 +489,7 @@ git commit -am "chore(SDD): F00 is tier 3 for the dial lab"
 
 Put the tree back after each drill: `git status`, `git checkout -- .`, and `node sdd/scripts/step.mjs finish --outcome interrupted` if a step was left open.
 
-**Checkpoint:** for every drill you can say which layer stopped it — Bob's hook, the git hook, the sign-off script, the policy check or the pipeline — and why the pipeline is the one nobody can switch off.
+> **Checkpoint:** for every drill you can say which layer stopped it — Bob's hook, the git hook, the sign-off script, the policy check or the pipeline — and why the pipeline is the one nobody can switch off.
 
 ## Cheat sheet
 

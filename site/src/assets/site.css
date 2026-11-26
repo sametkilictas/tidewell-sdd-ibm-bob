@@ -15,7 +15,7 @@ a:hover{color:var(--link-hover);text-decoration:underline}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 code,kbd,pre{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
 /* code named in running text (a command, a file, a flag) stands out from the words around it */
-:not(pre)>code{background:#f2f4f8;color:#121619;border:1px solid #c1c7cd;padding:1px 6px;font-size:.88em;overflow-wrap:anywhere}
+:not(pre)>code{background:#f2f4f8;color:#121619;border:1px solid #c1c7cd;padding:1px 6px;font-size:.88em;overflow-wrap:anywhere;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .hero :not(pre)>code,.doc-hero :not(pre)>code,footer :not(pre)>code{background:#21272a;color:#f2f4f8;border-color:#4d5358}
 .skip{position:absolute;left:-9999px;top:0;background:var(--interactive);color:#fff;padding:12px 16px;z-index:100}
 .skip:focus{left:0}
@@ -115,7 +115,8 @@ footer .fine{margin-top:12px;font-size:12px;line-height:1.6}
 .toc a{display:block;padding:6px 16px;color:var(--text2);border-left:2px solid transparent;margin-left:-1px}
 .toc a:hover{color:var(--text);background:var(--layer);text-decoration:none}
 .toc a.on{color:var(--text);border-left-color:var(--interactive);font-weight:600}
-.prose{max-width:820px;font-size:17px;line-height:1.65}
+.prose{font-size:17px;line-height:1.65}
+.prose>*{max-width:820px}.prose>.diagram{max-width:882px}
 .prose h1{display:none}
 .prose h2{font-size:32px;margin:56px 0 16px;padding-top:8px;scroll-margin-top:64px}
 .prose h3{font-size:22px;font-weight:600;margin:36px 0 12px;scroll-margin-top:64px}
@@ -129,6 +130,35 @@ footer .fine{margin-top:12px;font-size:12px;line-height:1.6}
 .prose td{border-bottom:1px solid var(--layer2);padding:10px 12px;vertical-align:top}
 .prose blockquote{margin:0 0 16px;padding:8px 20px;border-left:4px solid var(--interactive);background:var(--layer)}
 .prose hr{border:0;border-top:1px solid var(--layer2);margin:40px 0}
+/* guides: easier to scan — lab and step numbers, panels for each lab's card and checkpoint, results in colour */
+.prose{line-height:1.7}
+.prose h2.lab{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--layer2);padding-top:40px;margin-top:72px}
+.labno{font:600 13px/1 'IBM Plex Mono',monospace;letter-spacing:.32px;text-transform:uppercase;color:#fff;background:var(--interactive);padding:8px 10px}
+.prose h3.step{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;margin-top:44px}
+.stepno{font:600 14px/1 'IBM Plex Mono',monospace;color:var(--interactive);border:1px solid var(--interactive);padding:5px 7px}
+.path{font:400 12px/1 'IBM Plex Sans',sans-serif;padding:5px 10px;border-radius:12px;background:#e0e0e0;color:#161616;letter-spacing:.16px}
+.path.terminal{background:#d0e2ff;color:#002d9c}.path.github{background:#e8daff;color:#491d8b}
+.path.solo{font:inherit;padding:0;border-radius:0;background:none;color:inherit;letter-spacing:0;border-bottom:3px solid #d0e2ff}
+.path.solo.github{border-bottom-color:#e8daff}
+.prose blockquote p:last-child{margin-bottom:0}
+.prose blockquote.labcard{background:var(--layer);border-left:4px solid var(--interactive);padding:12px 20px;margin:0 0 28px}
+.labcard ul{list-style:none;margin:0;padding:0}
+.labcard li{display:grid;grid-template-columns:112px 1fr;gap:12px;margin:0;padding:8px 0;border-bottom:1px solid var(--layer2)}
+.labcard li:last-child{border-bottom:0}
+.labcard .k{font-size:12px;font-weight:600;letter-spacing:.32px;text-transform:uppercase;color:var(--text2);padding-top:4px}
+.prose blockquote.checkpoint{background:#defbe6;border-left-color:#24a148;margin:28px 0 24px;padding:14px 20px}
+.checkpoint p>strong:first-child{display:inline-flex;align-items:center;gap:8px;color:#0e6027;margin-right:4px}
+.checkpoint p>strong:first-child::before{content:"";width:18px;height:18px;border-radius:50%;flex:none;background:#24a148 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.2l2.6 2.6L12 5.4' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+.codebox{position:relative;margin:0 0 20px}.codebox pre{margin:0;padding-right:72px}
+.copy{position:absolute;top:8px;right:8px;font:12px/1 'IBM Plex Sans',sans-serif;background:#393939;color:#f4f4f4;border:1px solid #6f6f6f;padding:6px 10px;cursor:pointer}
+.copy:hover{background:#4c4c4c}.copy:focus-visible{outline:2px solid #fff;outline-offset:1px}
+pre .cm{color:#a8a8a8}pre .out.good{color:#6fdc8c}pre .out.bad{color:#ff8389}
+.prose tbody tr:nth-child(even) td{background:#f8f8f8}
+.diagram{margin:24px 0 32px;border:1px solid var(--layer2);background:#fff}
+.dg-scroll{overflow-x:auto}
+.diagram svg{display:block;width:100%;height:auto}
+.diagram figcaption{display:none;font-size:14px;padding:10px 14px;border-top:1px solid var(--layer2)}
+@media (max-width:720px){.diagram svg{min-width:680px}.diagram figcaption{display:block}.labcard li{grid-template-columns:1fr;gap:2px;font-size:16px;line-height:1.5}}
 .docnav{display:flex;flex-wrap:wrap;gap:16px;margin-top:56px;padding-top:24px;border-top:1px solid var(--layer2)}
 @media (max-width:640px){.brand b{display:none}.hdr .in{gap:12px}.nav a{padding:0 10px}}
 @media (max-width:960px){.doc{grid-template-columns:minmax(0,1fr)}.toc{position:static;max-height:none;border-left:0}.toc p{margin-left:0}}

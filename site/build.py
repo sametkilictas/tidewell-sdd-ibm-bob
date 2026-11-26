@@ -113,17 +113,77 @@ def link_rewrite(md_html):
     return re.sub(r'href="([^"]+)"', fix, md_html)
 
 
-def render_doc(md_text, *, title, eyebrow, lede, path, current, out_dir, prev_next=''):
+PATHS = {'Both paths': 'both', 'Terminal path': 'terminal', 'GitHub path': 'github'}
+COPY_JS = """<script>(()=>{for(const pre of document.querySelectorAll('.prose pre')){const box=document.createElement('div');box.className='codebox';pre.before(box);box.appendChild(pre);
+const b=document.createElement('button');b.type='button';b.className='copy';
+b.textContent='Copy';b.setAttribute('aria-label','Copy this code');b.addEventListener('click',async()=>{const t=pre.querySelector('code')?.innerText??pre.innerText;
+try{await navigator.clipboard.writeText(t);b.textContent='Copied'}catch(e){const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected'}
+setTimeout(()=>{b.textContent='Copy'},1600)});box.appendChild(b)}})();</script>"""
+
+
+def readable(body, img_dir=None, out=None):
+    """Make a rendered guide easier to read: diagrams inline, lab and step headings with their numbers set apart,
+    lab cards and checkpoints as panels, and the expected output in code blocks coloured by result."""
+    def diagram(m):
+        name = m.group(1)
+        src = img_dir / f'{name}.svg'
+        (out / 'img').mkdir(parents=True, exist_ok=True)
+        shutil.copy(src, out / 'img' / src.name)
+        svg = re.sub(r' width="\d+" height="\d+"', '', src.read_text().strip(), count=1)
+        return (f'<figure class="diagram"><div class="dg-scroll">{svg}</div>'
+                f'<figcaption>Swipe sideways to see all of it, or <a href="img/{src.name}">open it full size</a>.</figcaption></figure>')
+    if img_dir:
+        body = re.sub(r'<p><img alt="[^"]*" src="img/([\w-]+)\.svg" ?/?></p>', diagram, body)
+
+    body = re.sub(r'<h2 id="([^"]+)">Lab (\d+) — (.*?)</h2>', r'<h2 id="\1" class="lab"><span class="labno">Lab \2</span>\3</h2>', body)
+
+    def step(m):
+        hid, no, rest = m.groups()
+        pm = re.match(r'(Both paths|Terminal path|GitHub path)(?::\s*(.*))?$', rest)
+        chip = ''
+        if pm and pm.group(2):
+            rest = pm.group(2)[:1].upper() + pm.group(2)[1:]
+            chip = f' <span class="path {PATHS[pm.group(1)]}">{pm.group(1)}</span>'
+        elif pm:
+            chip = ''
+            rest = f'<span class="path {PATHS[pm.group(1)]} solo">{pm.group(1)}</span>'
+        return f'<h3 id="{hid}" class="step"><span class="stepno">{no}</span>{rest}{chip}</h3>'
+    body = re.sub(r'<h3 id="([^"]+)">(\d+[a-z])\. (.*?)</h3>', step, body)
+
+    def card(m):
+        items = re.sub(r'<li><strong>([^<:]+):</strong> ?(.*?)</li>', r'<li><span class="k">\1</span><span class="v">\2</span></li>', m.group(1), flags=re.S)
+        return f'<blockquote class="labcard">\n<ul>{items}</ul>\n</blockquote>'
+    body = re.sub(r'<blockquote>\s*<ul>(\s*<li><strong>Goal:</strong>.*?)</ul>\s*</blockquote>', card, body, flags=re.S)
+    body = re.sub(r'<blockquote>\s*<p><strong>Checkpoint:</strong> ?', '<blockquote class="checkpoint">\n<p><strong>Checkpoint</strong> ', body)
+
+    def code(m):
+        lines = []
+        for ln in m.group(2).split('\n'):
+            cm = re.search(r'(^|\s)(#\s.*)$', ln)
+            if ln.lstrip().startswith(('✖', '✔')):
+                ln = f'<span class="out {"bad" if ln.lstrip().startswith("✖") else "good"}">{ln}</span>'
+            elif cm:
+                c = cm.group(2)
+                kind = 'out bad' if '✖' in c else 'out good' if '✔' in c else 'cm'
+                ln = ln[:cm.start(2)] + f'<span class="{kind}">{c}</span>'
+            lines.append(ln)
+        return m.group(1) + '\n'.join(lines) + '</code></pre>'
+    body = re.sub(r'(<pre><code[^>]*>)(.*?)</code></pre>', code, body, flags=re.S)
+    return body
+
+
+def render_doc(md_text, *, title, eyebrow, lede, path, current, out_dir, prev_next='', img_dir=None):
     md = markdown.Markdown(extensions=['tables', 'fenced_code', 'toc', 'sane_lists'], extension_configs={'toc': {'permalink': False}})
     body = md.convert(md_text)
     body = link_rewrite(body)
+    body = readable(body, img_dir, OUT / out_dir)
     tops = [t for top in md.toc_tokens for t in ([top] if top['level'] == 2 else top.get('children') or [])]
     toc = ''.join(f'<a href="#{t["id"]}">{html.escape(re.sub(r"<[^>]+>", "", t["name"]))}</a>' for t in tops if t['level'] == 2)
     page = (head(title, lede, path, 1) + header(current, 1) +
             f"""<main id="main"><div class="doc-hero"><div class="wrap"><p class="eyebrow">{eyebrow}</p><h1>{html.escape(title)}</h1>
 <p class="lede">{html.escape(lede)}</p></div></div>
 <div class="wrap doc"><nav class="toc" aria-label="On this page"><p>On this page</p>{toc}</nav>
-<article class="prose">{body}{prev_next}</article></div></main>""" + footer(1) + TOC_JS + '</body></html>')
+<article class="prose">{body}{prev_next}</article></div></main>""" + footer(1) + TOC_JS + COPY_JS + '</body></html>')
     (OUT / out_dir).mkdir(parents=True, exist_ok=True)
     (OUT / out_dir / 'index.html').write_text(page)
 
@@ -154,7 +214,7 @@ def build():
     render_doc(labs, title='Lab guide: spec-driven delivery with IBM Bob', eyebrow='Hands-on · a day, in pairs',
                lede='Run the whole cycle for real at Tidewell Bank: a written spec, a signed plan, test-first code, shift-left '
                     'security checks, proof that every example works, a pipeline gate and a release decision.',
-               path='labs/', current='labs/', out_dir='labs',
+               path='labs/', current='labs/', out_dir='labs', img_dir=ROOT / 'sdd/docs/img',
                prev_next=f'<div class="docnav"><a class="btn" href="../atlas/">Explore the Atlas</a><a class="btn ghost" style="color:var(--text);border-color:var(--border)" href="{REPO}">Get the kit</a></div>')
 
     # article
