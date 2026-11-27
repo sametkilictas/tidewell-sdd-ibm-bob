@@ -8,8 +8,8 @@
   decided, proving it, keeping it secure, and showing an auditor who decided what. This kit shows how, end to end, with IBM Bob and a
   fictional bank.</p>
   <div class="btns"><a class="btn" href="atlas/">Explore the interactive Atlas</a><a class="btn ghost" href="{{REPO}}">Get the kit on GitHub</a></div>
-  <p class="meta"><span class="m1">{{features}} features specified</span><span class="m2">{{reqs}} requirements</span>
-  <span class="m3">{{acs}} acceptance criteria</span><span class="m4">{{ops}} API operations</span></p>
+  <p class="meta"><a class="metalink" href="atlas/#features" aria-label="Browse the bank's features in the Atlas: {{features}} features, {{reqs}} requirements, {{acs}} acceptance criteria, {{ops}} API operations"><span class="m1">{{features}} features specified</span><span class="m2">{{reqs}} requirements</span>
+  <span class="m3">{{acs}} acceptance criteria</span><span class="m4">{{ops}} API operations</span><span class="go">Browse the specs →</span></a></p>
 </div></section>
 
 <section class="video" id="video" aria-label="Explainer video"><div class="wrap">
@@ -81,7 +81,7 @@ node sdd/scripts/ci.mjs pr         # the gate every pipeline runs</code></pre>
   <p class="sub">Bob's modes, rules, commands and skills, the scripts and the governance files know nothing about banking. The bank lives in the specs.</p>
   <div class="grid g2">
     <div class="tile" style="min-height:0;padding-bottom:24px"><span class="tag">The kit · any industry</span><p>Bob's configuration (<code>.bob/</code>), the guardrail scripts, the workflows, the governance files and the CI templates. A Security Reviewer, not a bank reviewer; a <code>domain-rules</code> skill that reads whatever domain the specs define.</p></div>
-    <div class="tile" style="min-height:0;padding-bottom:24px"><span class="tag t3">The example · Tidewell Bank</span><p>A fictional UAE bank (AED, English and Arabic): product vision, domain model, 12 feature specs, NFRs, the API contract, and the rules Bob must never break in <code>sdd/specs/domain/</code>. Replace them for insurance, health, retail or the public sector.</p></div>
+    <div class="tile" style="min-height:0;padding-bottom:24px"><span class="tag t3">The example · Tidewell Bank</span><p>A fictional UAE bank (AED, English and Arabic): product vision, domain model, 12 feature specs, NFRs, the API contract, and the rules Bob must never break in <code>sdd/specs/domain/</code>. Replace them for insurance, health, retail or the public sector.</p><p style="margin:12px 0 0"><a href="atlas/#features">Browse the bank's features, spec by spec →</a></p></div>
   </div>
 </div></section>
 </main>
