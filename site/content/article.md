@@ -85,5 +85,5 @@ Every decision is a file or a record in the repository: who signed, bound to exa
 
 - The [Tidewell SDD Atlas](../atlas/): the whole cycle, step by step, with the automation dial and the security checks you can try.
 - The [presentation](../deck/tidewell-sdd-ibm-bob-deck.pdf) (PDF): twenty-one slides for a mixed audience.
-- The [lab guide](../labs/): a day, in pairs, running the cycle for real.
+- The [lab guide](../labs/): a day, alone or with others, running the cycle for real.
 - The [kit on GitHub](https://github.com/sametkilictas/tidewell-sdd-ibm-bob): clone it, open it in IBM Bob, and ask the Navigator "what's next?".

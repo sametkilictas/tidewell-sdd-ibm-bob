@@ -114,11 +114,25 @@ def link_rewrite(md_html):
 
 
 PATHS = {'Both paths': 'both', 'Terminal path': 'terminal', 'GitHub path': 'github'}
-COPY_JS = """<script>(()=>{for(const pre of document.querySelectorAll('.prose pre')){const box=document.createElement('div');box.className='codebox';pre.before(box);box.appendChild(pre);
+COPY_JS = """<script>(()=>{for(const pre of document.querySelectorAll('.prose pre:not(.output)')){const box=document.createElement('div');box.className='codebox';pre.before(box);box.appendChild(pre);
 const b=document.createElement('button');b.type='button';b.className='copy';
 b.textContent='Copy';b.setAttribute('aria-label','Copy this code');b.addEventListener('click',async()=>{const t=pre.querySelector('code')?.innerText??pre.innerText;
 try{await navigator.clipboard.writeText(t);b.textContent='Copied'}catch(e){const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected'}
 setTimeout(()=>{b.textContent='Copy'},1600)});box.appendChild(b)}})();</script>"""
+
+
+SVG_ATTR = 'viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
+WHERE = {
+    'Terminal': ('term', '<rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M4.5 6l2 2-2 2M8.5 10.5h3"/>'),
+    'Bob chat': ('bob', '<path d="M2.5 3h11v7.5h-6L4.5 13v-2.5h-2z"/>'),
+    'Editor': ('edit', '<path d="M10.5 2.5l3 3L6 13H3v-3z"/><path d="M9 4l3 3"/>'),
+    'Browser': ('web', '<circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2.2 2.2 2.2 9.8 0 12M8 2C5.8 4.2 5.8 11.8 8 14"/>'),
+}
+
+
+def where_chip(kind):
+    cls, path = WHERE[kind]
+    return f'<span class="wk"><svg {SVG_ATTR}>{path}</svg>{kind}</span>'
 
 
 def readable(body, img_dir=None, out=None):
@@ -156,6 +170,18 @@ def readable(body, img_dir=None, out=None):
     body = re.sub(r'<blockquote>\s*<ul>(\s*<li><strong>Goal:</strong>.*?)</ul>\s*</blockquote>', card, body, flags=re.S)
     body = re.sub(r'<blockquote>\s*<p><strong>Checkpoint:</strong> ?', '<blockquote class="checkpoint">\n<p><strong>Checkpoint</strong> ', body)
 
+    # Where each command runs: a label line (emoji + bold place + detail) becomes a bar above the code box.
+    kinds = '|'.join(WHERE)
+    body = re.sub(rf'<p>\S+ <strong>({kinds})</strong> · (.*?)</p>',
+                  lambda m: f'<p class="where w-{WHERE[m.group(1)][0]}">{where_chip(m.group(1))}<span class="wv">{m.group(2)}</span></p>', body)
+    body = re.sub(rf'<li>\S+ <strong>({kinds})</strong> · ',
+                  lambda m: f'<li><span class="where-in w-{WHERE[m.group(1)][0]}">{where_chip(m.group(1))}</span> ', body)
+    body = re.sub(rf'<td>\S+ <strong>({kinds})</strong></td>',
+                  lambda m: f'<td><span class="where-in w-{WHERE[m.group(1)][0]}">{where_chip(m.group(1))}</span></td>', body)
+    # What you should see: output boxes look different from boxes you type into, and have no Copy button.
+    body = body.replace('<pre><code class="language-text">', '<pre class="output"><code class="language-text">')
+    body = body.replace('<pre><code class="language-prompt">', '<pre class="prompt"><code class="language-prompt">')
+
     def code(m):
         lines = []
         for ln in m.group(2).split('\n'):
@@ -168,7 +194,7 @@ def readable(body, img_dir=None, out=None):
                 ln = ln[:cm.start(2)] + f'<span class="{kind}">{c}</span>'
             lines.append(ln)
         return m.group(1) + '\n'.join(lines) + '</code></pre>'
-    body = re.sub(r'(<pre><code[^>]*>)(.*?)</code></pre>', code, body, flags=re.S)
+    body = re.sub(r'(<pre(?: class="\w+")?><code[^>]*>)(.*?)</code></pre>', code, body, flags=re.S)
     return body
 
 
@@ -211,7 +237,7 @@ def build():
     # lab guide
     labs = (ROOT / 'sdd/docs/LABS.md').read_text()
     labs = re.sub(r'\A# [^\n]*\n+(?:[A-Z][a-z]{2} \d{1,2}, \d{4}[^\n]*\n+)?', '', labs)
-    render_doc(labs, title='Lab guide: spec-driven delivery with IBM Bob', eyebrow='Hands-on · a day, in pairs',
+    render_doc(labs, title='Lab guide: spec-driven delivery with IBM Bob', eyebrow='Hands-on · a day, alone or together',
                lede='Run the whole cycle for real at Tidewell Bank: a written spec, a signed plan, test-first code, shift-left '
                     'security checks, proof that every example works, a pipeline gate and a release decision.',
                path='labs/', current='labs/', out_dir='labs', img_dir=ROOT / 'sdd/docs/img',

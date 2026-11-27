@@ -166,3 +166,17 @@ pre .cm{color:#a8a8a8}pre .out.good{color:#6fdc8c}pre .out.bad{color:#ff8389}
 @media (max-width:640px){.brand b{display:none}.hdr .in{gap:12px}.nav a{padding:0 10px}}
 @media (max-width:960px){.doc{grid-template-columns:minmax(0,1fr)}.toc{position:static;max-height:none;border-left:0}.toc p{margin-left:0}}
 @media print{.hdr,.toc,footer,.docnav{display:none}.doc{display:block}.doc-hero{background:#fff;color:#000}}
+
+/* Lab guide: where each command runs, and what you should see */
+.prose p.where{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin:24px 0 0;padding:8px 14px;background:var(--layer);border-left:4px solid var(--k);font-size:14px;line-height:1.4}
+.prose p.where+pre,.prose p.where+.codebox{margin-top:0}
+.where .wk,.where-in .wk{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--k);white-space:nowrap}
+.where .wv{color:var(--text2)}
+.where-in{display:inline-flex}
+.w-term{--k:#161616}.w-bob{--k:#6929c4}.w-edit{--k:#0043ce}.w-web{--k:#005d5d}
+.prose pre.prompt{border-left:4px solid #a56eff}
+.prose pre.output{background:#262626;color:#e0e0e0;border-left:4px solid #6f6f6f;padding-top:30px;position:relative}
+.prose pre.output::before{content:"Output";position:absolute;top:8px;left:24px;font:600 11px/1 'IBM Plex Sans',sans-serif;letter-spacing:.32px;text-transform:uppercase;color:#a8a8a8}
+.prose pre.output{white-space:pre-wrap;overflow-wrap:anywhere}
+@media (max-width:720px){.codebox pre{padding-top:46px;padding-right:24px}}
+.prose p.where+p{margin-top:12px}
