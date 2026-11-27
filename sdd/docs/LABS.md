@@ -743,13 +743,13 @@ gh pr create --draft --fill
 
 🌐 **Browser** · the pull request, signed in to GitHub as A
 
-    In the **Conversation** tab, comment `/approve-plan F00`. Within about 20 seconds a 👀 reaction appears: the sign-off workflow is checking. A minute later it answers with a refusal: A is not the business owner, and nobody signs their own pull request.
+In the **Conversation** tab, comment `/approve-plan F00`. Within about 20 seconds a 👀 reaction appears: the sign-off workflow is checking. A minute later it answers with a refusal: A is not the business owner, and nobody signs their own pull request.
 
 3. B reads `sdd/specs/features/F00-foundation/spec.md` and `plan.md` (in the repository on github.com, or in Bob as in step 4 of 3a), then signs:
 
 🌐 **Browser** · the pull request, signed in to GitHub as B
 
-    Comment `/approve-plan F00`. The workflow checks B against `approvers.json` on `main`, commits the sign-off on its own and answers **✔ Signed by Bea (@bea-login)**.
+Comment `/approve-plan F00`. The workflow checks B against `approvers.json` on `main`, commits the sign-off on its own and answers **✔ Signed by Bea (@bea-login)**.
 
 4. A collects the sign-off commit:
 
@@ -1095,7 +1095,7 @@ Find the entry with `"id": "ibm-detect-secrets"`. A few lines below it, change `
 ```bash
 git add .secrets.baseline sdd/governance/checks.json
 git commit -m "chore(SDD): switch on IBM detect-secrets"
-# Ibm-detect-secrets no longer says (off)
+# Now ibm-detect-secrets no longer says (off)
 node sdd/scripts/checks.mjs --list
 ```
 
