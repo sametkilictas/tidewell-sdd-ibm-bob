@@ -230,8 +230,9 @@ def build():
     atlas = (ROOT / 'sdd/docs/atlas.html').read_text()
     atlas = atlas.replace("'LABS.md']", "'../labs/']").replace("'../../README.md']", f"'{REPO}#readme']")
     # the Atlas's top bar gets a link back to the website's home page
-    assert "const HOME='';" in atlas, 'the Atlas no longer has the HOME setting'
-    atlas = atlas.replace("const HOME='';", "const HOME='../';", 1)
+    home = "const HOME='https://sametkilictas.github.io/tidewell-sdd-ibm-bob/';"
+    assert home in atlas, 'the Atlas no longer has the HOME setting'
+    atlas = atlas.replace(home, "const HOME='../';", 1)
     atlas_meta = (f'<meta name="description" content="{html.escape(DESC)}"><link rel="canonical" href="{SITE}atlas/">'
                   f'<meta property="og:title" content="Tidewell SDD Atlas — spec-driven delivery with IBM Bob">'
                   f'<meta property="og:description" content="The whole spec-driven cycle, interactive: the loop, the people, the automation dial, shift-left security and the pipeline.">'

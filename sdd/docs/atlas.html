@@ -310,6 +310,33 @@ svg text{font-family:var(--plex)}
 .vsteps h4{margin:4px 0 8px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
+/* ---------- guided tour ---------- */
+.htour{background:none;border:0;font:inherit;font-size:14px;cursor:pointer}.hnav+.hnav::before{display:none}
+.htour:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.tour-spot{position:fixed;z-index:60;pointer-events:none;box-shadow:0 0 0 200vmax rgba(22,22,22,.62);outline:2px solid var(--int);outline-offset:0;transition:left .3s var(--ease),top .3s var(--ease),width .3s var(--ease),height .3s var(--ease)}
+.tour{position:fixed;z-index:61;width:min(400px,calc(100vw - 16px));background:var(--bg);color:var(--tp);border-top:4px solid var(--int);box-shadow:0 8px 28px rgba(0,0,0,.4);padding:16px 20px 12px;transition:left .3s var(--ease),top .3s var(--ease)}
+.tour.wide{width:min(520px,calc(100vw - 16px))}
+.tour-top{display:flex;align-items:center;justify-content:space-between;margin:0 -8px 4px 0}
+.tour-n{margin:0;font:600 12px/16px var(--plex);letter-spacing:.32px;color:var(--ts);text-transform:uppercase}
+.tour-x{width:32px;height:32px;display:grid;place-items:center;background:none;border:0;color:var(--ts);cursor:pointer}.tour-x:hover{background:var(--l1h)}
+.tour-x svg{width:16px;height:16px;fill:currentColor}
+.tour h2{font-size:20px;line-height:28px;font-weight:400;margin:0 0 8px;outline:none}
+#tour-b p{margin:0 0 10px;font-size:14px;line-height:20px;color:var(--tp)}
+#tour-b ul{margin:0 0 10px;padding-left:18px;font-size:14px;line-height:20px}#tour-b li{margin:2px 0}
+.tour-paths{list-style:none;padding:0!important;display:grid;gap:1px;background:var(--bs);border:1px solid var(--bs)}
+.tour-paths li{margin:0!important}
+.tour-paths a{position:relative;display:block;padding:10px 40px 10px 12px;background:var(--l1);color:var(--tp);text-decoration:none!important}
+.tour-paths a:hover{background:var(--l1h)}.tour-paths a b{display:block;font-size:14px}.tour-paths a span{display:block;font-size:12px;line-height:16px;color:var(--ts)}
+.tour-paths a svg{position:absolute;right:12px;top:50%;margin-top:-8px;width:16px;height:16px;fill:var(--int)}
+.tour-note{display:flex;gap:8px;align-items:flex-start;color:var(--ts)!important;font-size:13px!important}.tour-note svg{width:16px;height:16px;flex:none;fill:var(--ts);margin-top:2px}
+.tour-dots{display:flex;gap:6px;margin:4px 0 8px}.tour-dots i{width:8px;height:8px;border-radius:50%;background:var(--bs1)}.tour-dots i.done{background:var(--bst)}.tour-dots i.on{background:var(--int);width:20px;border-radius:4px}
+.tour-act .btn[hidden]{display:none}
+.tour-act{display:flex;justify-content:flex-end;gap:8px;margin:0 -8px 0 0}.tour-act .btn{padding-right:16px}.tour-act .btn svg{position:static;margin-left:8px;width:16px;height:16px;fill:currentColor}
+.tour[data-at=dock]{width:calc(100vw - 16px)}
+.tourask{position:fixed;z-index:41;right:16px;bottom:16px;width:min(360px,calc(100vw - 32px));background:var(--inv);color:var(--tinv);padding:16px 16px 12px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+.tourask p{margin:0 0 12px;font-size:14px;line-height:20px}.tourask .btn.ghost{color:#c6c6c6}
+@media (prefers-reduced-motion:reduce){.tour,.tour-spot{transition:none}}
+
 </style></head><body>
 <a class="skip" href="#main">Skip to main content</a>
 <header class="hdr" id="hdr"></header><nav class="side" id="side" aria-label="Atlas sections"></nav><div class="scrim" id="scrim"></div>
@@ -412,13 +439,14 @@ function isoStack(host,layers,o={}){
 const NAV=[['Understand',[['overview','Overview','home'],['sdlc','SDLC meets SDD','layers'],['loop','The delivery loop','loop'],['people','People and Bob','user']]],
  ['Customise',[['dial','Automation dial','meter'],['security','Security, shifted left','shield'],['pipeline','CI/CD pipeline','rocket'],['guardrails','Guardrails','fence']]],
  ['Prove and start',[['evidence','Evidence for audit','doc'],['features','The bank\'s features','grid'],['start','Get started','book']]]];
-// HOME: the website's home page. Empty here; the website build sets it, so only the published Atlas shows the link.
-const HOME='';
+// HOME: the website's home page. Standalone copies (the kit's, a shared artifact) link to the public site in a new tab;
+// the website build swaps in '../', so on the site Home stays in the same tab.
+const HOME='https://sametkilictas.github.io/tidewell-sdd-ibm-bob/';
 const P={};let CUR=null,CURID='';
 function shell(){
  const pathCS=sm=>cs(sm?'path-s':'path-h',[['terminal','Terminal'],['github','GitHub']],PATH,'How sign-offs are given',true);
  $('#hdr').innerHTML=`<button class="hbtn hamb" id="hamb" aria-label="Open menu" aria-expanded="false" aria-controls="side">${icon('menu')}</button>
- <a class="hname" href="#overview"><svg class="hmark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" fill="#0f62fe"/><path d="M6 20c3.3-3.2 6.7-3.2 10 0s6.7 3.2 10 0" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M6 13c3.3-3.2 6.7-3.2 10 0s6.7 3.2 10 0" fill="none" stroke="#a6c8ff" stroke-width="2.4"/></svg>Tidewell<b>SDD Atlas</b></a>${HOME?`<a class="hlink hnav" href="${HOME}" aria-label="Home" title="Home">${icon('home')}<span>Home</span></a>`:''}
+ <a class="hname" href="#overview"><svg class="hmark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" fill="#0f62fe"/><path d="M6 20c3.3-3.2 6.7-3.2 10 0s6.7 3.2 10 0" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M6 13c3.3-3.2 6.7-3.2 10 0s6.7 3.2 10 0" fill="none" stroke="#a6c8ff" stroke-width="2.4"/></svg>Tidewell<b>SDD Atlas</b></a>${HOME?`<a class="hlink hnav" href="${HOME}"${/^https?:/.test(HOME)?' target="_blank" rel="noopener"':''} aria-label="Home" title="Home">${icon('home')}<span>Home</span></a>`:''}<button type="button" class="hlink hnav htour" id="tourbtn" aria-label="Tour: how to read the Atlas" title="How to read the Atlas">${icon('info')}<span>Tour</span></button>
  <span class="hsp"></span><div class="hpath"><span>Sign-offs by</span>${pathCS(false)}</div>`;
  $('#side').innerHTML=`<div class="sidepath"><div class="label" style="margin-bottom:8px">Sign-offs by</div>${pathCS(true)}</div>`+NAV.map(([g,items])=>`<h6>${g}</h6>`+items.map(([k,l,ic])=>`<a href="#${k}" data-k="${k}">${icon(ic)}${l}</a>`).join('')).join('');
  const close=()=>{document.body.classList.remove('nav-open');$('#hamb').setAttribute('aria-expanded','false')};
@@ -1017,5 +1045,81 @@ P.start={title:'Get started',render(){const term=[['Clone it and switch on the g
 
 /* ============ boot ============ */
 shell();addEventListener('hashchange',()=>route());route();
+
+/* ---------- guided tour: how to read the Atlas ----------
+   Opened from "Tour" in the top bar, from the first-visit prompt, or with ?tour in the address.
+   A spotlight on one part of a page and a short card beside it; Back, Next, Esc. The page stays usable
+   underneath, so readers can try what the card points at. */
+const vis=el=>{if(!el)return null;const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(el).visibility!=='hidden'?el:null};
+const narrow=()=>innerWidth<=1055;
+const TOUR=[
+ {page:'overview',title:'Welcome to the Atlas',
+  body:()=>`<p>A map of spec-driven delivery with IBM Bob, built around one fictional bank. Every rule, count and command on these pages comes from the real kit.</p><p>This tour shows how to read it. It takes about a minute, and you can leave at any step.</p>`},
+ {page:'overview',find:()=>narrow()?vis($('#hamb')):vis($('#side')),title:'Three parts, read top to bottom',
+  body:()=>`<p>${narrow()?'The menu holds the pages, in three parts.':'The pages come in three parts.'}</p><ul><li><b>Understand</b>: what SDD is and who does what.</li><li><b>Customise</b>: what your team sets: the dial, the security checks, the pipeline, the guardrails.</li><li><b>Prove and start</b>: the audit trail, the bank's features, your first commands.</li></ul>`},
+ {page:'overview',find:()=>vis($('.hpath'))||vis($('#hamb')),title:'Choose how people sign',
+  body:()=>`<p>Sign-offs work one of two ways: <b>Terminal</b>, as commands that work with any git host and CI, or <b>GitHub</b>, as pull-request comments.</p><p>${vis($('.hpath'))?'This switch':'The switch in the menu'} changes every sign-off and command on every page. Not sure? Keep Terminal.</p>`},
+ {page:'overview',find:()=>vis($('#tower')),title:'Each layer stands on a signed one',
+  body:()=>`<p>Every layer of the tower is something a person signed or a check passed, and nothing is built on an unsigned layer.</p><p>Drag to turn the tower. Select a layer, or its name in the list, to open the step that builds it.</p>`},
+ {page:'loop',find:()=>vis($('#lens')&&$('#lens').closest('.field')),title:'See it through your role',
+  body:()=>`<p>The delivery loop has nine steps. Choose your role here to see the steps where you have the turn.</p><p>Then drag the ring, or press play, to walk through them.</p>`},
+ {page:'dial',find:()=>vis($('#knob')),title:'Try things. Nothing here can break.',
+  body:()=>`<p>The pages under <b>Customise</b> are simulators. Turn the dial to see what Bob may automate and what a person must still sign. The locked gates never move.</p><p>The others work the same way: send a threat through the security layers, run the gate on a pull request, try a shortcut and read the refusal.</p>`},
+ {page:'evidence',find:()=>vis($('#chain')),title:'Follow the proof',
+  body:()=>`<p>Select any link in the chain to follow one requirement from the spec to production. Each link is a file or a commit an auditor can open.</p><p>File names such as <code>sdd/governance/policy.json</code> are real paths in the kit.</p>`},
+ {page:null,title:'Where to start',last:true,
+  body:()=>`<p>Pick the path that fits you; each starts at the first page named.</p><ul class="tour-paths">${[
+   ['sdlc','New to SDD','SDLC meets SDD → The delivery loop → People and Bob'],
+   ['people','Business owner or approver','People and Bob → Automation dial → Evidence for audit'],
+   ['loop','Architect or developer','The delivery loop → Guardrails → Get started'],
+   ['security','Security','Security, shifted left → CI/CD pipeline → Evidence for audit'],
+   ['start','Ready to try it','Get started: from clone to the first sign-off']].map(([k,w,p])=>`<li><a href="#${k}" data-go="${k}"><b>${w}</b><span>${p}</span>${icon('arrow')}</a></li>`).join('')}</ul><p class="tour-note">${icon('info')}<span>Replay this tour any time from ${innerWidth<672?'the <b>ⓘ</b> button':'<b>Tour</b>'} in the top bar.</span></p>`}];
+const Tour={i:-1,
+ start(){if(this.i>=0)return;$('#tourask')&&$('#tourask').remove();store.set('atlas-tour','seen');this.ret=document.activeElement;
+  const s=document.createElement('div');s.className='tour-spot';s.setAttribute('aria-hidden','true');
+  const d=document.createElement('div');d.className='tour';d.setAttribute('role','dialog');d.setAttribute('aria-labelledby','tour-t');d.setAttribute('aria-describedby','tour-b');
+  d.innerHTML=`<div class="tour-top"><p class="tour-n" id="tour-n"></p><button type="button" class="tour-x" id="tour-x" aria-label="End the tour">${icon('close')}</button></div><h2 id="tour-t"></h2><div id="tour-b"></div>
+   <div class="tour-dots" id="tour-dots" aria-hidden="true">${TOUR.map(()=>'<i></i>').join('')}</div>
+   <div class="tour-act"><button type="button" class="btn ghost md" id="tour-p">Back</button><button type="button" class="btn pri md" id="tour-nx">Next</button></div>`;
+  document.body.append(s,d);this.spot=s;this.card=d;
+  $('#tour-x').onclick=()=>this.end();$('#tour-p').onclick=()=>this.go(this.i-1);$('#tour-nx').onclick=()=>this.i===TOUR.length-1?this.end():this.go(this.i+1);
+  d.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(a){e.preventDefault();this.end(false);location.hash=a.dataset.go}});
+  this.key=e=>{if(e.key==='Escape'){e.preventDefault();this.end()}else if(e.key==='ArrowRight'&&!e.target.closest('input,select,textarea,[role=slider]')){this.i<TOUR.length-1&&this.go(this.i+1)}else if(e.key==='ArrowLeft'&&!e.target.closest('input,select,textarea,[role=slider]')){this.i>0&&this.go(this.i-1)}};
+  this.re=()=>{cancelAnimationFrame(this.raf);this.raf=requestAnimationFrame(()=>this.place())};
+  this.hc=()=>{if(!this.nav&&this.i>=0&&TOUR[this.i].page&&location.hash.slice(1)!==TOUR[this.i].page)this.end(false)};
+  addEventListener('keydown',this.key);addEventListener('resize',this.re);addEventListener('scroll',this.re,{passive:true});addEventListener('hashchange',this.hc);
+  this.go(0)},
+ async go(i){if(i<0||i>=TOUR.length)return;const st=TOUR[i];this.i=i;const tok=this.tok=(this.tok||0)+1;
+  if(st.page&&CURID!==st.page){this.nav=true;location.hash=st.page;for(let n=0;n<40&&CURID!==st.page;n++)await new Promise(r=>setTimeout(r,25));await new Promise(r=>setTimeout(r,120));this.nav=false}
+  if(tok!==this.tok||this.i<0)return;
+  $('#tour-n').textContent=`${i+1} of ${TOUR.length}`;$('#tour-t').textContent=st.title;$('#tour-b').innerHTML=st.body();
+  $$('#tour-dots i').forEach((d,k)=>d.className=k===i?'on':k<i?'done':'');
+  $('#tour-p').hidden=i===0;$('#tour-nx').innerHTML=i===0?`Start the tour${icon('arrow')}`:st.last?'Finish':`Next${icon('arrow')}`;
+  this.card.classList.toggle('wide',!!st.last);
+  this.target=st.find?st.find():null;
+  if(this.target){const r=this.target.getBoundingClientRect();if(r.top<56||r.bottom>innerHeight-24){this.target.scrollIntoView({block:r.height>innerHeight*.6?'start':'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});await new Promise(r=>setTimeout(r,380))}}
+  if(tok!==this.tok)return;
+  this.place();$('#tour-t').setAttribute('tabindex','-1');$('#tour-t').focus({preventScroll:true})},
+ place(){if(this.i<0)return;const c=this.card,s=this.spot,vw=innerWidth,vh=innerHeight,t=this.target&&document.contains(this.target)?this.target:null;
+  const cw=c.offsetWidth,ch=c.offsetHeight,M=12;
+  if(!t){s.style.cssText=`left:${vw/2}px;top:${vh/2}px;width:0;height:0`;c.style.left=Math.max(8,(vw-cw)/2)+'px';c.style.top=Math.max(56,(vh-ch)/2)+'px';c.dataset.at='mid';return}
+  const r=t.getBoundingClientRect(),p=6,inHdr=!!t.closest('#hdr'),top=inHdr?r.top+2:Math.max(48,r.top-p),bot=inHdr?r.bottom-2:Math.min(vh,r.bottom+p),pl=inHdr?2:p;
+  s.style.cssText=`left:${r.left-pl}px;top:${top}px;width:${r.width+2*pl}px;height:${Math.max(0,bot-top)}px`;
+  let x,y,at;
+  if(vw<672){x=8;y=r.top+r.height/2<vh/2?vh-ch-8:56;at='dock'}
+  else if(r.right+M+cw<=vw-8){x=r.right+M;y=Math.min(Math.max(56,r.top),vh-ch-8);at='right'}
+  else if(bot+M+ch<=vh-8){x=Math.min(Math.max(8,r.left),vw-cw-8);y=bot+M;at='below'}
+  else if(top-M-ch>=56){x=Math.min(Math.max(8,r.left),vw-cw-8);y=top-M-ch;at='above'}
+  else if(r.left-M-cw>=8){x=r.left-M-cw;y=Math.min(Math.max(56,r.top),vh-ch-8);at='left'}
+  else{x=vw-cw-16;y=vh-ch-16;at='corner'}
+  c.style.left=x+'px';c.style.top=y+'px';c.dataset.at=at},
+ end(focusBack=true){if(this.i<0)return;this.i=-1;this.tok++;removeEventListener('keydown',this.key);removeEventListener('resize',this.re);removeEventListener('scroll',this.re);removeEventListener('hashchange',this.hc);
+  this.spot.remove();this.card.remove();if(focusBack){const b=vis($('#tourbtn'))||this.ret;b&&b.focus&&b.focus()}}};
+$('#tourbtn')&&$('#tourbtn').addEventListener('click',()=>Tour.start());
+// first visit: offer the tour, without getting in the way
+if(/[?&]tour\b/.test(location.search))setTimeout(()=>Tour.start(),400);
+else if(!store.get('atlas-tour',''))setTimeout(()=>{if(Tour.i>=0||$('#tourask'))return;const a=document.createElement('div');a.className='tourask';a.id='tourask';a.setAttribute('role','region');a.setAttribute('aria-label','Tour offer');
+ a.innerHTML=`<p><b>New to the Atlas?</b> A one-minute tour shows how to read it.</p><div class="btns"><button type="button" class="btn pri md" id="ta-go">Take the tour</button><button type="button" class="btn ghost md" id="ta-no">No thanks</button></div>`;
+ document.body.appendChild(a);$('#ta-go').onclick=()=>Tour.start();$('#ta-no').onclick=()=>{store.set('atlas-tour','no');a.remove()}},1200);
 
 }</script></body></html>
